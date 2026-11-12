@@ -1,0 +1,8 @@
+.env*
+!.env.example
+photos/
+assets/
+backups/
+tests/
+test-results/
+playwright-report/

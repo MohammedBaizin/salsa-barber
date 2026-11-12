@@ -1,0 +1,320 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Salsa Barber design tokens. See docs/design-brief.md.
+ * Every value is a hex colour so tests/unit/theme-contrast.test.ts can check WCAG AA pairs.
+ * Light = :root, dark = .dark. Keep both blocks in the same order.
+ */
+
+:root {
+  --background: #fbf6ee;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --card-foreground: #1c1917;
+  --popover: #ffffff;
+  --popover-foreground: #1c1917;
+  --primary: #ffc20e;
+  --primary-foreground: #1c1917;
+  --secondary: #1c1917;
+  --secondary-foreground: #fbf6ee;
+  --muted: #f1e9dc;
+  --muted-foreground: #5b5249;
+  --accent: #c8102e;
+  --accent-foreground: #ffffff;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #e2d6c4;
+  --input: #8a7e70;
+  --ring: #0b63c4;
+  --link: #0b5cb5;
+
+  /* Brand extras */
+  --highlight: #ffc20e;
+  --highlight-foreground: #1c1917;
+  --brand-red: #d7263d;
+  --brand-blue: #0b7bd6;
+  --stripe-light: #ffffff;
+  --shadow-hard: #1c1917;
+
+  /* Booking status chips (background / text) */
+  --status-request: #fff0bf;
+  --status-request-foreground: #6b4300;
+  --status-confirmed: #dcebff;
+  --status-confirmed-foreground: #0a4a8f;
+  --status-done: #dcf2e3;
+  --status-done-foreground: #12602f;
+  --status-noshow: #fde1e4;
+  --status-noshow-foreground: #9b1426;
+  --status-cancelled: #ece6dd;
+  --status-cancelled-foreground: #4f4840;
+
+  /* Dashboard surfaces (neutral, clarity first) */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1c1917;
+  --sidebar-primary: #1c1917;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1e9dc;
+  --sidebar-accent-foreground: #1c1917;
+  --sidebar-border: #e2d6c4;
+  --sidebar-ring: #0b63c4;
+
+  --chart-1: #ffc20e;
+  --chart-2: #0b7bd6;
+  --chart-3: #d7263d;
+  --chart-4: #12602f;
+  --chart-5: #5b5249;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: #141210;
+  --foreground: #f6efe4;
+  --card: #1f1c19;
+  --card-foreground: #f6efe4;
+  --popover: #1f1c19;
+  --popover-foreground: #f6efe4;
+  --primary: #ffc20e;
+  --primary-foreground: #141210;
+  --secondary: #f6efe4;
+  --secondary-foreground: #141210;
+  --muted: #2a2622;
+  --muted-foreground: #bcb2a5;
+  --accent: #ff5d6c;
+  --accent-foreground: #141210;
+  --destructive: #ff7a6b;
+  --destructive-foreground: #141210;
+  --border: #39332d;
+  --input: #8a7f73;
+  --ring: #5aaeff;
+  --link: #7cbcff;
+
+  --highlight: #ffc20e;
+  --highlight-foreground: #141210;
+  --brand-red: #ff5d6c;
+  --brand-blue: #4ba3ff;
+  --stripe-light: #f6efe4;
+  --shadow-hard: #f6efe4;
+
+  --status-request: #3b2c05;
+  --status-request-foreground: #ffd966;
+  --status-confirmed: #0e2945;
+  --status-confirmed-foreground: #9ccbff;
+  --status-done: #0e3220;
+  --status-done-foreground: #8ee3aa;
+  --status-noshow: #44131a;
+  --status-noshow-foreground: #ffa3ad;
+  --status-cancelled: #2a2622;
+  --status-cancelled-foreground: #c4baae;
+
+  --sidebar: #1a1715;
+  --sidebar-foreground: #f6efe4;
+  --sidebar-primary: #f6efe4;
+  --sidebar-primary-foreground: #141210;
+  --sidebar-accent: #2a2622;
+  --sidebar-accent-foreground: #f6efe4;
+  --sidebar-border: #39332d;
+  --sidebar-ring: #5aaeff;
+
+  --chart-1: #ffc20e;
+  --chart-2: #4ba3ff;
+  --chart-3: #ff5d6c;
+  --chart-4: #8ee3aa;
+  --chart-5: #bcb2a5;
+}
+
+@theme inline {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-link: var(--link);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-brand-red: var(--brand-red);
+  --color-brand-blue: var(--brand-blue);
+  --color-shadow-hard: var(--shadow-hard);
+
+  --color-status-request: var(--status-request);
+  --color-status-request-foreground: var(--status-request-foreground);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-foreground: var(--status-confirmed-foreground);
+  --color-status-done: var(--status-done);
+  --color-status-done-foreground: var(--status-done-foreground);
+  --color-status-noshow: var(--status-noshow);
+  --color-status-noshow-foreground: var(--status-noshow-foreground);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-foreground: var(--status-cancelled-foreground);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
+
+  /* Type scale (phone-first, fluid up to desktop) */
+  --text-display: clamp(2.75rem, 1.6rem + 5.6vw, 5.75rem);
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.035em;
+  --text-h1: clamp(2.125rem, 1.6rem + 2.4vw, 3.5rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h2: clamp(1.75rem, 1.4rem + 1.6vw, 2.625rem);
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.01em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.02em;
+  --text-price: clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem);
+  --text-price--line-height: 1;
+
+  --shadow-pop: 4px 4px 0 0 var(--shadow-hard);
+  --shadow-pop-sm: 2px 2px 0 0 var(--shadow-hard);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    overflow-x: clip;
+  }
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-family: var(--font-heading);
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Prices: tabular figures so columns line up. */
+  .price {
+    font-family: var(--font-heading);
+    font-variant-numeric: tabular-nums lining-nums;
+    font-weight: 700;
+  }
+
+  /* Yellow marker swipe behind a word, the brand's signature accent. */
+  .marker {
+    background-image: linear-gradient(
+      transparent 58%,
+      var(--highlight) 58%,
+      var(--highlight) 92%,
+      transparent 92%
+    );
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding-inline: 0.08em;
+  }
+  /* On dark backgrounds the swipe becomes a full block with ink text, so the text keeps AA contrast. */
+  .dark .marker {
+    background-image: linear-gradient(
+      transparent 6%,
+      var(--highlight) 6%,
+      var(--highlight) 98%,
+      transparent 98%
+    );
+    color: var(--highlight-foreground);
+  }
+
+  /* Barber-pole stripe band (red, light, blue), used as a thin divider and progress track. */
+  .pole-stripe {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--brand-red) 0 10px,
+      var(--stripe-light) 10px 20px,
+      var(--brand-blue) 20px 30px,
+      var(--stripe-light) 30px 40px
+    );
+  }
+
+  /* Skip link: hidden until focused. */
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 600;
+  }
+  .skip-link:focus {
+    top: max(0.75rem, env(safe-area-inset-top));
+  }
+}
