@@ -6,8 +6,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | --- | --- | --- |
 | 0 | Scaffold, Docker, theming, design tokens, logo assets | Done (committed) |
 | 1 | Schema, roles, RLS, audit, seed (Supabase) | Done (committed on `phase-1-database`) |
-| 2 | Domain logic (time, money, phone, hours, availability, messages…) | **Done, awaiting review** |
-| 3 | Auth (username login, requireStaff, proxy) | Not started |
+| 2 | Domain logic (time, money, phone, hours, availability, messages…) | Done (committed on `phase-2-domain`) |
+| 3 | Auth (username login, requireStaff, proxy) | **Done, awaiting review** |
 | 4 | Homepage | Not started |
 | 5 | Booking flow + availability API | Not started |
 | 6 | Dashboard shell + Today | Not started |
@@ -197,6 +197,59 @@ feat(domain): add tested booking, availability, messaging and permission logic
 
 ---
 
+## Phase 3: auth
+
+Branch `phase-3-auth` (stacked on `phase-2-domain`).
+
+**Scope**
+
+- `src/lib/auth/staff.ts`: `checkStaff()` (once per request via React `cache`) and `requireStaff(roles?)` for every
+  dashboard page, action and route handler. The user comes from `auth.getUser()` (asks the Auth server); the staff
+  row is read with the secret key. Signed out → `/login`; switched off or deleted → signed out with a message;
+  second step missing → `/login/2fa` (page comes in phase 15); wrong role → 404.
+- `src/proxy.ts`: fast first gate only. Refreshes the session cookie (`getClaims()`, no DB query), sends signed-out
+  visitors from `/dashboard…` to `/login?next=…`, lets server-action POSTs through.
+- `/login`: logo, username + password, show/hide, friendly errors with `role="alert"`, keeps the username, returns
+  to the requested dashboard page. `safeNextPath()` only allows `/dashboard` paths. Unknown usernames and wrong
+  passwords get the same message. Usernames are case-insensitive. Accounts with a verified authenticator go to
+  `/login/2fa`. Not indexed.
+- `/auth/signout` (POST from the button, GET when an account is switched off): ends this device's session only.
+- `src/lib/connection.ts`: `safely()` wrapper for actions used from forms (lost connection → normal message;
+  redirects still work).
+- `src/lib/supabase/server.ts` calls `connection()` so session work is never prerendered.
+- `/dashboard`: placeholder ("Hi …, signed in as …", Sign out) until phase 6.
+- `npm run create-admin -- <username> "<Name>"` (and `create-admin:prod`): creates the login + admin profile with a
+  12-character one-time password from `src/lib/auth/temp-password.ts`; removes the login again if the profile fails.
+- `/api/health` (DB check; used by Playwright now, by Vercel Cron at launch).
+- Playwright set up: production build on port 3418, local Supabase only (refuses other hosts), Pixel 7 then
+  Desktop Chrome, `workers: 1`, waits for `/api/health`; helpers for `formAlert`, axe and overflow checks.
+
+**Tests actually run**
+
+- `npm run test:e2e`: **24 passed** (12 tests × phone + desktop): signed-out redirect with return path; wrong
+  password and unknown username give the same message and keep the username; empty form; show/hide password;
+  case-insensitive sign-in returning to the requested page; sign out → message → dashboard locked again; off-site
+  `next` ignored; switched-off account refused; **switching someone off signs them out on their next page load**;
+  login page axe WCAG 2.1 AA in light and dark (also with an error shown) and no sideways scroll; `noindex`; health.
+- `npm test`: 274 passed (adds open-redirect cases and temp-password checks).
+- `npm run test:db` 69 passed · typecheck clean · lint clean · build success.
+- Manual: `create-admin` success, duplicate username and invalid username.
+
+**Notes**
+
+- Login attempt limits, password rules and two-step sign-in come in phase 15 (spec §9). Until then Supabase Auth's
+  own rate limit applies (it gets the "Too many attempts" message).
+- `requireStaff()` is deliberately not cached across requests (no `use cache: private`), so switching someone
+  off takes effect immediately.
+
+**Suggested commit**
+
+```
+feat(auth): add username sign-in, requireStaff guard, proxy, sign-out and create-admin
+```
+
+---
+
 ## Shop data received (2026-11-12)
 
 - **Name:** Salsa Barber · **Address:** 41 Liverpool Road South, L31 7BN (area assumed Maghull, postal town Liverpool)
@@ -225,16 +278,27 @@ feat(domain): add tested booking, availability, messaging and permission logic
 | Nose Wax | £2 |
 | Ear Wax | £3 |
 
-## Open questions for the owner
+## Answers received (2026-11-12)
 
-1. **WhatsApp number:** which number should customers WhatsApp/SMS? The shop phone is a landline. Should the owner's
-   mobile be public on the site, or only used privately (e.g. alerts)?
-2. **Durations** for each service (and what "Full Service" includes).
-3. **Opening hours** and regular closed days.
-4. **Barbers:** names, titles, who does which service, working hours.
-5. **Payments:** cash and card? (currently "Cash & card", unconfirmed)
-6. **Area name:** is "Maghull" right for the site?
-7. **OAP Cut Mon–Thurs:** should online booking only offer it Monday to Thursday?
-8. **Boy's Cut 12 & under / Boy's Skin Fade:** any age note to show?
-9. Google rating/review link, real reviews to copy, walk-in and discount text.
-10. Domain name for the live site.
+| Topic | Decision | Applied in |
+| --- | --- | --- |
+| WhatsApp number | Use the shop number (0151 309 4681) for WhatsApp buttons. The owner's personal mobile stays private. | Phase 4 (`site.ts`) |
+| Opening hours | I pick sensible hours now (Mon–Fri 9am–6pm, Sat 9am–5pm, Sun closed); the owner changes them in Settings | Phase 4 (migration), Settings phase 11 |
+| Area name | Keep "Maghull" for now, still marked "to confirm" | — |
+| Payments | Cash & card (confirmed) | Phase 4 |
+| Google rating | Set by owner/admin in Settings; blank hides it | Phase 11 |
+| Reviews | Real reviews, typed in word for word by the owner/admin in the dashboard (never invented) | Phase 12 |
+| Walk-in text | "Walk-ins welcome."; editable in Settings. Discount text left blank | Phase 4 (migration) |
+| Photos | I choose the best ones, leaving out anything that looks like a child | Phase 4 (import) |
+| Photo limits | **Slideshow max 3, Recent cuts max 4** (changes the spec's 3 + 3) | Phase 4 (migration + domain) |
+| Service lengths | Placeholder lengths for now; owner/admin edits them in Services | Phase 10 |
+| Barbers | Added by the owner/admin in Team | Phase 9 |
+| OAP Cut | Online booking only Mon–Thu, and **which days a service can be booked is editable per service** in the dashboard | Phase 4 (migration + availability), Services phase 10 |
+| Boy's Cut (12 & Under) | Just the service name, no extra note | — |
+| Hosting | Vercel default domain (`*.vercel.app`) for now | Phase 18 |
+| Owner alert emails | Off for now (the feature stays switched off without `RESEND_API_KEY`) | Phase 14 |
+
+### Still open
+
+1. Merging: keep stacking one branch per phase, or merge into `main`?
+2. Booking window ("30 days" = today + 29 days) and the "any barber" rule (free longest before that time): OK?

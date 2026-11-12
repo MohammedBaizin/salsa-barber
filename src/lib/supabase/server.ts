@@ -1,14 +1,18 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "./database.types";
 import { supabasePublishableKey, supabaseUrl } from "./env";
 
 /**
  * Session client for server components, server actions and route handlers (RLS: the signed-in staff member).
- * Create a new one per request. Reading cookies makes the caller dynamic: keep it inside <Suspense>.
+ * Create a new one per request. Keep callers inside <Suspense>.
+ * `connection()` keeps session work at request time (never in a prerender or prefetch): the auth client reads the
+ * clock to check token expiry, and a staff check must always be fresh.
  */
 export async function createSessionClient() {
+  await connection();
   const cookieStore = await cookies();
   return createServerClient<Database>(supabaseUrl(), supabasePublishableKey(), {
     cookies: {
