@@ -9,9 +9,13 @@ Built with Next.js 16, Tailwind CSS 4, shadcn/ui and Supabase. Progress is track
 
 ```bash
 npm install
-cp .env.example .env.local
+npm run db:start     # local Supabase in Docker (ports 47320–47329)
+npm run env:local    # writes the local Supabase URL and keys into .env.local
 npm run dev          # http://localhost:3417
 ```
+
+Local sample logins (dev seed only): `admin`, `owner`, `sam`, `jamie`, password `LocalDev-Sample-1`.
+Supabase Studio: http://127.0.0.1:47323
 
 Or with Docker: `docker compose up app`.
 
@@ -23,6 +27,11 @@ Or with Docker: `docker compose up app`.
 | `npm run build` / `npm start` | Production build / serve it |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
 | `npm test` | Unit tests (Vitest) |
+| `npm run test:db` | Database tests against local Supabase (RLS, constraints, triggers) |
+| `npm run db:start` / `db:stop` | Start / stop local Supabase |
+| `npm run db:reset` | Rebuild the local database from migrations + sample seed |
+| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` |
+| `npm run env:local` | Copy local Supabase URL/keys into `.env.local` |
 | `npm run assets:logo` | Regenerate logo sizes, icons and the OG image from `assets/` |
 
 The full guide (deploying, backups, troubleshooting) is written in the launch phase.

@@ -4,8 +4,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 
 | # | Phase | Status |
 | --- | --- | --- |
-| 0 | Scaffold, Docker, theming, design tokens, logo assets | **Done, awaiting review** |
-| 1 | Schema, roles, RLS, audit, seed (Supabase) | Not started |
+| 0 | Scaffold, Docker, theming, design tokens, logo assets | Done (committed) |
+| 1 | Schema, roles, RLS, audit, seed (Supabase) | **Done, awaiting review** |
 | 2 | Domain logic (time, money, phone, hours, availability, messages…) | Not started |
 | 3 | Auth (username login, requireStaff, proxy) | Not started |
 | 4 | Homepage | Not started |
@@ -75,6 +75,75 @@ chore: scaffold Next.js 16 app with Salsa design tokens, theming and logo assets
 
 ---
 
+## Phase 1: schema, roles, RLS, audit, seed
+
+**Scope**
+
+- Supabase CLI project (`supabase/config.toml`): own ports **47320–47329** (API 47321, DB 47322, Studio 47323,
+  Mailpit 47324) so it runs beside other local stacks; public sign-up off (email provider on, no confirmations);
+  TOTP MFA enabled; min password 10; `auto_expose_new_tables = false` (explicit grants only); realtime, edge
+  runtime and analytics off.
+- Migrations (one file per concern, `supabase/migrations/`):
+  - `foundation`: `btree_gist`, private `app` schema, `app.london()`, `app.london_label()`, `app.pounds()`,
+    `app.valid_weekly_hours()`, `app.fits_hours()` (DST-safe, Europe/London).
+  - `tables`: every table in spec §6 with its checks; exclusion constraint `bookings_no_overlap`; indexes from §6 only.
+    `audit_log` has one extra column, `changed text[]` (changed column names, for readable labels in the Activity log).
+  - `auth_helpers`: `app.mfa_ok()`, `app.my_staff_id()` (null when switched off, deleted or missing the second
+    step), `app.my_role()`, `app.is_manager()`, `app.is_admin()`, `public.two_factor_ok()`.
+  - `triggers`: `app.bookings_before_write()` (shop-wide advisory lock, `ends_at` from duration, status machine,
+    barbers can't change barber/service/price/client, message flag reset, read-only token/source);
+    `app.staff_before_write()` (usernames locked, roles only by admin, nobody switches off themselves);
+    `app.gallery_limit()` (3 visible per set); `app.audit()` + `app.audit_mark_admin()` on every staff-editable table
+    with readable summaries (never phone numbers).
+  - `rls`: revoke-all then explicit grants; RLS on every table; restrictive `require_2fa` on every table; policies
+    per the §7 permission table; `tables_missing_2fa_policy()` for tests.
+  - `views_storage`: `public_team` (anon-safe, no usernames/roles/hours), `client_stats` (security invoker, so barbers
+    only count their own visits); buckets `gallery` + `team` (public, WebP only, ≤ 2 MB, managers write) and private
+    `restore-snapshots`.
+  - `initial_data`: settings row (public theme dark) and the 13 services from the price list.
+- `supabase/seed.sql` (dev only, all labelled SAMPLE): logins `admin`, `owner`, `sam`, `jamie`, `off` (switched off),
+  password `LocalDev-Sample-1`; sample hours, time off, closure, 4 clients on Ofcom drama numbers, bookings in every
+  status relative to today, 2 sample reviews.
+- Supabase clients: `src/lib/supabase/env.ts`, `public.ts` (anon, `no-store`, safe in `'use cache'`), `server.ts`
+  (session via `@supabase/ssr`), `admin.ts` (secret key, `server-only`); generated `database.types.ts`.
+- Scripts: `db:start`, `db:stop`, `db:reset`, `db:types`, `env:local` (writes local URL/keys into `.env.local`),
+  `test:db`. Supabase CLI pinned as a dev dependency.
+
+**Tests actually run**
+
+- `npm run test:db`: **69 passed** (3 files, local Supabase; refuses non-local hosts).
+  - RLS matrix: anon reads only public content (no usernames/roles/hours, no private tables, no writes, no staff
+    RPCs); barber sees only own bookings/clients/time off and own `client_stats`, can reschedule own bookings but not
+    change price/barber, can't touch others' bookings, admin row, activity, services, settings or team; owner sees
+    everything except admin, edits barbers (audited), can't create owners/admins, change roles or switch self off;
+    admin sees admin rows and admin-only activity; admin never bookable.
+  - Bookings: `ends_at` from duration, DST storage, admin never bookable, overlap refused (23P01), back-to-back /
+    other barber / freed slots allowed, **6 simultaneous inserts → exactly 1 wins**, full status machine incl. undo
+    and 8 refused transitions, decline reason, read-only columns, message flag reset rules, audit text for accept and
+    reschedule (no phone numbers), message-sent not audited.
+  - Schema: every table has `require_2fa` and RLS; service role reads every table/view; **a verified factor on an
+    aal1 session blocks all reads and writes**; weekly-hours validation; `fits_hours` on both 2026 DST change days;
+    `pounds()`; single settings row; settings audit; FK restrict on booked services; 5-minute durations; UK-mobile-only
+    phones; `client_stats`; gallery limit; buckets and manager-only uploads.
+- `npm test` 83 passed · `npm run typecheck` clean · `npm run lint` clean · `npm run build` success ·
+  `supabase db lint` no errors.
+
+**Notes**
+
+- Booking RPCs (`request_booking`, walk-in, phone booking, manage-link RPCs) come in their phases (5, 7, 14);
+  `delete_client`/`delete_staff` in 8/9; `purge_old_data` + `pg_cron` in 13; login limits in 15; restore in 17.
+- Service **durations are placeholders** (marked in the migration); opening hours are empty until the owner confirms.
+- Docker: the `app` container reaches local Supabase at `http://host.docker.internal:47321`, not `127.0.0.1`.
+- Migrations haven't been pushed anywhere yet, so they may still be edited until the first `supabase db push`.
+
+**Suggested commit**
+
+```
+feat(db): add Supabase schema, RLS, audit triggers, storage and sample seed
+```
+
+---
+
 ## Shop data received (2026-11-12)
 
 - **Name:** Salsa Barber · **Address:** 41 Liverpool Road South, L31 7BN (area assumed Maghull, postal town Liverpool)
@@ -85,7 +154,7 @@ chore: scaffold Next.js 16 app with Salsa design tokens, theming and logo assets
 - **Photos:** `photos/recent cuts` (15, mostly HEIC), `photos/shop photo` (4 HEIC). Imported later via the dashboard or `photos:import`.
 - **Owner's personal mobile:** received, deliberately **not** stored in the repo (see open questions).
 
-**Price list** (initial-data migration in phase 1; durations still needed):
+**Price list** (in the `initial_data` migration; durations are placeholders until confirmed):
 
 | Service | Price |
 | --- | --- |
