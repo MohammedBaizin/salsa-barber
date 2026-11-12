@@ -9,8 +9,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 2 | Domain logic (time, money, phone, hours, availability, messages…) | Done (committed on `phase-2-domain`) |
 | 3 | Auth (username login, requireStaff, proxy) | Done (committed on `phase-3-auth`) |
 | 4 | Homepage | Done (committed on `phase-4-homepage`) |
-| 5 | Booking flow + availability API | **Done, awaiting review** |
-| 6 | Dashboard shell + Today | Not started |
+| 5 | Booking flow + availability API | Done (committed on `phase-5-booking`) |
+| 6 | Dashboard shell + Today | **Done, awaiting review** |
 | 7 | Booking actions + Calendar | Not started |
 | 8 | Clients | Not started |
 | 9 | Team | Not started |
@@ -376,6 +376,75 @@ Branch `phase-5-booking` (stacked on `phase-4-homepage`).
 
 ```
 feat(booking): add booking flow, availability API and request_booking with parity tests
+```
+
+---
+
+## Phase 6: dashboard shell + Today
+
+Branch `phase-6-dashboard` (stacked on `phase-5-booking`).
+
+**Scope**
+
+- **Shell** (`dashboard/layout.tsx`): static frame that prerenders; everything reading the session streams in behind
+  its own `<Suspense>`. Desktop sidebar (badge, items, "View website"), phone bottom tab bar (safe-area aware,
+  slides away and goes `inert` while a text field has focus), sticky header with name · role, **bell** with the
+  waiting-request count (links to `#requests`), theme toggle (dashboard preference) and sign out.
+  Tabs per role from `lib/dashboard/nav.ts`: owner/admin Today · Calendar · Clients · Team · More; barber Today ·
+  Calendar · Clients · Me. `interactive-widget=resizes-content` on dashboard pages.
+- **Sheet** (`components/dashboard/sheet.tsx`): native modal `<dialog>`, bottom sheet on phones kept above the
+  iPhone keyboard (`visualViewport`), centred panel on desktop, sticky title, `flex: 1 1 auto` body, pinned footer,
+  backdrop tap / Esc / Close, focus returns, page scroll locked without jumping.
+- **Auto-refresh** every 60 s (`router.refresh()`), paused while hidden, offline or a sheet is open; one catch-up
+  refresh when that ends.
+- **Skeletons** that appear only after ~90 ms (`.skeleton-delay`), one per page; dashboard `error.tsx` (uses
+  `retry`), `not-found.tsx` and `loading.tsx` inside the shell; `[...missing]` so unknown dashboard URLs get the
+  shell's not-found too.
+- **Today**: greeting + date (London), stats (bookings today, takings taken vs expected, still to come; "Shop
+  takings" for owner/admin, "Your takings" for barbers, scoped by RLS), due-back count linking to Clients;
+  **Requests** (every pending request, soonest first; "Waiting over 12 hours" highlighted, "Expired", "Same number
+  has another booking", "Changed by customer", "Any barber"); **Needs closing** (any day); **Next up** ("Now",
+  "in 25 min"); **Today's schedule** with a "now" line and an instant barber filter (owner/admin).
+- **Booking card** (coloured edge + status word, time, name, service · price · barber, chips) opens a **details
+  sheet**: when, service, barber (and "any barber"), client / "booked as", mobile, status, source, decline reason,
+  message sent, **Call**.
+- Data: `lib/dashboard/bookings.ts` (session client only, so RLS decides what each role sees). Pure logic added to
+  `domain/today.ts`: `bookingName` ("Walk-in customer" / "Deleted client"), `requestFlags`, `hasOtherBooking`,
+  `sortRequests`, `scheduleWithNow`.
+- More page (real menu; Backup for admins). Calendar, Clients, Team, Services, Website, Settings, Activity,
+  Account and Backup are **placeholders** with their final role guards until their phases.
+- Fixes: "Staff login" in the footer is a full page load, so the staff area's theme applies before paint;
+  `ThemeToggle` takes an `area`. The e2e `expectNoHorizontalScroll` now also fails when a phone browser has zoomed
+  out to fit wide content (the old check missed that; it caught a real overflow in the schedule filter here).
+
+**Tests actually run**
+
+- `npm test`: **317 passed** (23 new): booking names, every request flag and its order, request sorting,
+  now-line placement (in progress, exact start, empty, other day, summer midnight), barber filter, nav per role
+  and active item, auto-refresh (60 s, paused hidden/offline/sheet open, single catch-up, stops on unmount).
+- `npm run test:e2e`: **129 passed, 7 skipped** (phone-only checks on desktop; Today tests that need hours left
+  today skip near midnight). New: owner/admin/barber nav, More with/without Backup, role-guarded pages show
+  not-found inside the shell, unknown URL, bell count, requests with all flags, needs closing, next up, now-line
+  order, barber filter, **barbers never see other barbers' bookings**, details sheet (Call link, Esc, focus return,
+  scroll lock), **auto-refresh with a fake clock, held while a sheet is open**, tab bar steps aside for typing,
+  separate dashboard/site themes, sign out, **axe WCAG 2.1 AA on Today, the open sheet and More in light and
+  dark**, no sideways scroll at 320/375/430 px, `noindex`.
+- `npm run test:db` 97 passed (no schema change) · typecheck clean · lint clean · build success (every dashboard
+  route partially prerendered).
+- Manual: production build screenshots, phone and desktop, light and dark, Today and the open sheet.
+
+**Notes**
+
+- Deliberately left for phase 7 (booking actions): Accept/Decline/Done buttons on cards, the actions in the
+  details sheet, Walk-in and Booking buttons, and the "Send to customer: WhatsApp | SMS" sheet. No button is shown
+  until it works.
+- Admin backup reminder comes with Backup (phase 17); the one-time alerts offer with push (phase 16).
+- Barbers' "same number has another booking" only sees their own bookings (RLS), by design.
+
+**Suggested commit**
+
+```
+feat(dashboard): add dashboard shell, sheet, auto-refresh and Today screen
 ```
 
 ---

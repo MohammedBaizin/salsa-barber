@@ -58,9 +58,10 @@ export function SiteFooter({ content }: { content: SiteContent }) {
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-secondary-foreground/20 pt-6 text-sm opacity-90">
           <p>© {site.name}</p>
-          <Link href="/login" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:no-underline">
+          {/* Full page load so the staff area's own theme applies before paint. */}
+          <a href="/login" className="inline-flex min-h-11 items-center underline underline-offset-4 hover:no-underline">
             Staff login
-          </Link>
+          </a>
         </div>
       </div>
     </footer>

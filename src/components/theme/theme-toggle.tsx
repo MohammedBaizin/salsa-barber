@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
-import { applyTheme, THEME_STORAGE_KEYS, type PublicTheme } from "@/lib/theme";
+import { applyTheme, THEME_STORAGE_KEYS, type PublicTheme, type ThemeArea } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 function subscribe(onChange: () => void) {
@@ -16,10 +16,11 @@ function currentTheme(): PublicTheme {
 }
 
 /**
- * Public site light/dark toggle. Shows the theme actually applied (set before paint by the inline script).
- * Server render shows nothing theme-specific to avoid a mismatch.
+ * Light/dark toggle for the public site or the dashboard (each keeps its own preference). Shows the theme actually
+ * applied (set before paint by the inline script). Server render shows nothing theme-specific to avoid a mismatch.
+ * The dashboard's "System" choice lives in Account; this button stores an explicit light or dark.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, area = "site" }: { className?: string; area?: ThemeArea }) {
   const theme = useSyncExternalStore<PublicTheme | null>(subscribe, currentTheme, () => null);
   const next: PublicTheme = theme === "dark" ? "light" : "dark";
 
@@ -27,9 +28,9 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       type="button"
       onClick={() => {
-        applyTheme("site", next);
+        applyTheme(area, next);
         try {
-          localStorage.setItem(THEME_STORAGE_KEYS.site, next);
+          localStorage.setItem(THEME_STORAGE_KEYS[area], next);
         } catch {
           // Private mode: the choice lasts for this page only.
         }

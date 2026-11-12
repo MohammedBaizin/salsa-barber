@@ -3,7 +3,7 @@
  * availableActions() mirrors the status machine in app.bookings_before_write() plus the §7 permissions.
  */
 import type { Role } from "./team";
-import { formatMinutes, londonParts } from "./time";
+import { dateKey, formatMinutes, londonParts } from "./time";
 
 export type BookingStatus = "pending" | "confirmed" | "declined" | "cancelled" | "completed" | "no_show";
 export type BookingSource = "online" | "walk_in" | "staff";
@@ -153,4 +153,89 @@ export function todayStats(bookings: { status: BookingStatus; pricePence: number
     expectedPence: live.reduce((s, b) => s + b.pricePence, 0),
     upcoming: bookings.filter((b) => b.status === "confirmed" && b.startsAt > now).length,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Today screen: names, request flags, schedule
+// ---------------------------------------------------------------------------
+
+export const SOURCE_LABELS: Record<BookingSource, string> = {
+  online: "Online request",
+  walk_in: "Walk-in",
+  staff: "Booked by staff",
+};
+
+/**
+ * Name shown on a booking: the name given for this booking, else the client's name.
+ * No client row: an anonymous walk-in, or a client deleted on request (their typed name is cleared too).
+ */
+export function bookingName(b: { bookedName: string | null; clientName: string | null; source: BookingSource }): string {
+  return b.bookedName ?? b.clientName ?? (b.source === "walk_in" ? "Walk-in customer" : "Deleted client");
+}
+
+export type RequestFlag = "expired" | "stale" | "same_number" | "changed";
+
+export const REQUEST_FLAG_LABELS: Record<RequestFlag, string> = {
+  expired: "Expired",
+  stale: "Waiting over 12 hours",
+  same_number: "Same number has another booking",
+  changed: "Changed by customer",
+};
+
+type FlagBooking = {
+  id: string;
+  status: BookingStatus;
+  clientId: string | null;
+  startsAt: Date;
+  endsAt: Date;
+  createdAt: Date;
+  changedFrom: string | null;
+};
+
+/** The same client (phone number) has another pending/confirmed booking that hasn't ended. */
+export function hasOtherBooking(b: Pick<FlagBooking, "id" | "clientId">, live: Pick<FlagBooking, "id" | "clientId" | "status" | "endsAt">[], now: Date): boolean {
+  if (!b.clientId) return false;
+  return live.some((o) => o.id !== b.id && o.clientId === b.clientId && LIVE_STATUSES.includes(o.status) && o.endsAt > now);
+}
+
+/** Chips on a request card, most important first. Expired replaces "waiting over 12 hours". */
+export function requestFlags(b: FlagBooking, live: Pick<FlagBooking, "id" | "clientId" | "status" | "endsAt">[], now: Date): RequestFlag[] {
+  if (b.status !== "pending") return [];
+  const flags: RequestFlag[] = [];
+  if (isExpired(b, now)) flags.push("expired");
+  else if (isStale(b, now)) flags.push("stale");
+  if (hasOtherBooking(b, live, now)) flags.push("same_number");
+  if (b.changedFrom) flags.push("changed");
+  return flags;
+}
+
+/** Requests: every pending booking, soonest appointment first. */
+export function sortRequests<T extends { status: BookingStatus; startsAt: Date; createdAt: Date }>(bookings: T[]): T[] {
+  return bookings
+    .filter((b) => b.status === "pending")
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.createdAt.getTime() - b.createdAt.getTime());
+}
+
+/** Statuses shown on the day's schedule (cancelled and declined are left out). */
+export const SCHEDULE_STATUSES: readonly BookingStatus[] = ["pending", "confirmed", "completed", "no_show"];
+
+export type ScheduleItem<T> = { kind: "booking"; booking: T } | { kind: "now" };
+
+/**
+ * The day's schedule in time order with a "now" marker before the first booking that hasn't started.
+ * The marker is left out when `now` isn't on that London day.
+ */
+export function scheduleWithNow<T extends { status: BookingStatus; staffId: string; startsAt: Date }>(
+  bookings: T[],
+  now: Date,
+  opts: { day: string; staffId?: string | null },
+): ScheduleItem<T>[] {
+  const rows = bookings
+    .filter((b) => SCHEDULE_STATUSES.includes(b.status) && (!opts.staffId || b.staffId === opts.staffId))
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  const items: ScheduleItem<T>[] = rows.map((booking) => ({ kind: "booking", booking }));
+  if (dateKey(now) !== opts.day) return items;
+  const at = rows.findIndex((b) => b.startsAt > now);
+  items.splice(at === -1 ? items.length : at, 0, { kind: "now" });
+  return items;
 }
