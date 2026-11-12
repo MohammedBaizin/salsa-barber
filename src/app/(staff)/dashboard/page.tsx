@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
-import { BookingCard, BookingSheetProvider } from "@/components/dashboard/booking-card";
+import { BookingCard, NewBookingButtons } from "@/components/dashboard/booking-card";
+import { BookingsProvider } from "@/components/dashboard/bookings-provider";
 import { LoadingLabel, Skeleton } from "@/components/dashboard/skeleton";
 import { TodaySchedule } from "@/components/dashboard/today-schedule";
 import { requireStaff } from "@/lib/auth/staff";
@@ -60,13 +61,14 @@ async function Today() {
   const byId = new Map([...data.todays, ...data.requests, ...data.needsClosing].map((b) => [b.id, b]));
 
   return (
-    <BookingSheetProvider today={data.today}>
+    <BookingsProvider setup={data.setup} today={data.today}>
       <div className="space-y-8">
         <div>
           <h1 className="text-h2 font-extrabold" data-testid="greeting">
             {greeting(now)}, {firstName(staff.displayName)}
           </h1>
           <p className="mt-1 text-muted-foreground">{formatDayLong(data.today)}</p>
+          <NewBookingButtons date={data.today} className="mt-4" />
         </div>
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="today-stats">
@@ -103,7 +105,7 @@ async function Today() {
                 <ul className="space-y-2" data-testid="requests">
                   {requests.map((b) => (
                     <li key={b.id}>
-                      <BookingCard booking={byId.get(b.id)!} today={data.today} showDay flags={requestFlags(b, live, now)} />
+                      <BookingCard booking={byId.get(b.id)!} today={data.today} now={data.now} showDay flags={requestFlags(b, live, now)} />
                     </li>
                   ))}
                 </ul>
@@ -118,7 +120,7 @@ async function Today() {
                 <ul className="space-y-2" data-testid="needs-closing">
                   {closing.map((b) => (
                     <li key={b.id}>
-                      <BookingCard booking={byId.get(b.id)!} today={data.today} showDay />
+                      <BookingCard booking={byId.get(b.id)!} today={data.today} now={data.now} showDay />
                     </li>
                   ))}
                 </ul>
@@ -132,7 +134,7 @@ async function Today() {
                 <ul className="space-y-2" data-testid="next-up">
                   {upNext.map((b) => (
                     <li key={b.id}>
-                      <BookingCard booking={byId.get(b.id)!} today={data.today} note={untilLabel(b, now)} />
+                      <BookingCard booking={byId.get(b.id)!} today={data.today} now={data.now} note={untilLabel(b, now)} />
                     </li>
                   ))}
                 </ul>
@@ -147,7 +149,7 @@ async function Today() {
           </div>
         </div>
       </div>
-    </BookingSheetProvider>
+    </BookingsProvider>
   );
 }
 

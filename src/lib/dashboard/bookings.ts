@@ -1,28 +1,30 @@
 import "server-only";
 import type { Staff } from "@/lib/auth/staff";
+import { visibleStatuses, weekOf, type CalendarParams } from "@/lib/domain/calendar";
 import type { BookingSource, BookingStatus } from "@/lib/domain/today";
 import { addDays, dateKey, fromLondon } from "@/lib/domain/time";
 import { isManager } from "@/lib/domain/team";
 import { createSessionClient } from "@/lib/supabase/server";
-import type { BarberOption, DashboardBooking } from "./types";
+import { loadBookingSetup } from "./setup";
+import type { BarberOption, BookingSetup, DashboardBooking } from "./types";
 
 /**
  * RLS-scoped booking queries for the dashboard. Everything goes through the signed-in person's session,
  * so barbers only ever receive their own bookings and clients (spec §7).
  */
 
-const BOOKING_COLUMNS = `
-  id, status, source, starts_at, ends_at, created_at, service_name, price_pence, duration_min, staff_id, client_id,
+export const BOOKING_COLUMNS = `
+  id, status, source, starts_at, ends_at, created_at, service_id, service_name, manage_token, price_pence, duration_min, staff_id, client_id,
   booked_name, any_barber, changed_from, decline_reason, message_sent_at, cancelled_by_client,
   client:clients!bookings_client_id_fkey (name, phone),
   barber:staff!bookings_staff_id_fkey (display_name)
 ` as const;
 
-type Supabase = Awaited<ReturnType<typeof createSessionClient>>;
+export type Supabase = Awaited<ReturnType<typeof createSessionClient>>;
 
 type BookingRow = NonNullable<Awaited<ReturnType<typeof bookingsQuery>>["data"]>[number];
 
-function toBooking(row: BookingRow): DashboardBooking {
+export function toBooking(row: BookingRow): DashboardBooking {
   return {
     id: row.id,
     status: row.status as BookingStatus,
@@ -30,6 +32,7 @@ function toBooking(row: BookingRow): DashboardBooking {
     startsAt: new Date(row.starts_at).toISOString(),
     endsAt: new Date(row.ends_at).toISOString(),
     createdAt: new Date(row.created_at).toISOString(),
+    serviceId: row.service_id,
     serviceName: row.service_name,
     pricePence: row.price_pence,
     durationMin: row.duration_min,
@@ -44,6 +47,7 @@ function toBooking(row: BookingRow): DashboardBooking {
     declineReason: row.decline_reason,
     messageSentAt: row.message_sent_at,
     cancelledByClient: row.cancelled_by_client,
+    manageToken: row.manage_token,
   };
 }
 
@@ -52,21 +56,8 @@ function rows<T>(result: { data: T[] | null; error: { message: string } | null }
   return result.data ?? [];
 }
 
-function bookingsQuery(supabase: Supabase) {
+export function bookingsQuery(supabase: Supabase) {
   return supabase.from("bookings").select(BOOKING_COLUMNS);
-}
-
-/** Bookable barbers for the filters (owner/admin only). */
-async function barberOptions(supabase: Supabase): Promise<BarberOption[]> {
-  const result = await supabase
-    .from("staff")
-    .select("id, display_name")
-    .eq("bookable", true)
-    .eq("active", true)
-    .is("deleted_at", null)
-    .order("sort")
-    .order("display_name");
-  return rows(result, "the team").map((s) => ({ id: s.id, name: s.display_name }));
 }
 
 /** Waiting requests (all days). Used by the header bell. */
@@ -89,7 +80,9 @@ export type TodayData = {
   /** Confirmed bookings that have ended without Done/No-show (any day). */
   needsClosing: DashboardBooking[];
   dueBack: number;
+  /** Barber filter (owner/admin only). */
   barbers: BarberOption[];
+  setup: BookingSetup;
 };
 
 const MAX_LISTED = 100;
@@ -100,7 +93,7 @@ export async function loadToday(staff: Staff): Promise<TodayData> {
   const today = dateKey(now);
   const nowIso = now.toISOString();
 
-  const [todays, requests, closing, settings, barbers] = await Promise.all([
+  const [todays, requests, closing, settings, setup] = await Promise.all([
     bookingsQuery(supabase)
       .gte("starts_at", fromLondon(today, 0).toISOString())
       .lt("starts_at", fromLondon(addDays(today, 1), 0).toISOString())
@@ -108,7 +101,7 @@ export async function loadToday(staff: Staff): Promise<TodayData> {
     bookingsQuery(supabase).eq("status", "pending").order("starts_at").limit(MAX_LISTED),
     bookingsQuery(supabase).eq("status", "confirmed").lte("ends_at", nowIso).order("starts_at").limit(MAX_LISTED),
     supabase.from("settings").select("due_back_weeks").eq("id", 1).single(),
-    isManager(staff) ? barberOptions(supabase) : Promise.resolve([]),
+    loadBookingSetup(supabase, staff),
   ]);
   if (settings.error) throw new Error(`Couldn't load settings: ${settings.error.message}`);
 
@@ -147,6 +140,54 @@ export async function loadToday(staff: Staff): Promise<TodayData> {
     })),
     needsClosing: rows(closing, "bookings to close").map(toBooking),
     dueBack: dueBack.count ?? 0,
-    barbers,
+    barbers: isManager(staff) ? setup.barbers.map(({ id, name }) => ({ id, name })) : [],
+    setup,
+  };
+}
+
+export type CalendarData = {
+  now: string;
+  today: string;
+  /** Every booking in the selected Monday–Sunday week (any status; the page filters). */
+  week: DashboardBooking[];
+  /** Upcoming view: bookings that haven't ended yet. */
+  upcoming: DashboardBooking[];
+  setup: BookingSetup;
+};
+
+const UPCOMING_LIMIT = 200;
+
+export async function loadCalendar(staff: Staff, p: CalendarParams): Promise<CalendarData> {
+  const supabase = await createSessionClient();
+  const now = new Date();
+  const week = weekOf(p.date);
+  // Barbers only ever see their own bookings (RLS); the filter is for owner/admin.
+  const barber = isManager(staff) ? p.barber : null;
+
+  let weekQuery = bookingsQuery(supabase)
+    .gte("starts_at", fromLondon(week[0], 0).toISOString())
+    .lt("starts_at", fromLondon(addDays(week[6], 1), 0).toISOString())
+    .order("starts_at");
+  if (barber) weekQuery = weekQuery.eq("staff_id", barber);
+
+  let upcomingQuery = bookingsQuery(supabase)
+    .gt("ends_at", now.toISOString())
+    .in("status", visibleStatuses(p.all))
+    .order("starts_at")
+    .limit(UPCOMING_LIMIT);
+  if (barber) upcomingQuery = upcomingQuery.eq("staff_id", barber);
+
+  const [weekRows, upcomingRows, setup] = await Promise.all([
+    weekQuery,
+    p.view === "upcoming" ? upcomingQuery : Promise.resolve({ data: [], error: null }),
+    loadBookingSetup(supabase, staff),
+  ]);
+
+  return {
+    now: now.toISOString(),
+    today: dateKey(now),
+    week: rows(weekRows, "the week").map(toBooking),
+    upcoming: rows(upcomingRows, "upcoming bookings").map(toBooking),
+    setup,
   };
 }

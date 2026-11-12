@@ -11,6 +11,7 @@ export type DashboardBooking = {
   startsAt: string;
   endsAt: string;
   createdAt: string;
+  serviceId: string;
   serviceName: string;
   pricePence: number;
   durationMin: number;
@@ -28,6 +29,8 @@ export type DashboardBooking = {
   declineReason: string | null;
   messageSentAt: string | null;
   cancelledByClient: boolean;
+  /** For the customer's private link in messages (staff only). */
+  manageToken: string;
 };
 
 /** The same booking with Date objects, for the domain functions. */
@@ -42,3 +45,11 @@ export function withDates(b: DashboardBooking): BookingTimes {
 }
 
 export type BarberOption = { id: string; name: string };
+
+/** What the booking sheets need: services, bookable barbers (and what they do), who is acting, shop details. */
+export type BookingSetup = {
+  actor: { staffId: string; role: "admin" | "owner" | "barber"; bookable: boolean };
+  services: { id: string; name: string; pricePence: number; durationMin: number; days: number[] | null }[];
+  barbers: (BarberOption & { serviceIds: string[] })[];
+  shop: { name: string; address: string; phoneDisplay: string; siteUrl: string; bookingEnabled: boolean };
+};

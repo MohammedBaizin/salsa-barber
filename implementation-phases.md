@@ -10,8 +10,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 3 | Auth (username login, requireStaff, proxy) | Done (committed on `phase-3-auth`) |
 | 4 | Homepage | Done (committed on `phase-4-homepage`) |
 | 5 | Booking flow + availability API | Done (committed on `phase-5-booking`) |
-| 6 | Dashboard shell + Today | **Done, awaiting review** |
-| 7 | Booking actions + Calendar | Not started |
+| 6 | Dashboard shell + Today | Done (committed on `phase-6-dashboard`) |
+| 7 | Booking actions + Calendar | **Done, awaiting review** |
 | 8 | Clients | Not started |
 | 9 | Team | Not started |
 | 10 | Services | Not started |
@@ -445,6 +445,75 @@ Branch `phase-6-dashboard` (stacked on `phase-5-booking`).
 
 ```
 feat(dashboard): add dashboard shell, sheet, auto-refresh and Today screen
+```
+
+---
+
+## Phase 7: booking actions + Calendar
+
+Branch `phase-7-calendar` (stacked on `phase-6-dashboard`).
+
+**Scope**
+
+- Migration `staff_bookings`: `create_walk_in()` and `create_staff_booking()` (signed-in staff, one shared
+  `app.staff_booking()`): confirmed straight away at the current price; barbers only for themselves, owner/admin for
+  any bookable barber, never admin or switched-off accounts; 5-minute grid; walk-ins from a week back to the end of
+  tomorrow, phone bookings future only and up to a year ahead; walk-ins may be anonymous but a name needs a mobile;
+  clients found by number and never renamed (typed name → `booked_name`); overlaps refused (23P01); audited as
+  `booking.walk_in` / `booking.phone` by the existing trigger.
+- Server actions `dashboard/booking-actions.ts`: accept, decline (optional reason ≤ 200), done, no-show, cancel,
+  undo, reschedule, change barber (owner/admin), change service or price (owner/admin, also once done), walk-in,
+  phone booking, "message sent". Each: `requireStaff`, Zod, reads the booking through RLS, checks
+  `availableActions()`, then updates **only if the booking is still in the state the button was shown for**
+  (double taps / stale screens → "This booking has just been changed…" and a refresh, nothing changed).
+  Staff-chosen times give **warnings, never blocks** (closed day, outside shop/barber hours, time off, service
+  day, barber doesn't do the service) and the button becomes "Move anyway / Save anyway / Book anyway".
+- Pure logic `domain/staff-bookings.ts` (schemas, which message follows which action, error texts) and
+  `domain/calendar.ts` (URL state, week, counts, grouping, barber columns).
+- UI: booking cards get their one primary button (**Accept**, or **Done** once started); one sheet per page for
+  details with every allowed action, Decline, Reschedule, Change barber, Change service/price, New walk-in/phone
+  booking, and **"Send to customer: WhatsApp | SMS"** with the prefilled text (tapping either records
+  `message_sent_at`; the text is never stored). "Are you sure?" bar (focus on Keep) for cancel and no-show.
+  Success notices stay visible above the tab bar. **Walk-in** and **Booking** buttons on Today and Calendar.
+- **Calendar** (`/dashboard/calendar`): Day / Upcoming, week strip with counts (spoken too), previous/next week
+  keeps the weekday, "Back to today", barber filter (owner/admin), "Show cancelled and declined" switch, Upcoming
+  grouped by day, desktop barber columns when showing everyone. Everything lives in the URL (bookmarkable, Back
+  works, works without JavaScript); with JavaScript the choice highlights at once (`useOptimistic`).
+- Fix found by the tests: React 19 resets a form after `<form action>`, snapping controlled selects back to their
+  first option while the screen still showed the chosen one; sheet forms now submit without that reset.
+
+**Tests actually run**
+
+- `npm test`: **334 passed** (17 new): calendar URL state (round trip, rubbish ignored), Monday–Sunday weeks across
+  months/years, counts per London day with/without cancelled, grouping, barber columns, every action schema
+  (decline reason, 5-minute grid, walk-in/phone customer rules, mobile normalising), which message follows each
+  action, message text with the change spelled out, database error → friendly text.
+- `npm run test:db`: **108 passed** (11 new): both RPCs' rules and error codes, anonymous walk-ins, never renaming
+  clients, a week back / end of tomorrow / a year ahead, 5-minute grid, barbers only for themselves, never admin or
+  switched-off barbers, overlaps, switched-off services, audit actions, signed-out callers refused.
+- `npm run test:e2e`: **158 passed, 16 skipped** (8 phone-only/desktop-only checks; 8 because the final run was at
+  9:45pm London and the Today/quick-action tests need hours of the day left: those 4 tests passed on both projects
+  in the earlier afternoon runs).
+  New: Accept on the card → message with the private link → WhatsApp records "messaged" (link checked, never
+  opened), audit entry; **stale screen changes nothing**; decline with reason; Done → Undo → No-show behind
+  "Are you sure?"; cancel resets the "message sent" flag; **reschedule with warnings → "Move anyway"**, editing asks
+  again, "changed" message, overlap refused; owner changes barber and service/price; barbers get no barber/service
+  changes and only their own walk-ins; anonymous walk-in; phone booking adds the client; Calendar week strip,
+  weeks keep the weekday, Back button, URL filters survive a reload, barbers can't widen the filter by URL,
+  desktop barber columns, Upcoming; **axe WCAG 2.1 AA** on the sheets and the Calendar in light and dark; no
+  sideways scroll at 320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Direct server-action calls by id (spec §9) are planned with sign-in security in phase 15; here the database
+  refuses the same things (RLS, trigger, RPC checks) and the DB tests prove it.
+- Only Hair Cut-length test bookings are used; service lengths are still placeholders.
+
+**Suggested commit**
+
+```
+feat(calendar): add booking actions, walk-ins, phone bookings, customer messages and Calendar
 ```
 
 ---

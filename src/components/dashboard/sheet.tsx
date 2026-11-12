@@ -106,12 +106,24 @@ export function Sheet({
           <span className="sr-only">Close</span>
         </button>
       </div>
-      <div className="min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">{children}</div>
+      <div className="min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-4 pt-4 after:block after:h-4 after:content-[''] sm:px-6">{children}</div>
       {footer ? (
         <div className="flex shrink-0 flex-wrap gap-3 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-5 [&>*]:flex-1">
           {footer}
         </div>
       ) : null}
     </dialog>
+  );
+}
+
+/**
+ * Primary buttons of a sheet's form: pinned to the bottom of the scrolling body (above the keyboard on phones),
+ * inside the <form> so Enter and the submit button work normally.
+ */
+export function SheetActions({ children }: { children: ReactNode }) {
+  return (
+    <div className="sticky bottom-0 z-10 -mx-4 mt-5 flex flex-wrap gap-3 border-t bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6 [&>*]:flex-1">
+      {children}
+    </div>
   );
 }

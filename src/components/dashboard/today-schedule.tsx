@@ -60,7 +60,7 @@ export function TodaySchedule({
               </li>
             ) : (
               <li key={item.booking.id}>
-                <BookingCard booking={byId.get(item.booking.id)!} today={today} />
+                <BookingCard booking={byId.get(item.booking.id)!} today={today} now={now} />
               </li>
             ),
           )}

@@ -1,58 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { londonParts } from "../../src/lib/domain/time";
 import { expectAccessible, expectNoHorizontalScroll, setTheme, signIn, sql } from "./helpers";
 
-/** Test clients: 07700 9007xx (Ofcom drama range). */
-const PHONE_LIKE = "+4477009007%";
-const CLIENT_A = "+447700900701";
-const CLIENT_B = "+447700900702";
+import { booking, CLIENT_A, CLIENT_B, client, cleanupDashboardData, signInAs, skipNearMidnight } from "./dashboard-helpers";
 
-async function cleanup() {
-  await sql(`delete from public.bookings where client_id in (select id from public.clients where phone like '${PHONE_LIKE}')`);
-  await sql(`delete from public.clients where phone like '${PHONE_LIKE}'`);
-}
-test.beforeEach(cleanup);
-test.afterEach(cleanup);
-
-async function client(phone: string, name: string): Promise<string> {
-  const [row] = await sql("insert into public.clients (name, phone) values ($1, $2) returning id", [name, phone]);
-  return row.id;
-}
-
-/** A 30-minute Hair Cut starting `startMin` minutes from now (whole minutes), created `createdMin` minutes from now. */
-async function booking(opts: {
-  clientId: string;
-  barber?: string;
-  startMin: number;
-  status?: string;
-  createdMin?: number;
-  changedFrom?: string | null;
-}): Promise<string> {
-  const [row] = await sql(
-    `insert into public.bookings (client_id, staff_id, service_id, service_name, price_pence, duration_min, starts_at, ends_at,
-       status, source, created_at, changed_from)
-     select $1, st.id, sv.id, sv.name, sv.price_pence, 30,
-       date_trunc('minute', now()) + make_interval(mins => $2), date_trunc('minute', now()) + make_interval(mins => $2),
-       $3, 'online', now() + make_interval(mins => $4), $5
-     from public.staff st, public.services sv where st.username = $6 and sv.name = 'Hair Cut'
-     returning id`,
-    [opts.clientId, opts.startMin, opts.status ?? "confirmed", opts.createdMin ?? -5, opts.changedFrom ?? null, opts.barber ?? "jamie"],
-  );
-  return row.id;
-}
-
-/** Bookings "today" need room before midnight (London) on both sides. */
-function skipNearMidnight() {
-  const { hour } = londonParts(new Date());
-  test.skip(hour < 2 || hour >= 21, "Needs a few hours of today left (London time).");
-}
-
-async function signInAs(page: Page, username: string) {
-  await page.goto("/login");
-  await signIn(page, username);
-  await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByTestId("greeting")).toBeVisible();
-}
+test.beforeEach(cleanupDashboardData);
+test.afterEach(cleanupDashboardData);
 
 const isPhone = (page: Page) => page.viewportSize()!.width < 1024;
 const navLinks = (page: Page) =>
@@ -220,7 +172,7 @@ test.describe("Today", () => {
     await signInAs(page, "owner");
 
     const card = page.getByTestId("requests").getByTestId("booking-card").filter({ hasText: "E2E Ada" });
-    await card.click();
+    await card.getByRole("button").first().click();
     const sheet = page.getByRole("dialog", { name: "E2E Ada" });
     await expect(sheet).toBeVisible();
     await expect(sheet.getByTestId("booking-details")).toContainText("Hair Cut · £17");
@@ -233,10 +185,10 @@ test.describe("Today", () => {
 
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();
-    await expect(card).toBeFocused();
+    await expect(card.getByRole("button").first()).toBeFocused();
     expect(await page.evaluate(() => document.body.style.position)).toBe("");
 
-    await card.click();
+    await card.getByRole("button").first().click();
     await sheet.getByRole("button", { name: "Close" }).click();
     await expect(sheet).toBeHidden();
   });
@@ -275,7 +227,7 @@ test.describe("Today", () => {
     await expect(page.getByTestId("requests")).toContainText("E2E Ada");
 
     const b = await client(CLIENT_B, "E2E Bo");
-    await page.getByTestId("requests").getByTestId("booking-card").first().click();
+    await page.getByTestId("requests").getByTestId("booking-card").first().getByRole("button").first().click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await booking({ clientId: b, startMin: 24 * 60 + 120, status: "pending" });
     await page.clock.runFor(61_000);
@@ -295,7 +247,7 @@ test.describe("dashboard quality", () => {
       await signInAs(page, "owner");
       await expect(page.locator("html")).toHaveClass(theme === "dark" ? /dark/ : /^(?!.*dark)/);
       await expectAccessible(page);
-      await page.getByTestId("requests").getByTestId("booking-card").first().click();
+      await page.getByTestId("requests").getByTestId("booking-card").first().getByRole("button").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
       await expectAccessible(page);
       await page.keyboard.press("Escape");
@@ -311,7 +263,7 @@ test.describe("dashboard quality", () => {
       await page.setViewportSize({ width, height: 800 });
       await signInAs(page, "owner");
       await expectNoHorizontalScroll(page);
-      await page.getByTestId("booking-card").first().click();
+      await page.getByTestId("booking-card").first().getByRole("button").first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
       await expectNoHorizontalScroll(page);
     });
