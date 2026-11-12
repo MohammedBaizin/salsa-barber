@@ -141,15 +141,6 @@ test.describe("theme", () => {
   });
 });
 
-test.describe("booking page while online booking is off", () => {
-  test("offers Call and WhatsApp", async ({ page }) => {
-    await page.goto("/book");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Book a cut");
-    await expect(page.getByRole("main").getByRole("link", { name: /Call 0151 309 4681/ })).toHaveAttribute("href", "tel:+441513094681");
-    await expect(page.getByRole("main").getByRole("link", { name: "WhatsApp" })).toBeVisible();
-  });
-});
-
 test("unknown pages get a friendly 404", async ({ page }) => {
   const res = await page.goto("/no-such-page");
   expect(res?.status()).toBe(404);

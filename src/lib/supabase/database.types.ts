@@ -307,7 +307,17 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "tables_missing_2fa_policy":
+            "get_managed_booking":
+{ Args: { "p_token": string }; Returns: {
+              "any_barber": boolean,"booking_id": string,"can_change": boolean,"created_at": string,"customer_name": string,"duration_min": number,"ends_at": string,"phone": string,"price_pence": number,"service_id": string,"service_name": string,"staff_id": string,"staff_name": string,"starts_at": string,"status": string
+            }[]
+                           },
+"request_booking":
+{ Args: { "p_ip_hash"?: string,"p_name": string,"p_phone": string,"p_replaces"?: string,"p_service": string,"p_staff"?: string,"p_start": string }; Returns: {
+              "booking_id": string,"is_new": boolean,"manage_token": string,"staff_id": string
+            }[]
+                           },
+"tables_missing_2fa_policy":
 { Args: Record<PropertyKey, never>; Returns: string[]
                            },
 "two_factor_ok":

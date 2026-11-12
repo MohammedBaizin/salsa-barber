@@ -104,10 +104,13 @@ describe("status machine", () => {
     expect((await sql("select decline_reason from public.bookings where id = $1", [b.id]))[0].decline_reason).toBe("Fully booked");
   });
 
-  it("manage_token and source are read-only", async () => {
+  it("source is read-only; only the server (customer change) may move a manage token", async () => {
     const b = await insertBooking({ staff: STAFF.sam, at: "2030-03-04 10:00" });
-    await expectSqlError(sql("update public.bookings set manage_token = gen_random_uuid() where id = $1", [b.id]), "P0001", "read_only_column");
     await expectSqlError(sql("update public.bookings set source = 'online' where id = $1", [b.id]), "P0001", "read_only_column");
+    await sql("update public.bookings set manage_token = gen_random_uuid() where id = $1", [b.id]); // trusted: allowed
+    const owner = await as("owner");
+    const r = await owner.from("bookings").update({ manage_token: crypto.randomUUID() } as never).eq("id", b.id);
+    expect(r.error?.code).toBe("42501"); // no column grant for staff
   });
 });
 

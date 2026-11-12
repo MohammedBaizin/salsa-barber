@@ -20,7 +20,7 @@
     "env:local": "node scripts/env-local.mjs",
     "create-admin": "node scripts/create-admin.mts",
     "create-admin:prod": "node scripts/create-admin.mts --prod",
-    "test:e2e": "node scripts/photos-import.mts --if-empty && npm run build && playwright test",
+    "test:e2e": "node scripts/e2e.mjs",
     "photos:import": "node scripts/photos-import.mts",
     "photos:import:prod": "node scripts/photos-import.mts --prod"
   },

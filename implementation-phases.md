@@ -8,8 +8,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 1 | Schema, roles, RLS, audit, seed (Supabase) | Done (committed on `phase-1-database`) |
 | 2 | Domain logic (time, money, phone, hours, availability, messages…) | Done (committed on `phase-2-domain`) |
 | 3 | Auth (username login, requireStaff, proxy) | Done (committed on `phase-3-auth`) |
-| 4 | Homepage | **Done, awaiting review** |
-| 5 | Booking flow + availability API | Not started |
+| 4 | Homepage | Done (committed on `phase-4-homepage`) |
+| 5 | Booking flow + availability API | **Done, awaiting review** |
 | 6 | Dashboard shell + Today | Not started |
 | 7 | Booking actions + Calendar | Not started |
 | 8 | Clients | Not started |
@@ -306,6 +306,76 @@ Branch `phase-4-homepage` (stacked on `phase-3-auth`).
 
 ```
 feat(homepage): add public homepage, site content cache, photo import and bookable days
+```
+
+---
+
+## Phase 5: booking flow + availability API
+
+Branch `phase-5-booking` (stacked on `phase-4-homepage`).
+
+**Scope**
+
+- Migration `request_booking`:
+  - `request_booking(p_service, p_start, p_name, p_phone, p_staff, p_replaces, p_ip_hash)`, service role only.
+    Shop-wide lock; re-checks service, name, UK mobile, 15-min grid, notice, window, closures, shop hours,
+    **bookable days**, barber hours, time off and overlaps (same error codes and order as `checkSlot()`).
+    Idempotent (same request → first booking, `is_new = false`); `already_booked`; `max_open_requests` per phone;
+    10 new requests/hour per hashed visitor (`request_attempts`, pruned to 1 hour); "any barber" = free longest →
+    fewest bookings that day → staff order; finds or creates the client by phone and never renames them
+    (different name → `booked_name`); exclusion violations become `slot_taken`.
+  - **Changes** (`p_replaces` = manage token): one transaction; the old booking is cancelled (by client) with a
+    fresh token and the new pending booking takes over the customer's link (`changed_from` set); refused after
+    the cut-off (`not_changeable`); if the new time fails the old booking is untouched. The booking trigger now lets
+    only the server (not signed-in staff) move a manage token.
+  - `get_managed_booking(token)`, service role only.
+- `src/lib/booking/load.ts`: one loader for the API route and the DB parity test (reads times only, never names
+  or phones). `getBookingOptions()` (cached, `site-content` tag): services that someone offers + bookable barbers.
+- `GET /api/availability?service=&barber=&change=`: start times only, grouped by London day, `no-store`; 404 for
+  unknown/inactive services or when online booking is off; 400 for bad input.
+- `/book`: Service → Barber ("Any barber" or barbers who do it, photo or initials) → Date & time (swipeable day
+  strip, empty days disabled, Morning/Afternoon/Evening, barber switcher, "no times" card with WhatsApp/Call) →
+  Name & mobile (honeypot, submit disabled while sending, typed values kept) → full page load to `/booking/<token>`.
+  Steps live in the URL (Back works, deep links from price rows and "Book with …"), focus moves to each heading,
+  summary card with Change links, times always in London time. Slot taken or any time problem → message, fresh
+  times, back to the time step with name and number kept. Lost connection → normal message (`safely()`).
+  Online booking off, or nothing bookable → call/WhatsApp panel.
+- `/booking/[token]`: status ("Request sent … not confirmed until the shop replies"), service, barber, time,
+  price, name, the number the shop will message, address; WhatsApp/Call/Directions; `noindex`. Change, cancel and
+  "book another" come in phase 14.
+- `src/lib/visitor.ts`: keyed hash of the visitor's IP (never the raw address).
+- `npm run test:e2e` now runs `scripts/e2e.mjs`: imports photos if empty, builds with online booking **on**
+  (`.env.local` stays off), runs Playwright.
+
+**Tests actually run**
+
+- `npm run test:db`: **97 passed**, including 23 new: every `request_booking` error code (`service_unavailable`,
+  `invalid_name`, `invalid_phone`, `invalid_time`, `too_soon`, `too_far`, `shop_closed`, `service_day`,
+  `outside_hours`, `barber_unavailable`, `slot_taken`, `already_booked`, `too_many_requests`, `rate_limited`,
+  `not_changeable`), snapshot, idempotency, never renaming clients, any-barber choice, changes (link kept, old
+  untouched on failure), **8 simultaneous requests → exactly 1 wins**, service-role only, and the **TS/SQL parity
+  test**: every quarter hour 7am–8pm on two days for Sam and for any barber, with a blocking booking, rolled back
+  per probe — TypeScript offers exactly the times SQL accepts, with the same error codes; plus boundary times and
+  OAP bookable days.
+- `npm run test:e2e`: **99 passed** (phone + desktop), adding: full journey saved as a pending online request,
+  deep links, the phone's Back button, summary Change links, wrong number message with values kept, **slot taken
+  mid-flow**, **double tap = one booking**, honeypot, OAP Fri–Sun disabled, **Tokyo device shows London times**,
+  API returns start times only / 404 / 400, unknown tokens show "not found", **axe WCAG 2.1 AA on every step in
+  light and dark**, no sideways scroll at 320px.
+- `npm test` 294 passed · typecheck clean · lint clean · build success.
+
+**Notes**
+
+- `notFound()` on `/booking/<bad token>` renders the not-found page inside the streamed response, so the HTTP
+  status stays 200 (the page is `noindex`).
+- Online booking stays **off** (`NEXT_PUBLIC_BOOKING_ENABLED=false`) until the owner confirms service lengths and
+  adds the real barbers.
+- Owner email/push alerts for new requests come in phases 14 and 16.
+
+**Suggested commit**
+
+```
+feat(booking): add booking flow, availability API and request_booking with parity tests
 ```
 
 ---
