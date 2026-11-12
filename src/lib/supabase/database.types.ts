@@ -181,14 +181,14 @@ isOneToOne: false
                   ]
                 },"services": {
                   Row: {
-                    "active": boolean,"created_at": string,"duration_min": number,"id": string,"name": string,"price_pence": number,"sort": number
+                    "active": boolean,"bookable_days": (number)[] | null,"created_at": string,"duration_min": number,"id": string,"name": string,"price_pence": number,"sort": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"duration_min": number,"id"?: string,"name": string,"price_pence": number,"sort"?: number
+                    "active"?: boolean,"bookable_days"?: (number)[] | null,"created_at"?: string,"duration_min": number,"id"?: string,"name": string,"price_pence": number,"sort"?: number
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"duration_min"?: number,"id"?: string,"name"?: string,"price_pence"?: number,"sort"?: number
+                    "active"?: boolean,"bookable_days"?: (number)[] | null,"created_at"?: string,"duration_min"?: number,"id"?: string,"name"?: string,"price_pence"?: number,"sort"?: number
                   }
                   Relationships: [
                     

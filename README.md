@@ -11,6 +11,7 @@ Built with Next.js 16, Tailwind CSS 4, shadcn/ui and Supabase. Progress is track
 npm install
 npm run db:start     # local Supabase in Docker (ports 47320–47329)
 npm run env:local    # writes the local Supabase URL and keys into .env.local
+npm run photos:import  # website photos (needs JPEGs in photos/converted/)
 npm run dev          # http://localhost:3417
 ```
 
@@ -34,6 +35,7 @@ Or with Docker: `docker compose up app`.
 | `npm run db:reset` | Rebuild the local database from migrations + sample seed |
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` |
 | `npm run env:local` | Copy local Supabase URL/keys into `.env.local` |
+| `npm run photos:import` | Imports the chosen website photos from `photos/converted/` (`-- --replace`, `:prod`) |
 | `npm run assets:logo` | Regenerate logo sizes, icons and the OG image from `assets/` |
 
 The full guide (deploying, backups, troubleshooting) is written in the launch phase.

@@ -2,6 +2,7 @@
   "name": "salsa-barber",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --port 3417",
     "build": "next build",
@@ -19,7 +20,9 @@
     "env:local": "node scripts/env-local.mjs",
     "create-admin": "node scripts/create-admin.mts",
     "create-admin:prod": "node scripts/create-admin.mts --prod",
-    "test:e2e": "npm run build && playwright test"
+    "test:e2e": "node scripts/photos-import.mts --if-empty && npm run build && playwright test",
+    "photos:import": "node scripts/photos-import.mts",
+    "photos:import:prod": "node scripts/photos-import.mts --prod"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

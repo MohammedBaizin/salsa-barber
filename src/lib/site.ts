@@ -18,7 +18,7 @@ export const site = {
     postcode: "L31 7BN",
     /** Postal town for L31. */
     city: "Liverpool",
-    /** Local area shown on the site. Unconfirmed: L31 7BN is in Maghull. */
+    /** Local area shown on the site. Still to confirm with the owner (L31 7BN is in Maghull). */
     area: "Maghull",
     country: "GB",
   },
@@ -29,10 +29,11 @@ export const site = {
   },
 
   /**
-   * Number customers WhatsApp/SMS. Null until the owner confirms which number takes
-   * WhatsApp (the shop phone is a landline). While null, WhatsApp buttons are hidden.
+   * Number customers WhatsApp (owner's decision: the shop number). It's a landline, so it only works if it's
+   * registered with WhatsApp Business; customers can't text it, so the site offers WhatsApp + Call, not SMS.
+   * Set to null to hide WhatsApp buttons.
    */
-  whatsapp: null as null | { display: string; e164: string },
+  whatsapp: { display: "0151 309 4681", e164: "+441513094681" } as null | { display: string; e164: string },
 
   socials: {
     instagram: "https://www.instagram.com/salsabarber1/",
@@ -50,21 +51,18 @@ export const site = {
       "https://maps.apple.com/?q=Salsa+Barber&address=41+Liverpool+Road+South,+Maghull,+L31+7BN,+United+Kingdom",
   },
 
-  /** Unconfirmed: ask the owner. */
   paymentText: "Cash & card",
 
   /** Internal fake domain for username logins (never receives mail). */
   staffEmailDomain: "staff.salsabarber.invalid",
 
-  /** Default public theme until the Settings value exists (phase 2). */
+  /** Fallback when Settings can't be read (the real default is settings.public_theme). */
   defaultPublicTheme: "dark" as "light" | "dark",
 } as const;
 
 /** Which details still need the owner's confirmation. */
 export const unconfirmed = {
   area: true,
-  paymentText: true,
-  whatsapp: true,
 } as const;
 
 export function siteUrl(): string {

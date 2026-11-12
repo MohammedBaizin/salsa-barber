@@ -131,6 +131,26 @@ export function formatDayLong(value: Date | DateKey): string {
   return `${dayLongName(isoWeekday(key))} ${d} ${MONTH_LONG[m - 1]}`;
 }
 
+/**
+ * ISO weekdays as text: [1,2,3,4] -> "Mon–Thu", [1,3,5] -> "Mon, Wed & Fri", [6,7] -> "Sat & Sun",
+ * all seven or null -> "every day".
+ */
+export function formatDays(days: readonly number[] | null | undefined): string {
+  const sorted = [...new Set(days ?? [])].filter((d) => d >= 1 && d <= 7).sort((a, b) => a - b);
+  if (!days || sorted.length === 7) return "every day";
+  if (sorted.length === 0) return "no days";
+  const runs: number[][] = [];
+  for (const d of sorted) {
+    const last = runs.at(-1);
+    if (last && d === last.at(-1)! + 1) last.push(d);
+    else runs.push([d]);
+  }
+  const parts = runs.flatMap((r) =>
+    r.length >= 3 ? [`${dayShortName(r[0])}–${dayShortName(r.at(-1)!)}`] : r.map(dayShortName),
+  );
+  return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} & ${parts.at(-1)}`;
+}
+
 /** "Fri 9 Oct, 4:00pm" */
 export function formatDateTime(date: Date): string {
   return `${formatDay(date)}, ${formatTime(date)}`;

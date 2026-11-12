@@ -156,23 +156,55 @@ describe("clients", () => {
   });
 });
 
-describe("gallery: max 3 visible per set", () => {
+describe("gallery: slideshow max 3 visible, Recent cuts max 4", () => {
   afterEach(async () => {
     await sql("delete from public.gallery_photos where path like 'test/%'");
   });
 
-  it("refuses a 4th visible photo in a set, but allows hidden ones and the other set", async () => {
-    for (let i = 0; i < 3; i++) {
-      await sql("insert into public.gallery_photos (path, alt, in_hero) values ($1, 'TEST', false)", [`test/cut-${i}.webp`]);
-    }
-    await expect(
-      sql("insert into public.gallery_photos (path, alt, in_hero) values ('test/cut-4.webp', 'TEST', false)"),
-    ).rejects.toMatchObject({ message: "gallery_full" });
-    await sql("insert into public.gallery_photos (path, alt, in_hero, visible) values ('test/cut-5.webp', 'TEST', false, false)");
-    await sql("insert into public.gallery_photos (path, alt, in_hero) values ('test/hero-1.webp', 'TEST', true)");
-    await expect(sql("update public.gallery_photos set visible = true where path = 'test/cut-5.webp'")).rejects.toMatchObject({
+  const add = (path: string, inHero: boolean, visible = true) =>
+    sql("insert into public.gallery_photos (path, alt, in_hero, visible) values ($1, 'TEST', $2, $3)", [path, inHero, visible]);
+
+  it("refuses a 5th visible Recent cut, but allows hidden ones", async () => {
+    const existing = Number((await sql<{ n: string }>("select count(*) n from public.gallery_photos where visible and not in_hero"))[0].n);
+    for (let i = existing; i < 4; i++) await add(`test/cut-${i}.webp`, false);
+    await expect(add("test/cut-extra.webp", false)).rejects.toMatchObject({ message: "gallery_full" });
+    await add("test/cut-hidden.webp", false, false);
+    await expect(sql("update public.gallery_photos set visible = true where path = 'test/cut-hidden.webp'")).rejects.toMatchObject({
       message: "gallery_full",
     });
+  });
+
+  it("refuses a 4th visible slideshow photo", async () => {
+    const existing = Number((await sql<{ n: string }>("select count(*) n from public.gallery_photos where visible and in_hero"))[0].n);
+    for (let i = existing; i < 3; i++) await add(`test/hero-${i}.webp`, true);
+    await expect(add("test/hero-extra.webp", true)).rejects.toMatchObject({ message: "gallery_full", hint: "slideshow" });
+  });
+});
+
+describe("services.bookable_days", () => {
+  it("OAP Cut is bookable Monday to Thursday only", async () => {
+    const [row] = await sql<{ bookable_days: number[] }>("select bookable_days from public.services where name like 'OAP Cut%'");
+    expect(row.bookable_days).toEqual([1, 2, 3, 4]);
+  });
+
+  it("accepts null or ISO weekdays only", async () => {
+    await expect(sql("update public.services set bookable_days = '{}' where name = 'Hair Cut'")).rejects.toMatchObject({ code: "23514" });
+    await expect(sql("update public.services set bookable_days = '{0,8}' where name = 'Hair Cut'")).rejects.toMatchObject({ code: "23514" });
+  });
+
+  it("anon can read it", async () => {
+    const { data, error } = await service().from("services").select("name, bookable_days").eq("name", "Hair Cut").single();
+    expect(error).toBeNull();
+    expect(data!.bookable_days).toBeNull();
+  });
+});
+
+describe("shop details", () => {
+  it("has the opening hours from the shop's board", async () => {
+    const [row] = await sql<{ shop_hours: Record<string, unknown>; walk_in_text: string }>("select shop_hours, walk_in_text from public.settings");
+    expect(row.shop_hours["6"]).toEqual({ open: "08:30", close: "18:00" });
+    expect(row.shop_hours["7"]).toEqual({ open: "09:00", close: "16:00" });
+    expect(row.walk_in_text).toBe("Walk-ins welcome.");
   });
 });
 

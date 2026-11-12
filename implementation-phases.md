@@ -7,8 +7,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 0 | Scaffold, Docker, theming, design tokens, logo assets | Done (committed) |
 | 1 | Schema, roles, RLS, audit, seed (Supabase) | Done (committed on `phase-1-database`) |
 | 2 | Domain logic (time, money, phone, hours, availability, messages…) | Done (committed on `phase-2-domain`) |
-| 3 | Auth (username login, requireStaff, proxy) | **Done, awaiting review** |
-| 4 | Homepage | Not started |
+| 3 | Auth (username login, requireStaff, proxy) | Done (committed on `phase-3-auth`) |
+| 4 | Homepage | **Done, awaiting review** |
 | 5 | Booking flow + availability API | Not started |
 | 6 | Dashboard shell + Today | Not started |
 | 7 | Booking actions + Calendar | Not started |
@@ -250,6 +250,66 @@ feat(auth): add username sign-in, requireStaff guard, proxy, sign-out and create
 
 ---
 
+## Phase 4: homepage
+
+Branch `phase-4-homepage` (stacked on `phase-3-auth`).
+
+**Scope**
+
+- Migration `homepage`: `services.bookable_days` (null = every open day; OAP Cut = Mon–Thu), gallery limits
+  **slideshow 3 / Recent cuts 4**, real opening hours, walk-in text "Walk-ins welcome.".
+  Hours were read from the opening-times board in the shopfront photo: Mon–Fri 9:00am–6:30pm, Sat 8:30am–6:00pm,
+  Sun 9:00am–4:00pm (editable in Settings later).
+- Domain: bookable days in availability (`service_day` error code + friendly message) and staff warnings,
+  `formatDays()` ("Mon–Thu"), `website.ts` (photo limits, meter, alt text).
+- `getSiteContent()` / `getPublicTheme()` (`'use cache'`, tag `site-content`, hourly); the root layout uses the
+  Settings default theme. `next/image` allowed for Supabase Storage (local IPs only when Supabase is local).
+- `(public)` route group: header (badge + name, section links, theme toggle, Call, Book), full-screen phone menu
+  (`<dialog>`, scroll lock, focus in and back), footer (CTA, address, hours, payments, ©, Staff login).
+- Homepage: hero (live open status computed in the browser, Book + Call, payments, walk-in text, Google rating
+  if set, tilted shop photo with badge sticker, logo fallback), services & prices (menu board, lengths, bookable
+  days, discount text), Recent cuts (4) with lightbox, "Inside the shop" slideshow (3; autoplay with barber-pole
+  progress, prev/pause/next, swipe, pauses on hover/focus, never with reduced motion), team, reviews (rating
+  summary + cards), Visit (grouped hours, upcoming closed days, address, Call, WhatsApp, socials, click-to-load
+  map remembered per device, Directions + Apple Maps), sticky phone Book bar (inert while the hero Book shows),
+  `BarberShop` JSON-LD (no review markup). Each section hides when it has no data.
+- `/book`: "call us / WhatsApp" panel while online booking is off (phase 5 adds the flow).
+- `not-found.tsx`, `(public)/error.tsx`, `global-error.tsx`.
+- Photos: `src/lib/images/process.ts` (sharp: upright, metadata stripped, WebP ≤ 1600 px, ≤ 2 MB) and
+  `npm run photos:import` (`scripts/photos-selection.json`; `--if-empty`, `--replace`, `:prod`). Chosen: shopfront
+  as the shop photo; interior, busy shop and window/barber pole for the slideshow; four adult cuts for Recent
+  cuts. **The four photos of children were left out.** Source JPEGs live in `photos/converted/` (not committed).
+- `PlaceholderTag` never renders in production builds; `theme-color` meta is created only by the theme script
+  (no duplicate); prices use Inter (Bricolage's £ reads like "&"); `package.json` is `"type": "module"`.
+
+**Tests actually run**
+
+- `npm run test:e2e`: **71 passed** (phone + desktop): sections, 13 services with booking links, OAP "Mon–Thu
+  only", 4 cuts, 3 slides, hours and walk-in text, WhatsApp link, hero and gallery images load, JSON-LD, security
+  headers, no placeholder tags in production, **no request to Google before "Show map"** and the choice is
+  remembered, lightbox (arrows, buttons, Esc, focus return), slideshow autoplay and controls (fake clock), **no
+  autoplay with reduced motion**, theme toggle + theme-color + persistence, dark default for new visitors, `/book`
+  panel, 404, **axe WCAG 2.1 AA on `/` and `/book` in light and dark**, no sideways scroll at 320–1280 px on `/`,
+  `/book`, `/login`, phone menu (focus, Esc, link closes), sticky bar visibility/inert, desktop header — plus the
+  phase 3 sign-in tests.
+- `npm test` 292 passed (adds service days, `formatDays`, photo limits, homepage empty states).
+- `npm run test:db` 74 passed (photo limits 3/4, `bookable_days` check, hours from the board).
+- typecheck clean · lint clean · build success (`/` and `/book` static, refreshed hourly).
+
+**Notes**
+
+- WhatsApp uses the shop landline as asked; it only works if that number is on WhatsApp Business.
+- iPhone HEIC photos must be converted before `photos:import` (the dashboard converts HEIC in the browser, phase 12).
+- Service lengths are still placeholders; the sample team and reviews on the local site come from the dev seed only.
+
+**Suggested commit**
+
+```
+feat(homepage): add public homepage, site content cache, photo import and bookable days
+```
+
+---
+
 ## Shop data received (2026-11-12)
 
 - **Name:** Salsa Barber · **Address:** 41 Liverpool Road South, L31 7BN (area assumed Maghull, postal town Liverpool)
@@ -283,7 +343,7 @@ feat(auth): add username sign-in, requireStaff guard, proxy, sign-out and create
 | Topic | Decision | Applied in |
 | --- | --- | --- |
 | WhatsApp number | Use the shop number (0151 309 4681) for WhatsApp buttons. The owner's personal mobile stays private. | Phase 4 (`site.ts`) |
-| Opening hours | I pick sensible hours now (Mon–Fri 9am–6pm, Sat 9am–5pm, Sun closed); the owner changes them in Settings | Phase 4 (migration), Settings phase 11 |
+| Opening hours | Taken from the shop's own opening-times board (Mon–Fri 9–6:30, Sat 8:30–6, Sun 9–4); editable in Settings | Phase 4 (migration), Settings phase 11 |
 | Area name | Keep "Maghull" for now, still marked "to confirm" | — |
 | Payments | Cash & card (confirmed) | Phase 4 |
 | Google rating | Set by owner/admin in Settings; blank hides it | Phase 11 |

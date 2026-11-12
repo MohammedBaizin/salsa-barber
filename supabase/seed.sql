@@ -44,11 +44,9 @@ end
 $$;
 
 -- ---------------------------------------------------------------------------
--- Settings (SAMPLE hours: Mon–Fri 9–6, Sat 9–5, Sun closed)
+-- Settings: real hours and walk-in text come from the migrations; SAMPLE Google numbers for layout testing.
 -- ---------------------------------------------------------------------------
 update public.settings set
-  shop_hours = '{"1":{"open":"09:00","close":"18:00"},"2":{"open":"09:00","close":"18:00"},"3":{"open":"09:00","close":"18:00"},"4":{"open":"09:00","close":"18:00"},"5":{"open":"09:00","close":"18:00"},"6":{"open":"09:00","close":"17:00"},"7":null}',
-  walk_in_text = 'SAMPLE: Walk-ins welcome when a chair is free.',
   google_rating = 4.9,
   google_review_count = 57,
   google_review_url = 'https://example.com/sample-google-reviews'

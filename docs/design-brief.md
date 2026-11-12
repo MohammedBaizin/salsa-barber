@@ -83,7 +83,7 @@ Self-hosted via `next/font` (no layout shift).
 
 - **Display / headings:** Bricolage Grotesque (variable, optical size axis), weights 700–800, tight tracking, sentence case.
 - **Body / UI:** Inter, 400–600.
-- **Prices:** `.price` class = Bricolage 700 with `tabular-nums lining-nums`, so prices line up.
+- **Prices:** `.price` class = Inter 800 with `tabular-nums lining-nums` (Bricolage's £ reads like "&"), so prices line up.
 
 | Token | Size (phone → desktop) | Line height |
 | --- | --- | --- |

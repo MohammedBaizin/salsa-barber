@@ -3,11 +3,14 @@
  * Overlaps are always refused by the database. The buttons then read "Book anyway / Save anyway / Move anyway".
  */
 import { fitsHours, windowFor, type WeeklyHours } from "./hours";
-import { addDays, dateKey, type DateKey, formatDay, isoWeekday, minuteOfDay } from "./time";
+import { addDays, dateKey, type DateKey, formatDay, formatDays, isoWeekday, minuteOfDay } from "./time";
 
 export const STAFF_GRID_MINUTES = 5;
 
-export type ScheduleWarning = { code: "closed_day" | "outside_shop_hours" | "outside_barber_hours" | "time_off"; message: string };
+export type ScheduleWarning = {
+  code: "closed_day" | "outside_shop_hours" | "outside_barber_hours" | "time_off" | "service_day";
+  message: string;
+};
 
 export function scheduleWarnings(opts: {
   start: Date;
@@ -17,6 +20,8 @@ export function scheduleWarnings(opts: {
   barberName: string;
   barberHours: WeeklyHours;
   timeOff: { startsOn: DateKey; endsOn: DateKey }[];
+  /** The service's bookable days (null = any day). */
+  service?: { name: string; days: readonly number[] | null };
 }): ScheduleWarning[] {
   const end = new Date(opts.start.getTime() + opts.durationMin * 60_000);
   const key = dateKey(opts.start);
@@ -31,6 +36,9 @@ export function scheduleWarnings(opts: {
     out.push({ code: "time_off", message: `${opts.barberName} is off on ${formatDay(key)}.` });
   } else if (!fitsHours(opts.barberHours, opts.start, end)) {
     out.push({ code: "outside_barber_hours", message: `This is outside ${opts.barberName}'s working hours.` });
+  }
+  if (opts.service?.days && !opts.service.days.includes(isoWeekday(key))) {
+    out.push({ code: "service_day", message: `${opts.service.name} is normally only booked ${formatDays(opts.service.days)}.` });
   }
   return out;
 }

@@ -1,0 +1,15 @@
+{
+  "$comment": "Photos for the website, chosen Nov 2026. Files are JPEGs converted from the owner's originals into photos/converted/ (not committed). No children's photos.",
+  "shop": { "file": "shop-barbershop1.jpg", "alt": "Salsa Barber shopfront on Liverpool Road South" },
+  "slideshow": [
+    { "file": "shop-IMG_3570.jpg", "alt": "Inside Salsa Barber: barber chairs, mirrors and wash basins" },
+    { "file": "cut-IMG_3056.jpg", "alt": "Barbers at work on a busy day in the shop" },
+    { "file": "cut-IMG_9736.jpg", "alt": "Fresh cut by the front window, next to the lit barber pole" }
+  ],
+  "recentCuts": [
+    { "file": "cut-IMG_2418.jpg", "alt": "Textured crop with a mid fade" },
+    { "file": "cut-IMG_3643.jpg", "alt": "Swept-back style with a taper fade and beard" },
+    { "file": "cut-IMG_3961.jpg", "alt": "Short back and sides with a neat taper, seen from behind" },
+    { "file": "cut-IMG_6327.jpg", "alt": "Side part with a skin fade and full beard" }
+  ]
+}

@@ -11,12 +11,27 @@ const securityHeaders = [
   },
 ];
 
+/** Photos come from Supabase Storage (public buckets only). */
+const supabaseUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:47321");
+const supabaseIsLocal = ["127.0.0.1", "localhost"].includes(supabaseUrl.hostname);
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: supabaseUrl.protocol.replace(":", "") as "http" | "https",
+        hostname: supabaseUrl.hostname,
+        port: supabaseUrl.port,
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+    // Only for local development against the Supabase stack on this machine.
+    dangerouslyAllowLocalIP: supabaseIsLocal,
+    qualities: [70, 80],
   },
   turbopack: {
     rules: {

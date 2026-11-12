@@ -8,6 +8,7 @@
  * - Not on a shop closure, not in the barber's time off, no overlap with pending/confirmed bookings.
  * - At least `minNoticeMinutes` from now; on or before the last day of the booking window
  *   (window 1 = today only, 30 = today + 29 days).
+ * - Only on the service's bookable days, if it has any (e.g. OAP Cut Mon–Thu).
  * - "Any barber": a time is offered when at least one eligible barber is free.
  */
 import { fitsHours, windowFor, type WeeklyHours } from "./hours";
@@ -28,6 +29,8 @@ export type BusyBooking = { id?: string; staffId: string; startsAt: Date; endsAt
 export type AvailabilityInput = {
   now: Date;
   durationMin: number;
+  /** ISO weekdays the service can be booked online; null/undefined = every open day. */
+  serviceDays?: readonly number[] | null;
   shopHours: WeeklyHours;
   closures: DateKey[];
   /** Barbers who are bookable, active and offer the service (already filtered by the caller). */
@@ -61,7 +64,19 @@ function onTimeOff(barber: AvailabilityBarber, key: DateKey): boolean {
 }
 
 /** Why a specific start can't be booked with a barber (null = free). Codes match request_booking() errors. */
-export type SlotProblem = "invalid_time" | "too_soon" | "too_far" | "shop_closed" | "outside_hours" | "barber_unavailable" | "slot_taken";
+export type SlotProblem =
+  | "invalid_time"
+  | "too_soon"
+  | "too_far"
+  | "shop_closed"
+  | "service_day"
+  | "outside_hours"
+  | "barber_unavailable"
+  | "slot_taken";
+
+export function serviceBookableOn(serviceDays: readonly number[] | null | undefined, isoDay: number): boolean {
+  return !serviceDays || serviceDays.includes(isoDay);
+}
 
 export function checkSlot(input: AvailabilityInput, barber: AvailabilityBarber, start: Date): SlotProblem | null {
   const end = new Date(start.getTime() + input.durationMin * 60_000);
@@ -72,6 +87,7 @@ export function checkSlot(input: AvailabilityInput, barber: AvailabilityBarber, 
   if (start.getTime() < input.now.getTime() + input.minNoticeMinutes * 60_000) return "too_soon";
   if (key > lastBookableDate(input.now, input.bookingWindowDays)) return "too_far";
   if (input.closures.includes(key) || !windowFor(input.shopHours, isoWeekday(key))) return "shop_closed";
+  if (!serviceBookableOn(input.serviceDays, isoWeekday(key))) return "service_day";
   if (!fitsHours(input.shopHours, start, end)) return "outside_hours";
   if (onTimeOff(barber, key) || !fitsHours(barber.weeklyHours, start, end)) return "barber_unavailable";
   const busy = input.bookings.some(
@@ -92,7 +108,7 @@ export function availableSlots(input: AvailabilityInput): DaySlots[] {
     const day: DaySlots = { date: key, times: [] };
     days.push(day);
     const shop = windowFor(input.shopHours, isoWeekday(key));
-    if (!shop || closures.has(key)) continue;
+    if (!shop || closures.has(key) || !serviceBookableOn(input.serviceDays, isoWeekday(key))) continue;
 
     const byStart = new Map<number, string[]>();
     for (const barber of input.barbers) {

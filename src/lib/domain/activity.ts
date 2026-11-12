@@ -80,7 +80,9 @@ export const COLUMN_LABELS: Record<string, Record<string, string>> = {
     price_pence: "price", duration_min: "length", status: "status", decline_reason: "decline reason",
     message_sent_at: "message sent", client_id: "client", booked_name: "name",
   },
-  service: { name: "name", price_pence: "price", duration_min: "length", active: "on/off", sort: "order" },
+  service: {
+    name: "name", price_pence: "price", duration_min: "length", active: "on/off", sort: "order", bookable_days: "bookable days",
+  },
   staff: {
     display_name: "name", title: "title", bio: "bio", photo_path: "photo", bookable: "takes bookings",
     show_on_site: "shown on website", weekly_hours: "working hours", active: "on/off", role: "role", sort: "order",

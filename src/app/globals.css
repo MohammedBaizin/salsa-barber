@@ -219,6 +219,15 @@
   --shadow-pop-sm: 2px 2px 0 0 var(--shadow-hard);
 }
 
+@keyframes slide-progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -262,10 +271,12 @@
 
 @layer components {
   /* Prices: tabular figures so columns line up. */
+  /* Prices: Inter (Bricolage's £ reads like "&"), tabular figures so columns line up. */
   .price {
-    font-family: var(--font-heading);
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     font-variant-numeric: tabular-nums lining-nums;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.01em;
   }
 
   /* Yellow marker swipe behind a word, the brand's signature accent. */

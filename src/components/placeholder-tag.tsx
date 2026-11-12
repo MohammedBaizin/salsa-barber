@@ -1,9 +1,10 @@
 /**
- * Marks content the owner hasn't confirmed yet. Renders only when NEXT_PUBLIC_SHOW_PLACEHOLDERS=true (dev).
+ * Marks content the owner hasn't confirmed yet. Renders only in development with NEXT_PUBLIC_SHOW_PLACEHOLDERS=true,
+ * never in a production build (even if the flag is left on).
  * The smoke test checks that no placeholder tags reach production.
  */
 export function PlaceholderTag({ note }: { note?: string }) {
-  if (process.env.NEXT_PUBLIC_SHOW_PLACEHOLDERS !== "true") return null;
+  if (process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SHOW_PLACEHOLDERS !== "true") return null;
   return (
     <span
       data-placeholder

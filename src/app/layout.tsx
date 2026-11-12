@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { site, siteUrl } from "@/lib/site";
-import { themeScript, THEME_COLORS } from "@/lib/theme";
+import { getPublicTheme } from "@/lib/site-content";
+import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
 /* Display: Bricolage Grotesque (characterful grotesque, optical sizes). Body: Inter (tabular figures for prices). */
@@ -33,12 +34,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: THEME_COLORS.site[site.defaultPublicTheme],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  // Phase 2 replaces site.defaultPublicTheme with the cached Settings value (getPublicTheme()).
-  const publicDefault = site.defaultPublicTheme;
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // The shop's default for new visitors (Settings, cached); a visitor's own toggle wins (inline script).
+  const publicDefault = await getPublicTheme();
   return (
     <html
       lang="en-GB"
