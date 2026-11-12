@@ -5,8 +5,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | # | Phase | Status |
 | --- | --- | --- |
 | 0 | Scaffold, Docker, theming, design tokens, logo assets | Done (committed) |
-| 1 | Schema, roles, RLS, audit, seed (Supabase) | **Done, awaiting review** |
-| 2 | Domain logic (time, money, phone, hours, availability, messages…) | Not started |
+| 1 | Schema, roles, RLS, audit, seed (Supabase) | Done (committed on `phase-1-database`) |
+| 2 | Domain logic (time, money, phone, hours, availability, messages…) | **Done, awaiting review** |
 | 3 | Auth (username login, requireStaff, proxy) | Not started |
 | 4 | Homepage | Not started |
 | 5 | Booking flow + availability API | Not started |
@@ -140,6 +140,59 @@ chore: scaffold Next.js 16 app with Salsa design tokens, theming and logo assets
 
 ```
 feat(db): add Supabase schema, RLS, audit triggers, storage and sample seed
+```
+
+---
+
+## Phase 2: domain logic
+
+Pure, framework-free TypeScript in `src/lib/domain/`, fully unit-tested. Branch `phase-2-domain` (stacked on `phase-1-database`).
+
+**Scope**
+
+| Module | What it does |
+| --- | --- |
+| `time.ts` | London wall-clock conversions (`fromLondon`, `dateKey`, `minuteOfDay`), date-key arithmetic, UK display ("4:00pm", "Fri 9 Oct", "Today"), durations |
+| `money.ts` | `formatPence`, `parsePounds` (form input), `penceToInput` |
+| `phone.ts` | UK-mobile normalisation to E.164 from any typed form, display format, `wa.me` digits, the spec's error message |
+| `hours.ts` | Weekly-hours schema (mirrors `app.valid_weekly_hours`), `fitsHours` (mirrors `app.fits_hours`), grouped hours ("Mon–Thu"), live open/closed status with next opening |
+| `availability.ts` | Free start times over the booking window (15-min grid, shop + barber hours, closures, time off, overlaps, notice, window, "any barber"), `checkSlot` with the same error codes as `request_booking()`, `chooseBarber`, Morning/Afternoon/Evening grouping |
+| `validation.ts` | Booking request schema (honeypot, name, mobile, ids, ISO time), friendly message for every RPC error code, overlap/offline/generic messages |
+| `messages.ts` | Accepted, declined, updated, cancelled, due-back and customer change-request texts; `wa.me` and `sms:` links |
+| `today.ts` | Status machine (mirrors the DB trigger), `availableActions`/`primaryAction` by role, stale/expired flags, Needs closing, Next up, greeting, day stats |
+| `schedule.ts` | Warnings for staff-chosen times (closed day, outside shop/barber hours, time off), walk-in/phone/move time rules, "… anyway" labels |
+| `team.ts` | §7 permissions (`can`, edit/reset/switch-off/delete/role rules, admin visibility), username schema, login email, initials, profile schema |
+| `clients.ts` | Regular / New / Due back labels, per-filter sorting, phone search fragments, safe back links, "Book again" defaults |
+| `services.ts` | Service form schema (pounds → pence, 5-min steps up to 4 h), duration display, reorder helper |
+| `settings.ts` | One schema per Settings card (booking rules, Google rating, website notes, theme, closed days), notice labels |
+| `activity.ts` | Labels for every audit action and changed column, filter types, day grouping |
+
+Deferred to their own phases (they depend on those features): `website.ts` (12), `alerts.ts` (14), `push.ts` (16), `backup.ts` (17).
+
+**Decisions**
+
+- **Booking window:** `booking_window_days = N` means today plus the next N−1 days (1 = today only).
+- **"Any barber":** "earliest free" is read as *the barber who has been free longest before that time* (end of
+  their last booking that day, or their start time if none), then fewest bookings that day, then staff order.
+  `request_booking()` will use the same rule in phase 5.
+- **Phones:** besides landlines and other countries, 070 personal numbers and 076 pagers are refused (07624 Isle of
+  Man mobiles allowed). The SQL check is the looser backstop.
+- Message wording is new (plain, no emoji) and covered by exact-text tests.
+
+**Tests actually run**
+
+- `npm test`: **250 passed** (11 files), including both 2026 DST days (every quarter hour round-trips), slots across
+  both clock changes, a real device-time-zone switch (Tokyo vs Los Angeles give identical London slots), every
+  `checkSlot` error code, any-barber choice and tie-breaks, exact message text and links (no emoji, no phone numbers),
+  every action only leading to an allowed status, §7 permission rules, and labels for every audit-trigger action.
+- The tests caught one real bug: bookings without an id were skipped when no booking was being changed
+  (`undefined === undefined`). Fixed.
+- `npm run test:db` 69 passed (unchanged) · `npm run typecheck` clean · `npm run lint` clean · `npm run build` success.
+
+**Suggested commit**
+
+```
+feat(domain): add tested booking, availability, messaging and permission logic
 ```
 
 ---
