@@ -21,7 +21,7 @@ import {
   availableActions, bookingName, REQUEST_FLAG_LABELS, SOURCE_LABELS, STATUS_LABELS, type BookingAction, type RequestFlag,
 } from "@/lib/domain/today";
 import { cn } from "@/lib/utils";
-import { useBookings, type NewKind } from "./bookings-provider";
+import { useBookings, type NewBookingDefaults, type NewKind } from "./bookings-provider";
 import { ConfirmBar, Field, FormError, TimeSelect, Warnings } from "./form-parts";
 import { SheetActions } from "./sheet";
 import { FlagChip, StatusChip } from "./status-chip";
@@ -551,7 +551,7 @@ function defaultMinute(mode: NewKind, date: string): number {
   return 600;
 }
 
-export function NewBookingView({ mode, date: initialDate }: { mode: NewKind; date: string }) {
+export function NewBookingView({ mode, date: initialDate, defaults }: { mode: NewKind; date: string; defaults?: NewBookingDefaults }) {
   const { setup } = useBookings();
   const { state, formAction, pending } = useBookingAction(createBooking);
   const { armed, edited } = useAnyway(state);
@@ -559,17 +559,20 @@ export function NewBookingView({ mode, date: initialDate }: { mode: NewKind; dat
   const barbers = manager ? setup.barbers : setup.barbers.filter((b) => b.id === setup.actor.staffId);
   const today = dateKey(new Date());
 
-  const [staffId, setStaffId] = useState(() => barbers.find((b) => b.id === setup.actor.staffId)?.id ?? barbers[0]?.id ?? "");
+  const [staffId, setStaffId] = useState(
+    () =>
+      barbers.find((b) => b.id === defaults?.staffId)?.id ?? barbers.find((b) => b.id === setup.actor.staffId)?.id ?? barbers[0]?.id ?? "",
+  );
   const offered = setup.services.filter((s) => barbers.find((b) => b.id === staffId)?.serviceIds.includes(s.id));
   const services = offered.length ? offered : setup.services;
-  const [serviceId, setServiceId] = useState(() => services[0]?.id ?? "");
+  const [serviceId, setServiceId] = useState(() => services.find((s) => s.id === defaults?.serviceId)?.id ?? services[0]?.id ?? "");
   const [date, setDate] = useState(() => {
     if (mode === "walk_in") return initialDate < addDays(today, -7) || initialDate > addDays(today, 1) ? today : initialDate;
     return initialDate < today ? today : initialDate;
   });
-  const [minute, setMinute] = useState(() => defaultMinute(mode, date));
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [minute, setMinute] = useState(() => defaults?.minute ?? defaultMinute(mode, date));
+  const [name, setName] = useState(defaults?.name ?? "");
+  const [phone, setPhone] = useState(defaults?.phone ?? "");
   const kind: StaffTimeKind = mode === "walk_in" ? "walk_in" : "phone";
 
   if (!barbers.length) {

@@ -12,11 +12,16 @@ import { Sheet } from "./sheet";
 
 export type NewKind = "walk_in" | "phone";
 
+/** Prefilled values for a new booking ("Book again"). */
+export type NewBookingDefaults = { staffId?: string | null; serviceId?: string | null; minute?: number; name?: string; phone?: string };
+
 export type SheetView =
   | { kind: "details"; booking: DashboardBooking; flags: RequestFlag[] }
   | { kind: "decline" | "reschedule" | "barber" | "service"; booking: DashboardBooking }
   | { kind: "message"; booking: DashboardBooking; plan: MessagePlan; notice: string | null }
-  | { kind: "new"; mode: NewKind; date: string };
+  | { kind: "new"; mode: NewKind; date: string; defaults?: NewBookingDefaults; title?: string }
+  /** Any other sheet on a dashboard page (e.g. a client's Edit details). */
+  | { kind: "panel"; title: string; description?: string; content: ReactNode };
 
 type Ctx = {
   setup: BookingSetup;
@@ -51,7 +56,9 @@ function titleFor(view: SheetView): { title: string; description?: string } {
     case "message":
       return { title: "Send to customer", description: view.notice ?? MESSAGE_TITLES[view.plan.kind] };
     case "new":
-      return { title: view.mode === "walk_in" ? "Add a walk-in" : "New booking" };
+      return { title: view.title ?? (view.mode === "walk_in" ? "Add a walk-in" : "New booking") };
+    case "panel":
+      return { title: view.title, description: view.description };
   }
 }
 
@@ -110,6 +117,8 @@ function SheetBody({ view }: { view: SheetView }) {
     case "message":
       return <MessageView booking={view.booking} plan={view.plan} />;
     case "new":
-      return <NewBookingView mode={view.mode} date={view.date} />;
+      return <NewBookingView mode={view.mode} date={view.date} defaults={view.defaults} />;
+    case "panel":
+      return <>{view.content}</>;
   }
 }

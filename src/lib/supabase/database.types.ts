@@ -307,11 +307,19 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "create_staff_booking":
+            "client_list":
+{ Args: { "p_filter"?: string,"p_limit"?: number,"p_name"?: string,"p_offset"?: number,"p_phone"?: string,"p_staff"?: string }; Returns: {
+              "created_at": string,"id": string,"last_visit": string,"n_all": number,"n_due_back": number,"n_new": number,"n_regular": number,"name": string,"next_visit": string,"no_shows": number,"phone": string,"spent_pence": number,"visits": number
+            }[]
+                           },
+"create_staff_booking":
 { Args: { "p_name": string,"p_phone": string,"p_service": string,"p_staff": string,"p_start": string }; Returns: string
                            },
 "create_walk_in":
 { Args: { "p_name"?: string,"p_phone"?: string,"p_service": string,"p_staff": string,"p_start": string }; Returns: string
+                           },
+"delete_client":
+{ Args: { "p_id": string }; Returns: number
                            },
 "get_managed_booking":
 { Args: { "p_token": string }; Returns: {

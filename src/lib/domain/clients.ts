@@ -3,6 +3,8 @@
  * Regular = 3+ completed visits · New = no completed visit ·
  * Due back = last completed visit more than `dueBackWeeks` ago and nothing upcoming.
  */
+import { z } from "zod";
+import { normaliseUkMobile, PHONE_ERROR } from "./phone";
 import { addDays, dateKey, type DateKey, fromLondon } from "./time";
 
 export type ClientStats = {
@@ -95,3 +97,69 @@ export function bookAgainDefaults(
   const minute = stats.usualStartMinute == null ? 600 : Math.round(stats.usualStartMinute / 5) * 5;
   return { serviceId: stats.usualServiceId, staffId: stats.usualStaffId, date, minute, start: fromLondon(date, minute) };
 }
+
+// ---------------------------------------------------------------------------
+// Clients list URL state (GET form: works without JavaScript; Back returns to the same list)
+// ---------------------------------------------------------------------------
+
+export type ClientListParams = { q: string; filter: ClientFilter; barber: string | null; page: number };
+
+const FILTER_VALUES = CLIENT_FILTERS.map((f) => f.value);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+export function parseClientParams(search: Record<string, string | string[] | undefined>): ClientListParams {
+  const filter = one(search.filter) as ClientFilter;
+  const barber = one(search.barber);
+  const page = Number.parseInt(one(search.page) ?? "", 10);
+  return {
+    q: (one(search.q) ?? "").replace(/\s+/g, " ").trim().slice(0, 80),
+    filter: FILTER_VALUES.includes(filter) ? filter : "all",
+    barber: barber && UUID_RE.test(barber) ? barber : null,
+    page: Number.isFinite(page) && page > 1 ? Math.min(page, 10_000) : 1,
+  };
+}
+
+export function clientsHref(p: Partial<ClientListParams>): string {
+  const q = new URLSearchParams();
+  if (p.q) q.set("q", p.q);
+  if (p.filter && p.filter !== "all") q.set("filter", p.filter);
+  if (p.barber) q.set("barber", p.barber);
+  if (p.page && p.page > 1) q.set("page", String(p.page));
+  const s = q.toString();
+  return s ? `/dashboard/clients?${s}` : "/dashboard/clients";
+}
+
+/** Search arguments for client_list(): a phone fragment, or an escaped name. */
+export function clientSearchArgs(q: string): { p_name: string | null; p_phone: string | null } {
+  if (!q) return { p_name: null, p_phone: null };
+  const phone = phoneSearchFragment(q);
+  return phone ? { p_name: null, p_phone: phone } : { p_name: escapeLike(q), p_phone: null };
+}
+
+/** "Showing 21–40 of 57" */
+export function pageSummary(page: number, total: number, perPage = CLIENTS_PER_PAGE): string {
+  if (total === 0) return "No clients";
+  const from = (page - 1) * perPage + 1;
+  const to = Math.min(total, page * perPage);
+  return `Showing ${from}–${to} of ${total}`;
+}
+
+/** Edit details (owner/admin): name and UK mobile. */
+export const clientEditSchema = z.object({
+  id: z.uuid(),
+  name: z
+    .string()
+    .transform((v) => v.replace(/\s+/g, " ").trim())
+    .pipe(z.string().min(1, "Please enter their name.").max(80, "Keep the name under 80 characters.")),
+  phone: z.string().transform((v, ctx) => {
+    const e164 = normaliseUkMobile(v);
+    if (!e164) {
+      ctx.addIssue({ code: "custom", message: PHONE_ERROR });
+      return z.NEVER;
+    }
+    return e164;
+  }),
+});
+
+export const DUPLICATE_PHONE_ERROR = "That number already belongs to another client.";

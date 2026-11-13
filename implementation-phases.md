@@ -11,8 +11,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 4 | Homepage | Done (committed on `phase-4-homepage`) |
 | 5 | Booking flow + availability API | Done (committed on `phase-5-booking`) |
 | 6 | Dashboard shell + Today | Done (committed on `phase-6-dashboard`) |
-| 7 | Booking actions + Calendar | **Done, awaiting review** |
-| 8 | Clients | Not started |
+| 7 | Booking actions + Calendar | Done (committed on `phase-7-calendar`) |
+| 8 | Clients | **Done, awaiting review** |
 | 9 | Team | Not started |
 | 10 | Services | Not started |
 | 11 | Settings + Activity | Not started |
@@ -514,6 +514,65 @@ Branch `phase-7-calendar` (stacked on `phase-6-dashboard`).
 
 ```
 feat(calendar): add booking actions, walk-ins, phone bookings, customer messages and Calendar
+```
+
+---
+
+## Phase 8: Clients
+
+Branch `phase-8-clients` (stacked on `phase-7-calendar`).
+
+**Scope**
+
+- Migration `clients`:
+  - `client_list(filter, name, phone, staff, limit, offset)`: **security invoker** (RLS decides who is visible; a
+    barber's visits and spend only count their own bookings), labels exactly as `domain/clients.ts`
+    (Regular = 3+ visits, New = none, Due back = last visit older than the setting with nothing upcoming), useful
+    sorting per filter, one page plus the count for every filter.
+  - `delete_client(id)`: owner/admin, one transaction: cancels open future bookings, deletes the client, past
+    bookings keep their revenue with no client and no name, the name is replaced with "Deleted client" in the
+    activity log (and the noise of unlinking their bookings isn't logged).
+- **Clients list** (`/dashboard/clients`): search by name or a number typed any way (plain GET form; results load
+  from the address), All / Due back / Regulars / New with counts, owner/admin "Clients of" barber filter,
+  20 per page with Previous/Next, label chips, last/next visit.
+- **Client page** (`/dashboard/clients/[id]`): labels, Call / WhatsApp / SMS (due-back clients get the reminder
+  text ready), stats (visits, spent, no-shows, last visit, usual service and barber), upcoming and past bookings
+  (first 5, then "Show all") using the booking cards and their actions, **Book again** (usual service and barber,
+  3 weeks ahead at the usual time, then the confirmation message), **Edit details** (owner/admin; duplicate number
+  refused, values kept) and **Delete client** (owner/admin; says what happens, asks again with focus on Keep).
+  "Back to clients" returns to the same list (only ever to a clients-list address). Barbers get "not found" for
+  other barbers' clients and see "Spent with you".
+- The booking sheet gained prefilled new bookings and a generic panel view (used for Edit and Delete).
+
+**Tests actually run**
+
+- `npm test`: **341 passed** (7 new): list URL round trip and rubbish ignored, safe back link, search arguments
+  (numbers in any form → phone digits, names LIKE-escaped), page summary, edit schema.
+- `npm run test:db`: **117 passed** (9 new): labels and counts match the seed, sorting, name and phone search,
+  counts follow the search, "Clients of", barbers only see their own clients with only their own visits, paging,
+  signed-out refused; delete: future bookings cancelled, past revenue kept without a name, name gone from the
+  activity log (entries kept as "Deleted client"), owner/admin only, unknown ids refused.
+  Two phase 5 tests were made independent of the day the local database was seeded (they relied on the seed's
+  dates and failed the morning after a seed).
+- `npm run test:e2e`: **188 passed, 8 skipped** (phone-only/desktop-only layout checks). New: filters with counts,
+  search by name and by "+44 7700 900 003", Back returns to the same search, "Clients of", 20 per page,
+  barbers' own clients only and "not found" for others, results load straight from the address, stats and usual
+  service/barber, due-back reminder text in the WhatsApp/SMS links, **Book again** defaults and confirmation,
+  **duplicate number refused** then saved, **Delete client** end to end, axe WCAG 2.1 AA (list, client page, edit
+  sheet; light and dark), no sideways scroll at 320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Dashboard pages stream behind Suspense, which needs JavaScript to show, so the "works without JavaScript" part
+  of the search means: it's a plain GET form and the results come straight from the address.
+- e2e tests share the local database with whatever you're browsing; cleanup only removes rows the tests created
+  (test numbers 07700 9007xx/9008xx, or the exact booking a test made).
+
+**Suggested commit**
+
+```
+feat(clients): add clients list, client page, book again, edit and delete
 ```
 
 ---

@@ -120,7 +120,14 @@ describe("request_booking: every error code", () => {
   });
 
   it("shop_closed, service_day, outside_hours", async () => {
-    await expectCode({ service: hairCut, start: at(addDays(today, 14), "11:00") }, "shop_closed");
+    // Its own closed day (the seed's sample closure moves with the day the database was seeded).
+    const closed = addDays(today, 20);
+    await sql("insert into public.closures (closed_on, reason) values ($1, 'TEST closure') on conflict (closed_on) do nothing", [closed]);
+    try {
+      await expectCode({ service: hairCut, start: at(closed, "11:00") }, "shop_closed");
+    } finally {
+      await sql("delete from public.closures where closed_on = $1 and reason = 'TEST closure'", [closed]);
+    }
     await expectCode({ service: oap, start: at(friday, "11:00") }, "service_day");
     await expectCode({ service: hairCut, start: at(monday, "18:15") }, "outside_hours");
   });
@@ -193,7 +200,8 @@ describe("request_booking: changes (p_replaces)", () => {
       `insert into public.bookings (client_id, staff_id, service_id, service_name, price_pence, duration_min, starts_at, ends_at, status, source)
        values ((select id from public.clients where phone = '+447700900001'), $1, $2, 'Hair Cut', 1700, 30, now() + interval '1 hour', now(), 'pending', 'online')
        returning manage_token::text token`,
-      [STAFF.owner, hairCut],
+      // Jamie has no live sample bookings, so this never overlaps the seed whatever day it was seeded.
+      [STAFF.jamie, hairCut],
     );
     try {
       await expectCode({ service: hairCut, staff: STAFF.sam, start: at(monday, "10:00"), replaces: b.token }, "not_changeable");
