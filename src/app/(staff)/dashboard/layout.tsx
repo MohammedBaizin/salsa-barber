@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Suspense, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
+import { ToastHost } from "@/components/dashboard/form-parts";
 import { HeaderBar, HeaderSkeleton } from "@/components/dashboard/header";
 import { SideNav, TabBar } from "@/components/dashboard/nav";
 import { Skeleton } from "@/components/dashboard/skeleton";
@@ -102,6 +103,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <RoleTabBar />
       </Suspense>
       <AutoRefresh />
+      <ToastHost />
     </div>
   );
 }

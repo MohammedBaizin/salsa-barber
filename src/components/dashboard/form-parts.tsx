@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -134,13 +134,30 @@ export function TimeSelect({
   );
 }
 
-/** Success message that stays visible above the tab bar even when scrolled; clears itself. */
-export function Toast({ message, onDone }: { message: { text: string; id: number } | null; onDone: () => void }) {
+const NOTICE_EVENT = "dashboard:notice";
+
+/**
+ * Shows a success notice in the dashboard's one toast (above the tab bar on phones, clears itself).
+ * A plain function, so it works even when the component that asked has been replaced by a refresh.
+ */
+export function notify(text: string): void {
+  window.dispatchEvent(new CustomEvent<string>(NOTICE_EVENT, { detail: text }));
+}
+
+/** The dashboard's toast (rendered once, in the layout). The latest notice wins. */
+export function ToastHost() {
+  const [message, setMessage] = useState<{ text: string; id: number } | null>(null);
+  useEffect(() => {
+    let id = 0;
+    const show = (event: Event) => setMessage({ text: (event as CustomEvent<string>).detail, id: ++id });
+    window.addEventListener(NOTICE_EVENT, show);
+    return () => window.removeEventListener(NOTICE_EVENT, show);
+  }, []);
   useEffect(() => {
     if (!message) return;
-    const timer = window.setTimeout(onDone, 5000);
+    const timer = window.setTimeout(() => setMessage(null), 5000);
     return () => window.clearTimeout(timer);
-  }, [message, onDone]);
+  }, [message]);
   return (
     <div
       role="status"
@@ -153,5 +170,14 @@ export function Toast({ message, onDone }: { message: { text: string; id: number
         </p>
       ) : null}
     </div>
+  );
+}
+
+/** true once this component has hydrated in the browser (false during the server render). */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
   );
 }

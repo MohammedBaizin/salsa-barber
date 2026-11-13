@@ -125,3 +125,48 @@ export const profileSchema = z.object({
   bookable: z.boolean(),
   showOnSite: z.boolean(),
 });
+
+// ---------------------------------------------------------------------------
+// Team forms
+// ---------------------------------------------------------------------------
+
+const uuid = z.uuid();
+
+export const newPersonSchema = z.object({
+  username: usernameSchema,
+  displayName: z.string().transform((v) => v.replace(/\s+/g, " ").trim()).pipe(z.string().min(1, "Please enter a name.").max(60, "Keep the name under 60 characters.")),
+  role: z.enum(["barber", "owner", "admin"]),
+});
+
+export const USERNAME_TAKEN = "That username is already taken.";
+
+export const timeOffSchema = z
+  .object({
+    staffId: uuid,
+    startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose the first day."),
+    endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose the last day."),
+    reason: z.string().optional().transform((v) => v?.replace(/\s+/g, " ").trim() || null).refine((v) => !v || v.length <= 100, "Keep the reason under 100 characters."),
+    anyway: z.preprocess((v) => v === "1", z.boolean()),
+  })
+  .refine((v) => v.endsOn >= v.startsOn, { path: ["endsOn"], message: "The last day can't be before the first day." });
+
+/** "2 bookings fall inside these dates…" (they're kept; staff move or cancel them separately). */
+export function timeOffWarning(bookings: number): string | null {
+  if (bookings === 0) return null;
+  return `${bookings === 1 ? "1 booking falls" : `${bookings} bookings fall`} inside these dates. ${bookings === 1 ? "It stays" : "They stay"} booked: move or cancel ${bookings === 1 ? "it" : "them"} from the Calendar.`;
+}
+
+/** "Switching off… 3 upcoming bookings stay booked." */
+export function switchOffWarning(name: string, upcoming: number): string | null {
+  if (upcoming === 0) return null;
+  return `${name} has ${upcoming === 1 ? "1 upcoming booking" : `${upcoming} upcoming bookings`}. ${upcoming === 1 ? "It stays" : "They stay"} booked: move or cancel ${upcoming === 1 ? "it" : "them"} first if they won't be in.`;
+}
+
+export const TEAM_ERRORS: Record<string, string> = {
+  has_upcoming: "Move or cancel their upcoming bookings first, then delete the account.",
+  cannot_delete_self: "You can't delete your own account.",
+  cannot_switch_off_self: "You can't switch off your own account.",
+  cannot_change_own_role: "You can't change your own role.",
+  not_allowed: "Your account can't do that.",
+  username_locked: "Usernames can't be changed.",
+};

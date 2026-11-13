@@ -42,6 +42,15 @@ export function Sheet({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  // When the page is left (or kept hidden by the router for Back), an open modal dialog would leave the next page
+  // inert: close it.
+  useEffect(() => {
+    const dialog = ref.current;
+    return () => {
+      if (dialog?.open) dialog.close();
+    };
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const release = lockScroll();

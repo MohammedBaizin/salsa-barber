@@ -134,7 +134,8 @@ test.describe("Today", () => {
     await expect(ada).toContainText("Waiting over 12 hours");
     await expect(ada).toContainText("Same number has another booking");
     await expect(requests.getByTestId("booking-card").filter({ hasText: "Changed by customer" })).toContainText("E2E Bo");
-    await expect(requests.getByTestId("booking-card").filter({ hasText: "Expired" })).toContainText("E2E Bo");
+    // (Other expired requests may exist, e.g. the seed's sample request once its day has passed.)
+    await expect(requests.getByTestId("booking-card").filter({ hasText: "Expired" }).filter({ hasText: "E2E Bo" })).toHaveCount(1);
     // Soonest first: the expired one leads.
     await expect(requests.getByTestId("booking-card").first()).toContainText("Expired");
 

@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import {
-  addDays, dateKey, type DateKey, dayShortName, formatClock, formatDay, fromLondon, isoWeekday, minuteOfDay, parseHHMM,
+  addDays, dateKey, type DateKey, dayShortName, formatClock, formatDay, fromLondon, isoWeekday, minuteOfDay, parseHHMM, toHHMM,
 } from "./time";
 
 export type DayHours = { open: string; close: string } | null;
@@ -97,4 +97,43 @@ export function openStatus(hours: WeeklyHours, closures: ReadonlySet<DateKey> | 
     return { open: false, nextOpen: fromLondon(key, w.open), label: `Closed · opens ${when}` };
   }
   return { open: false, nextOpen: null, label: "Closed" };
+}
+
+// ---------------------------------------------------------------------------
+// Weekly hours form (shared by Team schedules and the shop's opening hours in Settings)
+// Fields per day: day_<n>_on ("on"), day_<n>_open and day_<n>_close (minutes after midnight).
+// ---------------------------------------------------------------------------
+
+export type HoursFormResult = { ok: true; hours: WeeklyHours } | { ok: false; errors: Record<string, string> };
+
+export const HOURS_ORDER_ERROR = "Finish time must be after the start time.";
+
+export function parseHoursForm(get: (name: string) => string | null): HoursFormResult {
+  const hours: WeeklyHours = {};
+  const errors: Record<string, string> = {};
+  for (const d of WEEKDAYS) {
+    if (get(`day_${d}_on`) !== "on") {
+      hours[d] = null;
+      continue;
+    }
+    const open = Number(get(`day_${d}_open`));
+    const close = Number(get(`day_${d}_close`));
+    const valid = (m: number) => Number.isInteger(m) && m >= 0 && m < 24 * 60 && m % 5 === 0;
+    if (!valid(open) || !valid(close)) {
+      errors[`day_${d}`] = "Please choose a start and finish time.";
+    } else if (close <= open) {
+      errors[`day_${d}`] = HOURS_ORDER_ERROR;
+    } else {
+      hours[d] = { open: toHHMM(open), close: toHHMM(close) };
+    }
+  }
+  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, hours };
+}
+
+/** Form values for each weekday (closed days default to 9:00am–5:00pm when switched on). */
+export function hoursFormValues(hours: WeeklyHours): { day: (typeof WEEKDAYS)[number]; on: boolean; open: number; close: number }[] {
+  return WEEKDAYS.map((d) => {
+    const h = hours[d];
+    return h ? { day: d, on: true, open: parseHHMM(h.open), close: parseHHMM(h.close) } : { day: d, on: false, open: 540, close: 1020 };
+  });
 }

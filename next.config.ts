@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  experimental: {
+    // Photo uploads (team photo now, website photos later): re-encoded on the server to WebP ≤ 2 MB.
+    serverActions: { bodySizeLimit: "5mb" },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

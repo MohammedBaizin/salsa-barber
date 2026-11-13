@@ -6,7 +6,7 @@ import type { BookingSetup, DashboardBooking } from "@/lib/dashboard/types";
 import { formatPence } from "@/lib/domain/money";
 import { MESSAGE_TITLES, type MessagePlan } from "@/lib/domain/staff-bookings";
 import { bookingName, type RequestFlag } from "@/lib/domain/today";
-import { Toast } from "./form-parts";
+import { notify as showNotice } from "./form-parts";
 import { BookingDetailsView, ChangeBarberView, ChangeServiceView, DeclineView, MessageView, NewBookingView, RescheduleView } from "./booking-views";
 import { Sheet } from "./sheet";
 
@@ -69,9 +69,8 @@ function titleFor(view: SheetView): { title: string; description?: string } {
 export function BookingsProvider({ setup, today, children }: { setup: BookingSetup; today: string; children: ReactNode }) {
   const [view, setView] = useState<SheetView | null>(null);
   const [open, setOpen] = useState(false);
-  const [toast, setToast] = useState<{ text: string; id: number } | null>(null);
 
-  const notify = useCallback((text: string) => setToast({ text, id: Date.now() }), []);
+  const notify = useCallback((text: string) => showNotice(text), []);
   const show = useCallback((next: SheetView) => {
     setView(next);
     setOpen(true);
@@ -97,7 +96,6 @@ export function BookingsProvider({ setup, today, children }: { setup: BookingSet
       <Sheet open={open} onClose={() => setOpen(false)} title={heading.title} description={heading.description}>
         {open && view ? <SheetBody view={view} /> : null}
       </Sheet>
-      <Toast message={toast} onDone={() => setToast(null)} />
     </BookingsContext>
   );
 }

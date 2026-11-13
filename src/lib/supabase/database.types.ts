@@ -321,10 +321,21 @@ isOneToOne: false
 "delete_client":
 { Args: { "p_id": string }; Returns: number
                            },
+"delete_staff":
+{ Args: { "p_id": string }; Returns: {
+              "photo_path": string,"removed": boolean,"user_id": string
+            }[]
+                           },
+"end_user_sessions":
+{ Args: { "p_user": string }; Returns: undefined
+                           },
 "get_managed_booking":
 { Args: { "p_token": string }; Returns: {
               "any_barber": boolean,"booking_id": string,"can_change": boolean,"created_at": string,"customer_name": string,"duration_min": number,"ends_at": string,"phone": string,"price_pence": number,"service_id": string,"service_name": string,"staff_id": string,"staff_name": string,"starts_at": string,"status": string
             }[]
+                           },
+"log_account_event":
+{ Args: { "p_action": string,"p_staff": string }; Returns: undefined
                            },
 "request_booking":
 { Args: { "p_ip_hash"?: string,"p_name": string,"p_phone": string,"p_replaces"?: string,"p_service": string,"p_staff"?: string,"p_start": string }; Returns: {

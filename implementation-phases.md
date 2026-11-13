@@ -12,8 +12,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 5 | Booking flow + availability API | Done (committed on `phase-5-booking`) |
 | 6 | Dashboard shell + Today | Done (committed on `phase-6-dashboard`) |
 | 7 | Booking actions + Calendar | Done (committed on `phase-7-calendar`) |
-| 8 | Clients | **Done, awaiting review** |
-| 9 | Team | Not started |
+| 8 | Clients | Done (committed on `phase-8-clients`) |
+| 9 | Team | **Done, awaiting review** |
 | 10 | Services | Not started |
 | 11 | Settings + Activity | Not started |
 | 12 | Website content | Not started |
@@ -573,6 +573,72 @@ Branch `phase-8-clients` (stacked on `phase-7-calendar`).
 
 ```
 feat(clients): add clients list, client page, book again, edit and delete
+```
+
+---
+
+## Phase 9: Team
+
+Branch `phase-9-team` (stacked on `phase-8-clients`).
+
+**Scope**
+
+- Migration `team`:
+  - `delete_staff(id)`: owner (barbers) / admin (anyone else), never yourself, refused while they have upcoming
+    bookings (under the booking lock). No history → row removed with their services and time off; history →
+    hidden row with the name only, username and login freed. Returns the login and photo to remove.
+  - `end_user_sessions(user)` (secret key only): signs a login out everywhere (password reset, switched off).
+  - `log_account_event()`: password resets (done with the secret key) are logged under the person who asked.
+- **Team list** (owner/admin): photo or initials, role/title, "you", chips (Takes bookings, On the website, Hidden,
+  Switched off). Admin accounts only for admins (RLS). **Add barber** (owner) / **Add person** with a role (admin):
+  login made with the secret key, profile inserted with the signed-in session (RLS + audit), login removed again if
+  the profile fails; starts hidden and not taking bookings, with the shop's hours and every service; **temporary
+  password shown once** with a copy button.
+- **Member page** with tabs in the address: **Profile** (name, title, bio, Takes bookings, Show on website; admin
+  accounts can't be either), **Photo** (re-encoded on the server to WebP ≤ 800 px, metadata removed; replace or
+  remove deletes the old file), **Services**, **Schedule** (weekly hours editor, finish after start, stacked on
+  phones; time off as first/last day with "N bookings fall inside these dates" → "Add anyway"), **Account** (role
+  for admins, reset password with "Are you sure?" and the new password shown once, switch off/on with an
+  upcoming-bookings warning and sign-out everywhere, delete account, blocked while bookings are upcoming).
+  Read-only for people you can't edit; usernames can't change.
+- Website: profile, photo, services and hours changes refresh the site's cache (`updateTag("site-content")`).
+- **Account page** (everyone) now shows your own hours and time off (read-only for barbers: the "Me" tab).
+- Server actions accept up to 5 MB (photo uploads).
+- Fixes found by the tests:
+  - One dashboard-wide toast (`notify()` + `ToastHost`): two actions on one card no longer stack notices, and a
+    notice still shows when the refresh replaces the form that asked (e.g. a new photo).
+  - A sheet left open when navigating away kept the next page inert (the router keeps the old page hidden):
+    sheets now close when their page is hidden or unmounted.
+
+**Tests actually run**
+
+- `npm test`: **347 passed** (6 new): hours form (on/off days, finish after start, 5-minute grid, round trip),
+  new person (case-insensitive usernames, rules), time off (last not before first, reason length), warnings text.
+- `npm run test:db`: **124 passed** (7 new): delete without history (removed with services and time off, audited),
+  with history (hidden row, name only, username reusable), refused with upcoming bookings, owner/barber/self limits,
+  admin deletes owners, signed-out refused; `end_user_sessions` secret key only; password-reset log entry and limits.
+- `npm run test:e2e`: full run **206 passed, 2 failed, 8 skipped** (phone-only/desktop-only layout checks). The 2
+  failures were one phase 6 Today test (phone + desktop) that assumed its own request was the only expired one; the
+  seed's sample request had expired too (the local database was seeded the day before). Fixed and rerun: **2 passed**.
+  New: owner adds a barber (one-time password, hidden, not bookable, shop hours, every service, audited, **they can
+  sign in with it**), duplicate username refused; profile shown on the website (**homepage updates**); photo upload
+  served as WebP, then removed (file gone); services; hours (finish before start refused); time off warning → Add
+  anyway → remove; **reset password (old one stops working, new one works, logged)**; switch off with warning
+  (**their open session ends**), back on; delete blocked by an upcoming booking, then deleted with the login;
+  owners never see the admin account and can't change roles; admins add any role and change roles; barbers see
+  their own hours and time off read-only; axe WCAG 2.1 AA and 320 px on every Team view in light and dark.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Resetting someone's two-step sign-in comes with two-step sign-in itself (phase 15).
+- Time off uses first/last day date fields rather than a range calendar.
+- iPhone HEIC photos need converting first until the browser-side converter arrives with Website content (phase 12).
+
+**Suggested commit**
+
+```
+feat(team): add team list, add person with one-time password, profiles, photos, services, schedules and account actions
 ```
 
 ---
