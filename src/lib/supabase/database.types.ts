@@ -337,6 +337,9 @@ isOneToOne: false
 "log_account_event":
 { Args: { "p_action": string,"p_staff": string }; Returns: undefined
                            },
+"purge_old_data":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "request_booking":
 { Args: { "p_ip_hash"?: string,"p_name": string,"p_phone": string,"p_replaces"?: string,"p_service": string,"p_staff"?: string,"p_start": string }; Returns: {
               "booking_id": string,"is_new": boolean,"manage_token": string,"staff_id": string

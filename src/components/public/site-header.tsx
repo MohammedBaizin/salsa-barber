@@ -14,7 +14,7 @@ export function SiteHeader({ links }: { links: NavLink[] }) {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="mr-auto flex min-h-11 items-center gap-2.5 rounded-lg" aria-label={`${site.name}, home`}>
-          <Image src="/brand/badge-disc-160.webp" alt="" width={40} height={40} priority className="size-10" />
+          <Image src="/brand/badge-disc-160.webp" alt="" width={40} height={40} loading="eager" className="size-10" />
           <span className="font-heading text-lg font-extrabold tracking-tight">{site.name}</span>
         </Link>
 

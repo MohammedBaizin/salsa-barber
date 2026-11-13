@@ -16,8 +16,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 9 | Team | Done (committed on `phase-9-team`) |
 | 10 | Services | Done (committed on `phase-10-services`) |
 | 11 | Settings + Activity | Done (committed on `phase-11-settings`) |
-| 12 | Website content | **Done, awaiting review** |
-| 13 | Retention job, error/loading/empty states, performance | Not started |
+| 12 | Website content | Done (committed on `phase-12-website`) |
+| 13 | Retention job, error/loading/empty states, performance | **Done, awaiting review** |
 | 14 | Customer manage link + owner email | Not started |
 | 15 | Sign-in security + 2FA | Not started |
 | 16 | Push alerts + PWA | Not started |
@@ -781,6 +781,53 @@ Branch `phase-12-website` (stacked on `phase-11-settings`).
 
 ```
 feat(website): add shop photo, slideshow, recent cuts and reviews editors with browser-side photo shrinking
+```
+
+---
+
+## Phase 13: Retention job, error/loading/empty states, performance
+
+Branch `phase-13-retention` (stacked on `phase-12-website`).
+
+**Scope**
+
+- Migration `retention`: `purge_old_data()` (service role and cron only) removes declined, cancelled and
+  never-answered bookings whose appointment was over 90 days ago (completed visits and no-shows are kept),
+  activity entries over 90 days, clients with no bookings left added over 90 days ago, and rate-limit rows over an
+  hour old; returns the counts. `pg_cron` runs it nightly at **03:15 UTC** (job `purge-old-data`). Nothing it removes is
+  written to the activity log (no staff session).
+- Error, loading and empty screens checked page by page: every dashboard page and `/book`, `/booking/…`, `/login`
+  already had a layout-shaped skeleton (shown after ~90 ms) and the error/not-found screens exist. Added the missing
+  empty state on Services ("No services yet"). The public and global error pages now use Next 16's `retry()`
+  (re-fetches) instead of `reset()` (only re-renders), so "Try again" really tries again.
+- Performance:
+  - The homepage no longer ships zod: weekly-hours validation moved to `domain/hours-schema.ts` (server/dashboard
+    only), so "Open now" doesn't pull it in. Homepage JavaScript **237 KB → 206 KB** gzipped.
+  - The HEIC converter (3 MB) is confirmed to be a separate chunk, downloaded only when someone picks an iPhone photo
+    that the browser can't read (pages carry a 215-byte loader).
+  - Deprecated `priority` on images replaced with `preload` (hero photo/logo, login badge); the small header logo
+    loads eagerly instead of being preloaded.
+  - Build: homepage fully static; every other page a partial prerender (static shell, streamed data).
+
+**Tests actually run**
+
+- `npm test`: **363 passed**.
+- `npm run test:db`: **142 passed** (3 new): purge removes old declined/cancelled/unanswered bookings and keeps
+  completed, no-show and recent ones; removes old clients with no bookings and keeps new ones and ones with visits;
+  removes 91-day-old activity and keeps 89-day-old; clears old rate-limit rows; anon, owner and admin can't run it;
+  the cron job is scheduled at `15 3 * * *`.
+- `npm run test:e2e`: **244 passed, 16 skipped**, no failures (8 phone-only/desktop-only layout checks, plus 8 "today" booking tests that skip themselves after 9pm London time; the run ended at 9:45pm).
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- In production, `pg_cron` must be enabled on the Supabase project (the migration enables it; check
+  Database → Cron after `supabase db push`, as the spec's deploy step says).
+
+**Suggested commit**
+
+```
+feat(retention): add nightly purge_old_data job, empty/error-state fixes and smaller homepage bundle
 ```
 
 ---

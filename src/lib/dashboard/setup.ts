@@ -1,7 +1,8 @@
 import "server-only";
 import type { Staff } from "@/lib/auth/staff";
 import { bookingEnabled } from "@/lib/booking/config";
-import { weeklyHoursSchema, type WeeklyHours } from "@/lib/domain/hours";
+import type { WeeklyHours } from "@/lib/domain/hours";
+import { weeklyHoursSchema } from "@/lib/domain/hours-schema";
 import { scheduleWarnings, type ScheduleWarning } from "@/lib/domain/schedule";
 import { dateKey } from "@/lib/domain/time";
 import { site, siteUrl } from "@/lib/site";

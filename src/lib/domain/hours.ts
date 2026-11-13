@@ -1,8 +1,8 @@
 /**
  * Weekly opening hours: keys "1".."7" (ISO weekday, 1 = Monday), value {open, close} ("HH:MM") or null.
- * Missing or null days are closed. Mirrors app.valid_weekly_hours() and app.fits_hours() in SQL.
+ * Missing or null days are closed. Mirrors app.fits_hours() in SQL; the validation schema (app.valid_weekly_hours())
+ * is in hours-schema.ts, so the public website's "Open now" doesn't ship zod to the browser.
  */
-import { z } from "zod";
 import {
   addDays, dateKey, type DateKey, dayShortName, formatClock, formatDay, fromLondon, isoWeekday, minuteOfDay, parseHHMM, toHHMM,
 } from "./time";
@@ -11,16 +11,6 @@ export type DayHours = { open: string; close: string } | null;
 export type WeeklyHours = Partial<Record<"1" | "2" | "3" | "4" | "5" | "6" | "7", DayHours>>;
 
 export const WEEKDAYS = ["1", "2", "3", "4", "5", "6", "7"] as const;
-
-const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use a time like 09:30");
-
-export const dayHoursSchema = z
-  .object({ open: hhmm, close: hhmm })
-  .strict()
-  .refine((d) => d.close > d.open, { message: "Closing time must be after opening time", path: ["close"] })
-  .nullable();
-
-export const weeklyHoursSchema = z.partialRecord(z.enum(WEEKDAYS), dayHoursSchema);
 
 /** Opening window for an ISO weekday in minutes, or null when closed. */
 export function windowFor(hours: WeeklyHours, isoDay: number): { open: number; close: number } | null {

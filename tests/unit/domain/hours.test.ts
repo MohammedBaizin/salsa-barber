@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fitsHours, formatWindow, groupWeeklyHours, hasAnyHours, openStatus, weeklyHoursSchema, type WeeklyHours } from "@/lib/domain/hours";
+import { fitsHours, formatWindow, groupWeeklyHours, hasAnyHours, openStatus, type WeeklyHours } from "@/lib/domain/hours";
+import { weeklyHoursSchema } from "@/lib/domain/hours-schema";
 import { fromLondon } from "@/lib/domain/time";
 
 const WEEK: WeeklyHours = {

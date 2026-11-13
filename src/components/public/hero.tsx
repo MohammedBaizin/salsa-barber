@@ -76,7 +76,7 @@ export function Hero({ content }: { content: SiteContent }) {
                 src={shopPhoto.url}
                 alt={shopPhoto.alt}
                 fill
-                priority
+                preload
                 sizes="(min-width: 1152px) 540px, (min-width: 1024px) 46vw, (min-width: 640px) 576px, calc(100vw - 2rem)"
                 className="object-cover"
               />
@@ -92,7 +92,7 @@ export function Hero({ content }: { content: SiteContent }) {
         ) : (
           <div className="relative mx-auto w-full max-w-sm">
             <div aria-hidden className="pole-stripe absolute inset-x-6 -bottom-3 h-3 rounded-full" />
-            <Image src="/brand/badge-disc-640.webp" alt={`${site.name} logo`} width={640} height={640} priority sizes="24rem" className="relative h-auto w-full" />
+            <Image src="/brand/badge-disc-640.webp" alt={`${site.name} logo`} width={640} height={640} preload sizes="24rem" className="relative h-auto w-full" />
           </div>
         )}
       </div>

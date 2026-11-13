@@ -1,7 +1,7 @@
 "use client";
 
 /** Last-resort error page: its own document with inline styles (the root layout and CSS may have failed). */
-export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
   return (
     <html lang="en-GB">
       <body
@@ -24,7 +24,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
           <p style={{ marginTop: "2rem", display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
             <button
               type="button"
-              onClick={reset}
+              onClick={() => retry()}
               style={{ minHeight: 44, padding: "0 1.25rem", borderRadius: 10, border: "2px solid #f6efe4", background: "#ffc20e", color: "#141210", fontWeight: 700, fontSize: "1rem", cursor: "pointer" }}
             >
               Try again

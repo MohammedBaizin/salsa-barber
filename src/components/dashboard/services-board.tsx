@@ -181,7 +181,12 @@ export function ServicesBoard({ services, canEdit }: { services: ServiceRow[]; c
         </p>
       ) : null}
 
-      <ol className="divide-y overflow-hidden rounded-2xl border bg-card" data-testid="service-list">
+      {order.length === 0 ? (
+        <p className="rounded-xl border border-dashed p-4 text-muted-foreground">
+          No services yet.{canEdit ? " Add one to show prices on the website and take bookings." : ""}
+        </p>
+      ) : null}
+      <ol className="divide-y overflow-hidden rounded-2xl border bg-card empty:hidden" data-testid="service-list">
         {order.map((s, i) => (
           <li key={s.id} className="flex items-center gap-3 px-3 py-3 sm:px-4" data-testid="service-row">
             <div className="min-w-0 flex-1">

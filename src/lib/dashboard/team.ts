@@ -1,6 +1,7 @@
 import "server-only";
 import type { Staff } from "@/lib/auth/staff";
-import { weeklyHoursSchema, type WeeklyHours } from "@/lib/domain/hours";
+import type { WeeklyHours } from "@/lib/domain/hours";
+import { weeklyHoursSchema } from "@/lib/domain/hours-schema";
 import {
   canChangeRole, canDelete, canEditPerson, canResetPassword, canSwitchOff, creatableRoles, type Role,
 } from "@/lib/domain/team";

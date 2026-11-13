@@ -27,7 +27,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
     >
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <Image src="/brand/badge-disc-160.webp" alt="" width={96} height={96} priority className="size-24" />
+          <Image src="/brand/badge-disc-160.webp" alt="" width={96} height={96} preload className="size-24" />
           <h1 className="mt-4 text-h2 font-extrabold">Staff sign in</h1>
           <p className="mt-1 text-sm text-muted-foreground">{site.name}</p>
         </div>
