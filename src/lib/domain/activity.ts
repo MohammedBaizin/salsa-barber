@@ -142,3 +142,45 @@ export function groupByDay<T extends { at: Date }>(entries: T[]): { date: DateKe
   }
   return groups;
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Filters and the "Show older" cursor, from the URL. Anything unrecognised is ignored. */
+export type ActivityParams = { person: string | null; type: ActivityType | null; before: number | null };
+
+export function parseActivityParams(search: Record<string, string | string[] | undefined>): ActivityParams {
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+  const person = one(search.person);
+  const type = one(search.type);
+  const before = one(search.before);
+  return {
+    person: UUID.test(person) ? person.toLowerCase() : null,
+    type: ACTIVITY_TYPES.some((t) => t.value === type) ? (type as ActivityType) : null,
+    before: /^[1-9]\d{0,15}$/.test(before) ? Number(before) : null,
+  };
+}
+
+export function activityHref(p: ActivityParams): string {
+  const q = new URLSearchParams();
+  if (p.person) q.set("person", p.person);
+  if (p.type) q.set("type", p.type);
+  if (p.before) q.set("before", String(p.before));
+  const s = q.toString();
+  return s ? `/dashboard/activity?${s}` : "/dashboard/activity";
+}
+
+/** PostgREST filter for a type: action starts with any of its prefixes. */
+export function activityTypeFilter(type: ActivityType): string {
+  const prefixes = ACTIVITY_TYPES.find((t) => t.value === type)!.prefixes;
+  return prefixes.map((p) => `action.like.${p}*`).join(",");
+}
+
+/**
+ * The line under an entry's label. Settings list what changed ("Changed opening hours"); plain edits add the
+ * changed fields after the summary; everything else shows the summary as written by the database.
+ */
+export function entryDetail(e: { entity: string; action: string; summary: string | null; changed: string[] | null }): string | null {
+  if (e.entity === "settings") return describeChanged(e.entity, e.changed) ?? e.summary;
+  const changed = e.action.endsWith(".update") ? describeChanged(e.entity, e.changed) : null;
+  return [e.summary, changed].filter(Boolean).join(" · ") || null;
+}

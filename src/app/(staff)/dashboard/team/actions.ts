@@ -14,6 +14,7 @@ import { fieldErrors, GENERIC_ERROR } from "@/lib/domain/validation";
 import { MAX_PHOTO_BYTES, NotAnImageError, PHOTO_MAX_SIZE, processPhoto } from "@/lib/images/process";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createSessionClient } from "@/lib/supabase/server";
+import { nextSaveState, type SaveState } from "@/lib/dashboard/action-state";
 
 /**
  * Team actions (spec §8.5). Every action checks the permission rules in domain/team.ts against the target's real
@@ -21,23 +22,9 @@ import { createSessionClient } from "@/lib/supabase/server";
  * (names, photos, who's shown or bookable, services, hours) refresh the site's cache.
  */
 
-export type TeamFormState = {
-  error: string | null;
-  fields: Record<string, string>;
-  /** Asks to confirm ("Save anyway" / "Switch off anyway"). */
-  warning: string | null;
-  done: { notice: string; password?: string; id?: string } | null;
-  attempt: number;
-};
+export type TeamFormState = SaveState;
 
-const state = (prev: TeamFormState, next: Partial<TeamFormState>): TeamFormState => ({
-  error: null,
-  fields: {},
-  warning: null,
-  done: null,
-  ...next,
-  attempt: prev.attempt + 1,
-});
+const state = nextSaveState;
 const fail = (prev: TeamFormState, error: string, fields: Record<string, string> = {}) => state(prev, { error, fields });
 
 function teamError(error: { code?: string; message?: string } | null): string {

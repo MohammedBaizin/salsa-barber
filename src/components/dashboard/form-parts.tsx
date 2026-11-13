@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type FormEvent, type ReactNode } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { safely } from "@/lib/connection";
+import { initialSaveState, type SaveState } from "@/lib/dashboard/action-state";
 import type { ScheduleWarning } from "@/lib/domain/schedule";
-import { formatClock } from "@/lib/domain/time";
+import { hoursFormValues, type WeeklyHours } from "@/lib/domain/hours";
+import { dayLongName, formatClock } from "@/lib/domain/time";
 import { cn } from "@/lib/utils";
 
 /**
@@ -181,3 +184,120 @@ export function useHydrated(): boolean {
     () => false,
   );
 }
+
+// ---------------------------------------------------------------------------
+// Save forms (Team, Settings): useSave + Form + Card + SaveButton
+// ---------------------------------------------------------------------------
+
+/**
+ * A save action with useActionState, submitted without React's form reset (values survive errors).
+ * The success notice is sent as soon as the action answers, even if the refresh that follows replaces this form.
+ * A one-time password in the answer is shown by the form instead of a notice.
+ */
+export function useSave(action: (prev: SaveState, data: FormData) => Promise<SaveState>) {
+  const [run] = useState(() => {
+    const safe = safely(action);
+    return async (prev: SaveState, data: FormData) => {
+      const next = await safe(prev, data);
+      if (next.done && !next.done.password) notify(next.done.notice);
+      return next;
+    };
+  });
+  const [state, dispatch, pending] = useActionState(run, initialSaveState);
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
+    startTransition(() => dispatch(data));
+  };
+  const send = (data: FormData) => startTransition(() => dispatch(data));
+  return { state, submit, send, pending };
+}
+
+/** <form> that says when it's interactive (data-ready), so automated tests don't type before hydration. */
+export function Form(props: ComponentProps<"form">) {
+  const ready = useHydrated();
+  return <form {...props} data-ready={ready || undefined} />;
+}
+
+export function Card({ id, title, description, children }: { id?: string; title: string; description?: ReactNode; children: ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-20 space-y-4 rounded-2xl border bg-card p-4 sm:p-6" aria-label={title}>
+      <div>
+        <h2 className="text-h3 font-bold">{title}</h2>
+        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function SaveButton({ pending, children = "Save" }: { pending: boolean; children?: string }) {
+  return (
+    <Button type="submit" variant="pop" disabled={pending}>
+      {pending ? "Saving…" : children}
+    </Button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Weekly hours editor (Team schedules and Settings → Opening hours)
+// ---------------------------------------------------------------------------
+
+export function WeeklyHoursFields({
+  legend,
+  offLabel,
+  hours,
+  errors,
+  readOnly,
+}: {
+  legend: string;
+  offLabel: string;
+  hours: WeeklyHours;
+  errors: Record<string, string>;
+  readOnly: boolean;
+}) {
+  const [rows, setRows] = useState(() => hoursFormValues(hours));
+  const update = (i: number, patch: Partial<(typeof rows)[number]>) => setRows((r) => r.map((row, j) => (j === i ? { ...row, ...patch } : row)));
+  return (
+    <fieldset disabled={readOnly} className="divide-y">
+      <legend className="sr-only">{legend}</legend>
+      {rows.map((row, i) => {
+        const day = dayLongName(Number(row.day));
+        const error = errors[`day_${row.day}`];
+        return (
+          <div key={row.day} className="grid grid-cols-1 items-center gap-x-3 gap-y-1 py-2.5 sm:grid-cols-[minmax(0,8rem)_minmax(0,1fr)]" data-testid={`hours-${row.day}`}>
+            <label className="flex min-h-11 items-center gap-2 font-medium">
+              <input
+                type="checkbox"
+                name={`day_${row.day}_on`}
+                checked={row.on}
+                onChange={(e) => update(i, { on: e.target.checked })}
+                className="size-5 accent-foreground"
+              />
+              {day}
+            </label>
+            {row.on ? (
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                <TimeSelect id={`day-${row.day}-open`} name={`day_${row.day}_open`} value={row.open} onChange={(v) => update(i, { open: v })} invalid={Boolean(error)} />
+                <span aria-hidden>–</span>
+                <TimeSelect id={`day-${row.day}-close`} name={`day_${row.day}_close`} value={row.close} onChange={(v) => update(i, { close: v })} invalid={Boolean(error)} />
+                <span className="sr-only">
+                  <label htmlFor={`day-${row.day}-open`}>{day} start</label>
+                  <label htmlFor={`day-${row.day}-close`}>{day} finish</label>
+                </span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground">{offLabel}</span>
+            )}
+            {error ? (
+              <p role="alert" className="text-sm font-medium text-destructive sm:col-span-2">
+                {day}: {error}
+              </p>
+            ) : null}
+          </div>
+        );
+      })}
+    </fieldset>
+  );
+}
+

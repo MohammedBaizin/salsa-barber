@@ -14,8 +14,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 7 | Booking actions + Calendar | Done (committed on `phase-7-calendar`) |
 | 8 | Clients | Done (committed on `phase-8-clients`) |
 | 9 | Team | Done (committed on `phase-9-team`) |
-| 10 | Services | **Done, awaiting review** |
-| 11 | Settings + Activity | Not started |
+| 10 | Services | Done (committed on `phase-10-services`) |
+| 11 | Settings + Activity | **Done, awaiting review** |
 | 12 | Website content | Not started |
 | 13 | Retention job, error/loading/empty states, performance | Not started |
 | 14 | Customer manage link + owner email | Not started |
@@ -683,6 +683,52 @@ Branch `phase-10-services` (stacked on `phase-9-team`).
 
 ```
 feat(services): add services and prices editor with booking days, reorder and safe delete
+```
+
+---
+
+## Phase 11: Settings + Activity
+
+Branch `phase-11-settings` (stacked on `phase-10-services`). No migration: settings and closed days were already
+audited by triggers and protected by RLS (phase 1).
+
+**Scope**
+
+- **Settings** (`/dashboard/settings`, owner/admin): one card per topic, each saved separately (a save never undoes
+  unsaved edits in another card), with a jump bar on phones. Every save refreshes the website's cache.
+  - **Opening hours**: shared weekly-hours editor; says how many upcoming bookings fall outside the new hours and asks
+    "Save anyway"; bookings are never moved.
+  - **Closed days**: today up to two years ahead, optional reason (shown on the website); warns how many bookings are
+    on that day ("Add anyway"); duplicates refused; remove.
+  - **Booking rules**: minimum notice, how far ahead, due-back weeks, waiting requests per phone, change/cancel cut-off.
+  - **Google rating**: rating (comma or point), count, https link; blank rating hides it.
+  - **Website notes**: walk-in and offer lines (≤ 200, line breaks become spaces, blank hides).
+  - **Website theme**: default for new visitors.
+- **Activity** (`/dashboard/activity`, owner/admin): newest first, grouped by day, 50 at a time with "Show older"
+  (id cursor) and "Back to the newest"; filters by person (switched-off/deleted people labelled) and type, in the URL
+  (GET form, works without JavaScript). Readable labels; edits list the changed fields ("Changed price and length");
+  settings changes list what changed. Owners never see admin entries (RLS).
+- Shared form parts moved to `form-parts.tsx` (`useSave`, `Form`, `Card`, `SaveButton`, weekly-hours editor) and a
+  shared `SaveState` answer type; Team uses them too (no behaviour change).
+
+**Tests actually run**
+
+- `npm test`: **356 passed** (7 new: outside-hours count, warnings, closed-day dates, activity params/links/filters,
+  detail lines).
+- `npm run test:db`: **134 passed** (7 new): settings change logged with changed columns, unchanged save not logged,
+  database range/https checks; closed days added/duplicate (23505)/removed and logged with date and reason; barbers
+  refused; activity type filter and cursor through PostgREST; person filter.
+- `npm run test:e2e`: **240 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures.
+  New: opening hours (finish-before-start refused, closing a day warns and saves, booking untouched, logged once,
+  website shows "Closed"); closed days (warning, duplicate refused with values kept, website shows it, remove);
+  booking rules + Google (field errors, comma decimal) + notes + theme saved and shown on the website; activity labels,
+  admin entries hidden from owners, type/person filters, 50 + "Show older"; axe WCAG 2.1 AA light and dark, 320 px.
+- typecheck clean · lint clean · build success.
+
+**Suggested commit**
+
+```
+feat(settings): add settings cards (hours, closed days, booking rules, Google, notes, theme) and activity log
 ```
 
 ---

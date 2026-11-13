@@ -1,74 +1,21 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useState, type ComponentProps, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ImageUp, KeyRound, Power, Trash2, UserPlus } from "lucide-react";
 import {
   addTimeOff, changeRole, createPerson, deleteAccount, removePhoto, removeTimeOff, resetPassword, saveHours, savePhoto, saveProfile,
-  saveServices, setActive, type TeamFormState,
+  saveServices, setActive,
 } from "@/app/(staff)/dashboard/team/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { safely } from "@/lib/connection";
-import { hoursFormValues, type WeeklyHours } from "@/lib/domain/hours";
+import type { WeeklyHours } from "@/lib/domain/hours";
 import { ROLE_LABELS, USERNAME_RULE, type Role } from "@/lib/domain/team";
-import { addDays, dayLongName, dateKey, formatDay } from "@/lib/domain/time";
+import { addDays, dateKey, formatDay } from "@/lib/domain/time";
 import { cn } from "@/lib/utils";
-import { ConfirmBar, Field, FormError, notify, TimeSelect, useHydrated } from "./form-parts";
+import { Card, ConfirmBar, Field, Form, FormError, SaveButton, useSave, WeeklyHoursFields } from "./form-parts";
 import { Sheet, SheetActions } from "./sheet";
-
-type Action = (prev: TeamFormState, data: FormData) => Promise<TeamFormState>;
-const initial: TeamFormState = { error: null, fields: {}, warning: null, done: null, attempt: 0 };
-
-/**
- * A team action with useActionState, submitted without React's form reset (values survive errors).
- * The success notice is sent as soon as the action answers, even if the refresh that follows replaces this form.
- */
-function useTeamAction(action: Action) {
-  const [run] = useState(() => {
-    const safe = safely(action);
-    return async (prev: TeamFormState, data: FormData) => {
-      const next = await safe(prev, data);
-      if (next.done && !next.done.password) notify(next.done.notice);
-      return next;
-    };
-  });
-  const [state, dispatch, pending] = useActionState(run, initial);
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
-    startTransition(() => dispatch(data));
-  };
-  const send = (data: FormData) => startTransition(() => dispatch(data));
-  return { state, submit, send, pending };
-}
-
-/** <form> that says when it's interactive (data-ready), so automated tests don't type before hydration. */
-function Form(props: ComponentProps<"form">) {
-  const ready = useHydrated();
-  return <form {...props} data-ready={ready || undefined} />;
-}
-
-function Card({ title, description, children }: { title: string; description?: ReactNode; children: ReactNode }) {
-  return (
-    <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6" aria-label={title}>
-      <div>
-        <h2 className="text-h3 font-bold">{title}</h2>
-        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function SaveButton({ pending, children = "Save" }: { pending: boolean; children?: string }) {
-  return (
-    <Button type="submit" variant="pop" disabled={pending}>
-      {pending ? "Saving…" : children}
-    </Button>
-  );
-}
 
 function Toggle({ name, label, hint, defaultChecked, disabled }: { name: string; label: string; hint?: string; defaultChecked: boolean; disabled?: boolean }) {
   return (
@@ -141,7 +88,7 @@ export function AddPersonButton({ roles }: { roles: Role[] }) {
 }
 
 function AddPersonForm({ roles }: { roles: Role[] }) {
-  const { state, submit, pending } = useTeamAction(createPerson);
+  const { state, submit, pending } = useSave(createPerson);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<Role>(roles[0]);
@@ -212,7 +159,7 @@ export function ProfileForm({
   member: { id: string; name: string; title: string | null; bio: string | null; bookable: boolean; showOnSite: boolean; role: Role };
   readOnly: boolean;
 }) {
-  const { state, submit, pending } = useTeamAction(saveProfile);
+  const { state, submit, pending } = useSave(saveProfile);
   const isAdmin = member.role === "admin";
   return (
     <Card title="Profile">
@@ -262,8 +209,8 @@ export function ProfileForm({
 // ---------------------------------------------------------------------------
 
 export function PhotoForm({ member, readOnly }: { member: { id: string; name: string; photoUrl: string | null }; readOnly: boolean }) {
-  const upload = useTeamAction(savePhoto);
-  const remove = useTeamAction(removePhoto);
+  const upload = useSave(savePhoto);
+  const remove = useSave(removePhoto);
   const [preview, setPreview] = useState<string | null>(null);
   useEffect(() => () => (preview ? URL.revokeObjectURL(preview) : undefined), [preview]);
   const shown = preview ?? member.photoUrl;
@@ -339,7 +286,7 @@ export function ServicesForm({
   selected: string[];
   readOnly: boolean;
 }) {
-  const { state, submit, pending } = useTeamAction(saveServices);
+  const { state, submit, pending } = useSave(saveServices);
   return (
     <Card title="Services" description="What they can be booked for.">
       <Form onSubmit={submit} className="space-y-4">
@@ -363,63 +310,13 @@ export function ServicesForm({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Weekly hours editor (shared with Settings → Opening hours later)
-// ---------------------------------------------------------------------------
-
-export function WeeklyHoursFields({ hours, errors, readOnly }: { hours: WeeklyHours; errors: Record<string, string>; readOnly: boolean }) {
-  const [rows, setRows] = useState(() => hoursFormValues(hours));
-  const update = (i: number, patch: Partial<(typeof rows)[number]>) => setRows((r) => r.map((row, j) => (j === i ? { ...row, ...patch } : row)));
-  return (
-    <fieldset disabled={readOnly} className="divide-y">
-      <legend className="sr-only">Working hours</legend>
-      {rows.map((row, i) => {
-        const day = dayLongName(Number(row.day));
-        const error = errors[`day_${row.day}`];
-        return (
-          <div key={row.day} className="grid grid-cols-1 items-center gap-x-3 gap-y-1 py-2.5 sm:grid-cols-[minmax(0,8rem)_minmax(0,1fr)]" data-testid={`hours-${row.day}`}>
-            <label className="flex min-h-11 items-center gap-2 font-medium">
-              <input
-                type="checkbox"
-                name={`day_${row.day}_on`}
-                checked={row.on}
-                onChange={(e) => update(i, { on: e.target.checked })}
-                className="size-5 accent-foreground"
-              />
-              {day}
-            </label>
-            {row.on ? (
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-                <TimeSelect id={`day-${row.day}-open`} name={`day_${row.day}_open`} value={row.open} onChange={(v) => update(i, { open: v })} invalid={Boolean(error)} />
-                <span aria-hidden>–</span>
-                <TimeSelect id={`day-${row.day}-close`} name={`day_${row.day}_close`} value={row.close} onChange={(v) => update(i, { close: v })} invalid={Boolean(error)} />
-                <span className="sr-only">
-                  <label htmlFor={`day-${row.day}-open`}>{day} start</label>
-                  <label htmlFor={`day-${row.day}-close`}>{day} finish</label>
-                </span>
-              </div>
-            ) : (
-              <span className="text-muted-foreground">Not working</span>
-            )}
-            {error ? (
-              <p role="alert" className="text-sm font-medium text-destructive sm:col-span-2">
-                {day}: {error}
-              </p>
-            ) : null}
-          </div>
-        );
-      })}
-    </fieldset>
-  );
-}
-
 export function HoursForm({ memberId, hours, readOnly }: { memberId: string; hours: WeeklyHours; readOnly: boolean }) {
-  const { state, submit, pending } = useTeamAction(saveHours);
+  const { state, submit, pending } = useSave(saveHours);
   return (
     <Card title="Working hours" description="Online booking only offers times inside these hours (and the shop's).">
       <Form onSubmit={submit} className="space-y-4">
         <input type="hidden" name="id" value={memberId} />
-        <WeeklyHoursFields hours={hours} errors={state.fields} readOnly={readOnly} />
+        <WeeklyHoursFields legend="Working hours" offLabel="Not working" hours={hours} errors={state.fields} readOnly={readOnly} />
         <FormError>{state.error}</FormError>
         {readOnly ? null : <SaveButton pending={pending} />}
       </Form>
@@ -440,8 +337,8 @@ export function TimeOffForm({
   entries: { id: string; startsOn: string; endsOn: string; reason: string | null }[];
   readOnly: boolean;
 }) {
-  const add = useTeamAction(addTimeOff);
-  const remove = useTeamAction(removeTimeOff);
+  const add = useSave(addTimeOff);
+  const remove = useSave(removeTimeOff);
   const [today] = useState(() => dateKey(new Date()));
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState(today);
@@ -539,10 +436,10 @@ export function AccountSection({
   can: { resetPassword: boolean; switchOff: boolean; delete: boolean; changeRole: boolean };
   upcomingBookings: number;
 }) {
-  const role = useTeamAction(changeRole);
-  const reset = useTeamAction(resetPassword);
-  const active = useTeamAction(setActive);
-  const remove = useTeamAction(deleteAccount);
+  const role = useSave(changeRole);
+  const reset = useSave(resetPassword);
+  const active = useSave(setActive);
+  const remove = useSave(deleteAccount);
   const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
   const [warnedAt, setWarnedAt] = useState(-1);
   const switchArmed = Boolean(active.state.warning) && warnedAt !== active.state.attempt;
