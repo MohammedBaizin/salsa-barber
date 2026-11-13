@@ -48,6 +48,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "service.disable": "Service switched off",
   "service.enable": "Service switched on",
   "service.delete": "Service deleted",
+  "service.reorder": "Services reordered",
   // Settings and closures
   "settings.update": "Settings changed",
   "closure.insert": "Closed day added",

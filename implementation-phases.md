@@ -13,8 +13,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 6 | Dashboard shell + Today | Done (committed on `phase-6-dashboard`) |
 | 7 | Booking actions + Calendar | Done (committed on `phase-7-calendar`) |
 | 8 | Clients | Done (committed on `phase-8-clients`) |
-| 9 | Team | **Done, awaiting review** |
-| 10 | Services | Not started |
+| 9 | Team | Done (committed on `phase-9-team`) |
+| 10 | Services | **Done, awaiting review** |
 | 11 | Settings + Activity | Not started |
 | 12 | Website content | Not started |
 | 13 | Retention job, error/loading/empty states, performance | Not started |
@@ -639,6 +639,50 @@ Branch `phase-9-team` (stacked on `phase-8-clients`).
 
 ```
 feat(team): add team list, add person with one-time password, profiles, photos, services, schedules and account actions
+```
+
+---
+
+## Phase 10: Services
+
+Branch `phase-10-services` (stacked on `phase-9-team`).
+
+**Scope**
+
+- Migration `services`: reordering services is logged once per moved row as **"Services reordered"**
+  (`service.reorder`, like photos and reviews) instead of "Service edited". `app.audit()` is replaced as a whole
+  with only that case added (it was last defined in `triggers`).
+- **Services and prices** (`/dashboard/services`):
+  - Owner/admin: **add** (name, price in £ → pence, length in 5-minute steps up to 4 hours, **online booking days**,
+    e.g. OAP Mon–Thu; all seven = every open day), **edit** (sheet explains existing bookings keep their own
+    name, price and length), **switch off/on**, **delete** only if never booked (otherwise "switch it off instead"),
+    **reorder** with arrows (behind a Reorder toggle on phones; instant with `useOptimistic`, rolled back with a
+    message if it can't be saved; only moved rows are written).
+  - A new service is offered by every bookable barber (changeable per person in Team).
+  - Barbers: read-only.
+  - Every change refreshes the website's cache (price list and online booking).
+
+**Tests actually run**
+
+- `npm test`: **349 passed** (2 new: booking days rules).
+- `npm run test:db`: **127 passed** (3 new): reorder logged as `service.reorder` and edits as `service.update`;
+  booked services can't be deleted (23503); barbers can't add/change/delete services.
+- `npm run test:e2e`: **222 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures.
+  New: add with validation, Mon–Thu only, every bookable barber offers it, **shows on the homepage**; bad price
+  refused with values kept, saved; **switched off disappears from the website**; delete refused for a booked
+  service and allowed for a new one ("Are you sure?" with focus on Keep); reorder instant, saved, survives a reload,
+  logged only as "Services reordered"; barbers read-only; axe WCAG 2.1 AA (list and edit sheet, light and dark),
+  320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Service lengths are still the placeholders from the price list: the owner can now set the real ones here.
+
+**Suggested commit**
+
+```
+feat(services): add services and prices editor with booking days, reorder and safe delete
 ```
 
 ---

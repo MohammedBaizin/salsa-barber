@@ -40,3 +40,15 @@ export function moveItem<T extends { id: string }>(items: T[], id: string, direc
   if (i >= 0 && j >= 0 && j < order.length) [order[i], order[j]] = [order[j], order[i]];
   return order.map((x, index) => ({ id: x.id, sort: (index + 1) * 10 }));
 }
+
+/**
+ * Which days a service can be booked online (e.g. OAP Cut Mon–Thu). Checkbox values "1".."7" (ISO weekdays).
+ * All seven → null ("every day the shop is open"); none → an error.
+ */
+export function parseServiceDays(values: string[]): { ok: true; days: number[] | null } | { ok: false; error: string } {
+  const days = [...new Set(values.map(Number).filter((d) => Number.isInteger(d) && d >= 1 && d <= 7))].sort((a, b) => a - b);
+  if (days.length === 0) return { ok: false, error: "Choose at least one day." };
+  return { ok: true, days: days.length === 7 ? null : days };
+}
+
+export const SERVICE_HAS_BOOKINGS = "This service has bookings, so it can't be deleted. Switch it off instead: it disappears from the website and booking, and past bookings keep it.";
