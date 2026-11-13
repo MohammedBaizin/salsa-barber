@@ -15,8 +15,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 8 | Clients | Done (committed on `phase-8-clients`) |
 | 9 | Team | Done (committed on `phase-9-team`) |
 | 10 | Services | Done (committed on `phase-10-services`) |
-| 11 | Settings + Activity | **Done, awaiting review** |
-| 12 | Website content | Not started |
+| 11 | Settings + Activity | Done (committed on `phase-11-settings`) |
+| 12 | Website content | **Done, awaiting review** |
 | 13 | Retention job, error/loading/empty states, performance | Not started |
 | 14 | Customer manage link + owner email | Not started |
 | 15 | Sign-in security + 2FA | Not started |
@@ -729,6 +729,58 @@ audited by triggers and protected by RLS (phase 1).
 
 ```
 feat(settings): add settings cards (hours, closed days, booking rules, Google, notes, theme) and activity log
+```
+
+---
+
+## Phase 12: Website content
+
+Branch `phase-12-website` (stacked on `phase-11-settings`).
+
+**Scope**
+
+- Migration `website`: changing only the shop photo is logged as **"Shop photo changed"** (`website.shop_photo`,
+  summary Added / Replaced / Removed, under Website in the Activity filter) instead of "Settings changed".
+  `app.audit()` is replaced as a whole with only that case added.
+- **Website** (`/dashboard/website`, owner/admin):
+  - **Shop photo**: upload, replace, remove ("Are you sure?"); the old file is deleted.
+  - **Slideshow** (max 3 shown) and **Recent cuts** (max 4 shown), each with an "x of N shown" meter: drop zone or file
+    picker with instant preview, required description (alt text), "Shows a child" (starts hidden until a parent has
+    agreed), quick show/hide (instant), reorder (instant, behind a Reorder toggle on phones), edit sheet (description,
+    section, shown; warns and won't save when the section is full), replace, delete (file deleted too). Adding to a
+    full section adds the photo hidden, with a note beforehand.
+  - **Reviews**: add/edit (name, 1–5 stars, text with paragraphs, optional date not in the future, From Google,
+    shown), reorder, delete, with a reminder to copy real reviews word for word.
+  - Every change refreshes the website's cache.
+- **Browser-side photo shrinking** (`src/lib/images/shrink.ts`, used by Website and Team photos): big photos are
+  scaled to ≤ 2000 px and re-encoded (WebP, JPEG where the browser can't write WebP) under 4 MB, shown as
+  "Ready: 6.2 MB → 640 KB"; iPhone **HEIC** is converted with `heic-to`, loaded only when the browser can't read HEIC.
+  Pickers list `.heic,.heif`. The server still re-encodes everything (WebP ≤ 2 MB, upright, metadata removed).
+- New dependency: `heic-to` (LGPL-3.0, used unmodified and loaded on demand).
+
+**Tests actually run**
+
+- `npm test`: **363 passed** (7 new: when photos start hidden, meter/messages, descriptions, review rules, shrink
+  sizing, HEIC detection, size labels).
+- `npm run test:db`: **139 passed** (5 new): shop photo logged as Added/Replaced/Removed; Recent cuts max 4 and
+  slideshow max 3 visible (hidden don't count, showing one more refused); description required; reviews: no future
+  dates, reorder logged as `review.reorder`; barbers can't add photos/reviews or upload to the website bucket.
+- `npm run test:e2e`: **244 passed, 16 skipped**, no failures. Skipped: the 8 phone-only/desktop-only layout checks, plus 8 "today" booking tests that skip themselves after 9pm London time (the run finished at 9:27pm; they passed in the phase 11 run and nothing they use changed).
+  New: shop photo (a 5 MB+ photo shrunk in the browser, saved, replaced, removed; old files deleted; logged);
+  Recent cuts (description required, added and shown on the homepage, child photo hidden, hide, move to Slideshow,
+  delete removes the file); full slideshow (added hidden, showing refused, replace swaps the file); reviews (checks,
+  shown on the homepage, reorder, hide, delete); axe WCAG 2.1 AA (page and review sheet, light and dark), 320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- HEIC conversion isn't covered by an automated test (no HEIC sample in the repo, and the test browser can't make one);
+  please try an iPhone photo once on a non-Safari browser.
+
+**Suggested commit**
+
+```
+feat(website): add shop photo, slideshow, recent cuts and reviews editors with browser-side photo shrinking
 ```
 
 ---

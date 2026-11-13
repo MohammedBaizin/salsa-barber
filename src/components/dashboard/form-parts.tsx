@@ -192,14 +192,22 @@ export function useHydrated(): boolean {
 /**
  * A save action with useActionState, submitted without React's form reset (values survive errors).
  * The success notice is sent as soon as the action answers, even if the refresh that follows replaces this form.
- * A one-time password in the answer is shown by the form instead of a notice.
+ * A one-time password in the answer is shown by the form instead of a notice. `onDone` runs after a success
+ * (e.g. to close a sheet).
  */
-export function useSave(action: (prev: SaveState, data: FormData) => Promise<SaveState>) {
+export function useSave(action: (prev: SaveState, data: FormData) => Promise<SaveState>, onDone?: (next: SaveState) => void) {
+  const latestOnDone = useRef(onDone);
+  useEffect(() => {
+    latestOnDone.current = onDone;
+  });
   const [run] = useState(() => {
     const safe = safely(action);
     return async (prev: SaveState, data: FormData) => {
       const next = await safe(prev, data);
-      if (next.done && !next.done.password) notify(next.done.notice);
+      if (next.done) {
+        if (!next.done.password) notify(next.done.notice);
+        latestOnDone.current?.(next);
+      }
       return next;
     };
   });

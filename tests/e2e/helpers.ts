@@ -51,3 +51,12 @@ export async function expectNoHorizontalScroll(page: Page) {
   expect(inner, "the browser zoomed out to fit wide content").toBeLessThanOrEqual(width);
   expect(scroll).toBeLessThanOrEqual(width);
 }
+
+/** Deletes files from a LOCAL storage bucket (test cleanup only; global setup refuses non-local Supabase). */
+export async function removeStorageFiles(bucket: string, paths: string[]) {
+  if (!paths.length) return;
+  const { createClient } = await import("@supabase/supabase-js");
+  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
+  const { error } = await admin.storage.from(bucket).remove(paths);
+  if (error) throw error;
+}

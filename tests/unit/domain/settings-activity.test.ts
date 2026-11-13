@@ -67,5 +67,6 @@ describe("activity log", () => {
       "Thu 25 Dec 2026 · Christmas",
     );
     expect(entryDetail({ entity: "booking", action: "booking.accept", summary: null, changed: ["status"] })).toBeNull();
+    expect(entryDetail({ entity: "settings", action: "website.shop_photo", summary: "Replaced", changed: ["shop_photo_path"] })).toBe("Replaced");
   });
 });

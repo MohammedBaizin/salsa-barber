@@ -180,7 +180,7 @@ export function activityTypeFilter(type: ActivityType): string {
  * changed fields after the summary; everything else shows the summary as written by the database.
  */
 export function entryDetail(e: { entity: string; action: string; summary: string | null; changed: string[] | null }): string | null {
-  if (e.entity === "settings") return describeChanged(e.entity, e.changed) ?? e.summary;
+  if (e.action === "settings.update") return describeChanged(e.entity, e.changed) ?? e.summary;
   const changed = e.action.endsWith(".update") ? describeChanged(e.entity, e.changed) : null;
   return [e.summary, changed].filter(Boolean).join(" · ") || null;
 }

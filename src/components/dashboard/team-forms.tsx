@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ImageUp, KeyRound, Power, Trash2, UserPlus } from "lucide-react";
 import {
@@ -13,8 +13,10 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import type { WeeklyHours } from "@/lib/domain/hours";
 import { ROLE_LABELS, USERNAME_RULE, type Role } from "@/lib/domain/team";
 import { addDays, dateKey, formatDay } from "@/lib/domain/time";
+import { PHOTO_ACCEPT } from "@/lib/images/shrink";
 import { cn } from "@/lib/utils";
 import { Card, ConfirmBar, Field, Form, FormError, SaveButton, useSave, WeeklyHoursFields } from "./form-parts";
+import { formWithPhoto, usePhotoPick } from "./photo-pick";
 import { Sheet, SheetActions } from "./sheet";
 
 function Toggle({ name, label, hint, defaultChecked, disabled }: { name: string; label: string; hint?: string; defaultChecked: boolean; disabled?: boolean }) {
@@ -209,11 +211,11 @@ export function ProfileForm({
 // ---------------------------------------------------------------------------
 
 export function PhotoForm({ member, readOnly }: { member: { id: string; name: string; photoUrl: string | null }; readOnly: boolean }) {
-  const upload = useSave(savePhoto);
+  const pick = usePhotoPick();
+  const upload = useSave(savePhoto, () => pick.clear());
   const remove = useSave(removePhoto);
-  const [preview, setPreview] = useState<string | null>(null);
-  useEffect(() => () => (preview ? URL.revokeObjectURL(preview) : undefined), [preview]);
-  const shown = preview ?? member.photoUrl;
+  const shown = pick.picked?.url ?? member.photoUrl;
+  const fieldError = pick.error ?? upload.state.fields.photo;
   return (
     <Card title="Photo" description="Square photos work best. Saved as a small WebP with location and camera details removed.">
       <div className="flex flex-wrap items-center gap-4">
@@ -224,25 +226,25 @@ export function PhotoForm({ member, readOnly }: { member: { id: string; name: st
           <div className="flex size-28 items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">No photo</div>
         )}
         {readOnly ? null : (
-          <Form onSubmit={upload.submit} className="flex flex-col gap-3">
+          <Form onSubmit={(e) => upload.send(formWithPhoto(e, pick.picked))} className="flex flex-col gap-3">
             <input type="hidden" name="id" value={member.id} />
             <label htmlFor="photo-file" className="text-sm font-medium">
               Choose a photo
             </label>
             <input
               id="photo-file"
-              name="photo"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                setPreview(f ? URL.createObjectURL(f) : null);
-              }}
+              accept={PHOTO_ACCEPT}
+              onChange={(e) => void pick.pick(e.target.files?.[0])}
+              aria-describedby="photo-file-status"
+              aria-invalid={fieldError ? true : undefined}
               className="max-w-64 text-sm file:mr-3 file:h-11 file:rounded-lg file:border-2 file:border-foreground file:bg-transparent file:px-4 file:font-semibold"
             />
-            {upload.state.fields.photo ? <p className="text-sm font-medium text-destructive">{upload.state.fields.photo}</p> : null}
+            <p id="photo-file-status" aria-live="polite" className={cn("text-sm", fieldError ? "font-medium text-destructive" : "text-muted-foreground")}>
+              {pick.optimising ? "Optimising…" : (fieldError ?? (pick.picked ? `Ready: ${pick.picked.note}` : "JPEG, PNG, WebP or iPhone photos."))}
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" variant="pop" disabled={upload.pending}>
+              <Button type="submit" variant="pop" disabled={upload.pending || pick.optimising || !pick.picked}>
                 <ImageUp aria-hidden />
                 {upload.pending ? "Uploading…" : "Save photo"}
               </Button>
@@ -254,7 +256,7 @@ export function PhotoForm({ member, readOnly }: { member: { id: string; name: st
                   onClick={() => {
                     const data = new FormData();
                     data.set("id", member.id);
-                    setPreview(null);
+                    pick.clear();
                     remove.send(data);
                   }}
                 >
