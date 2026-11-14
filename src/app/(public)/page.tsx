@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { Gallery } from "@/components/public/gallery";
 import { Hero } from "@/components/public/hero";
 import { Reviews } from "@/components/public/reviews";
@@ -50,18 +52,29 @@ export default async function HomePage() {
         <ServicesList services={content.services} discountText={content.discountText} />
 
         {content.recentCuts.length > 0 && (
-          <section aria-labelledby="cuts-title" id="cuts" className="scroll-mt-20 border-t">
-            <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-              <SectionHeading id="cuts-title" title="Recent cuts" />
+          <section aria-labelledby="cuts-title" id="cuts" className="scroll-mt-20">
+            <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+              <SectionHeading
+                id="cuts-title"
+                eyebrow="Portfolio"
+                title="Recent cuts"
+                accent="cuts"
+                action={
+                  <Link href="/book" className="group inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
+                    Want one like these? Book
+                    <ArrowUpRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </Link>
+                }
+              />
               <Gallery photos={content.recentCuts} />
             </div>
           </section>
         )}
 
         {content.slideshow.length > 0 && (
-          <section aria-labelledby="inside-title" id="inside" className="scroll-mt-20 border-t bg-card">
-            <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-              <SectionHeading id="inside-title" title="Inside the shop" />
+          <section aria-labelledby="inside-title" id="inside" className="scroll-mt-20 px-2 sm:px-3">
+            <div className="mx-auto max-w-7xl rounded-[1.75rem] bg-card px-4 py-16 sm:rounded-[2.25rem] sm:px-6 lg:px-10 lg:py-24">
+              <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" accent="shop" />
               <Slideshow photos={content.slideshow} />
             </div>
           </section>

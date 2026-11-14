@@ -130,7 +130,7 @@ test.describe("theme", () => {
     await expect(page.locator("html")).not.toHaveClass(/dark/);
     await page.getByRole("button", { name: "Switch to dark theme" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#141210");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0a0a0b");
     await page.goto("/book");
     await expect(page.locator("html")).toHaveClass(/dark/);
   });

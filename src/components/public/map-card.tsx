@@ -30,8 +30,8 @@ export function MapCard() {
   const { maps, address } = site;
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card">
-      <div className="relative aspect-[4/3] bg-muted sm:aspect-[16/10]">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card">
+      <div className="relative aspect-[4/3] flex-1 bg-muted sm:aspect-[16/10] lg:aspect-auto lg:min-h-80">
         {showMap ? (
           <iframe
             src={maps.embedUrl}
@@ -47,7 +47,7 @@ export function MapCard() {
               aria-hidden
               className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(var(--foreground)_1px,transparent_1px),linear-gradient(90deg,var(--foreground)_1px,transparent_1px)] [background-size:28px_28px]"
             />
-            <span className="relative inline-flex size-14 items-center justify-center rounded-full border-2 border-shadow-hard bg-highlight text-highlight-foreground shadow-pop-sm">
+            <span className="relative inline-flex size-14 items-center justify-center rounded-full bg-highlight text-highlight-foreground shadow-pop">
               <MapPin aria-hidden className="size-7" />
             </span>
             <p className="relative font-semibold">
@@ -73,7 +73,7 @@ export function MapCard() {
           </div>
         )}
       </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-1 border-t px-4 py-2">
+      <div className="flex flex-wrap gap-x-5 gap-y-1 border-t border-border px-5 py-2">
         <a href={maps.directionsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-link underline underline-offset-4 hover:no-underline">
           <Navigation aria-hidden className="size-4" />
           Directions (Google Maps)

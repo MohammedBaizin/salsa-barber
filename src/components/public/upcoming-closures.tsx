@@ -11,7 +11,7 @@ export function UpcomingClosures({ closures }: { closures: { date: string; reaso
   const upcoming = closures.filter((c) => c.date >= today && c.date <= last);
   if (upcoming.length === 0) return null;
   return (
-    <div className="mt-6 rounded-xl border-2 border-dashed border-accent/60 p-4" data-testid="upcoming-closures">
+    <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/5 p-4" data-testid="upcoming-closures">
       <h3 className="font-heading font-bold">Closed on</h3>
       <ul className="mt-2 space-y-1 text-sm">
         {upcoming.map((c) => (

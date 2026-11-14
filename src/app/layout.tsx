@@ -1,15 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Archivo, Instrument_Serif, Inter } from "next/font/google";
 import { site, siteUrl } from "@/lib/site";
 import { getPublicTheme } from "@/lib/site-content";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
-/* Display: Bricolage Grotesque (characterful grotesque, optical sizes). Body: Inter (tabular figures for prices). */
-const display = Bricolage_Grotesque({
+/*
+ * Display: Archivo, set slightly expanded (width axis) for big, confident headings.
+ * Accent: Instrument Serif italic for one word per heading. Body: Inter (tabular figures for prices).
+ */
+const display = Archivo({
   variable: "--font-display",
   subsets: ["latin"],
-  axes: ["opsz"],
+  axes: ["wdth"],
+  display: "swap",
+});
+
+const accent = Instrument_Serif({
+  variable: "--font-accent",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["italic"],
   display: "swap",
 });
 
@@ -42,7 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en-GB"
-      className={`${display.variable} ${body.variable} ${publicDefault === "dark" ? "dark" : ""}`}
+      className={`${display.variable} ${accent.variable} ${body.variable} ${publicDefault === "dark" ? "dark" : ""}`}
       style={{ colorScheme: publicDefault }}
       suppressHydrationWarning
     >

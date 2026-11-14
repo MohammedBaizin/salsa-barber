@@ -33,7 +33,7 @@ export function BookingOff({ hours, walkInText, reason = "off" }: { hours: Weekl
         )}
       </div>
       {walkInText && <p className="mt-6 font-semibold">{walkInText}</p>}
-      <div className="mt-10 rounded-2xl border bg-card p-6">
+      <div className="mt-10 rounded-3xl border bg-card p-6">
         <h2 className="text-h3 font-bold">Opening hours</h2>
         <OpeningHours hours={hours} className="mt-4" />
       </div>

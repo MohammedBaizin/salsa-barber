@@ -34,11 +34,11 @@ export function StickyBookBar({ watchId = "hero-book" }: { watchId?: string }) {
       data-visible={!heroVisible}
       aria-hidden={heroVisible}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 border-t bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform duration-300 motion-reduce:transition-none md:hidden",
-        heroVisible ? "translate-y-full" : "translate-y-0",
+        "fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 rounded-full border border-border/70 p-1.5 shadow-[var(--shadow-soft)] glass transition-transform duration-300 motion-reduce:transition-none md:hidden",
+        heroVisible ? "translate-y-[calc(100%+2rem)]" : "translate-y-0",
       )}
     >
-      <div className="grid grid-cols-[1fr_auto] gap-3">
+      <div className="grid grid-cols-[1fr_auto] gap-1.5">
         <Link href="/book" className={cn(buttonVariants({ variant: "pop" }))}>
           Book a cut
         </Link>

@@ -53,7 +53,7 @@ export function Slideshow({ photos }: { photos: SitePhoto[] }) {
       className="relative"
     >
       <div
-        className="relative aspect-[4/5] overflow-hidden rounded-2xl border bg-muted sm:aspect-[3/2] lg:aspect-[16/9]"
+        className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-muted sm:aspect-[3/2] sm:rounded-[2.25rem] lg:aspect-[21/9]"
         onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
         onTouchEnd={(e) => {
           if (touchStart.current == null) return;
@@ -74,37 +74,37 @@ export function Slideshow({ photos }: { photos: SitePhoto[] }) {
               i === index ? "opacity-100" : "pointer-events-none opacity-0",
             )}
           >
-            <Image src={p.url} alt={p.alt} fill sizes="(min-width: 1152px) 1088px, calc(100vw - 2rem)" className="object-cover object-[50%_35%]" />
+            <Image src={p.url} alt={p.alt} fill sizes="(min-width: 1152px) 1088px, calc(100vw - 2rem)" className={cn("object-cover object-[50%_35%] transition-transform duration-[7000ms] ease-out motion-reduce:transition-none", i === index && !reduced && "scale-105")} />
           </div>
         ))}
       </div>
 
       {count > 1 && (
-        <div className="mt-4 flex items-center gap-3">
-          <button type="button" onClick={() => go(-1)} className="inline-flex size-11 items-center justify-center rounded-full border bg-card hover:bg-muted">
+        <div className="mt-5 flex items-center gap-2">
+          <button type="button" onClick={() => go(-1)} className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-foreground">
             <ChevronLeft aria-hidden className="size-5" />
             <span className="sr-only">Previous photo</span>
           </button>
           <button
             type="button"
             onClick={() => setUserPaused((p) => !p)}
-            className="inline-flex size-11 items-center justify-center rounded-full border bg-card hover:bg-muted"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-foreground"
             disabled={reduced}
           >
             {userPaused || reduced ? <Play aria-hidden className="size-5" /> : <Pause aria-hidden className="size-5" />}
             <span className="sr-only">{userPaused || reduced ? "Play slideshow" : "Pause slideshow"}</span>
           </button>
-          <button type="button" onClick={() => go(1)} className="inline-flex size-11 items-center justify-center rounded-full border bg-card hover:bg-muted">
+          <button type="button" onClick={() => go(1)} className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-foreground">
             <ChevronRight aria-hidden className="size-5" />
             <span className="sr-only">Next photo</span>
           </button>
 
-          <div className="ml-2 flex flex-1 gap-2" aria-hidden>
+          <div className="ml-3 flex flex-1 gap-2" aria-hidden>
             {photos.map((p, i) => (
-              <span key={p.url} className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+              <span key={p.url} className="relative h-1 flex-1 overflow-hidden rounded-full bg-border">
                 <span
                   className={cn(
-                    "pole-stripe absolute inset-y-0 left-0",
+                    "absolute inset-y-0 left-0 bg-primary",
                     i < index && "w-full",
                     i > index && "w-0",
                     i === index && (playing ? "w-0 animate-[slide-progress_linear_forwards]" : "w-full"),

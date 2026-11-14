@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { MapPin, Menu, Phone, X } from "lucide-react";
+import { ArrowUpRight, MapPin, Menu, Phone, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { lockScroll } from "@/lib/scroll-lock";
 import { site } from "@/lib/site";
@@ -37,9 +37,9 @@ export function MobileMenu({ links, bookHref }: { links: NavLink[]; bookHref: st
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="site-menu"
-        className="inline-flex size-11 items-center justify-center rounded-full hover:bg-muted lg:hidden"
+        className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 hover:bg-muted lg:hidden"
       >
-        <Menu aria-hidden className="size-6" />
+        <Menu aria-hidden className="size-5" />
         <span className="sr-only">Menu</span>
       </button>
 
@@ -48,43 +48,49 @@ export function MobileMenu({ links, bookHref }: { links: NavLink[]; bookHref: st
         id="site-menu"
         aria-label="Menu"
         onClose={() => setOpen(false)}
-        className="m-0 h-dvh max-h-none w-full max-w-none bg-background p-0 text-foreground backdrop:bg-transparent open:flex open:flex-col"
+        className="dark m-0 h-dvh max-h-none w-full max-w-none bg-background p-0 text-foreground backdrop:bg-transparent open:flex open:flex-col"
       >
-        <div className="flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
-          <span className="font-heading text-lg font-bold">{site.name}</span>
+        <div aria-hidden className="glow-spot pointer-events-none absolute -top-24 -right-24 size-96" />
+        <div className="relative flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+          <span className="font-heading text-lg font-extrabold">
+            Salsa <span className="serif-accent text-[1.15em]">Barber</span>
+          </span>
           <button
             type="button"
             onClick={close}
             autoFocus
-            className="inline-flex size-11 items-center justify-center rounded-full hover:bg-muted"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border hover:bg-muted"
           >
-            <X aria-hidden className="size-6" />
+            <X aria-hidden className="size-5" />
             <span className="sr-only">Close menu</span>
           </button>
         </div>
-        <div aria-hidden className="pole-stripe h-1.5" />
 
-        <nav aria-label="Sections" className="flex-1 overflow-y-auto px-4 py-6">
-          <ul className="space-y-1">
-            {links.map((l) => (
-              <li key={l.href}>
+        <nav aria-label="Sections" className="relative flex-1 overflow-y-auto px-4 py-8">
+          <ul>
+            {links.map((l, i) => (
+              <li key={l.href} className="border-b border-border">
                 <a
                   href={l.href}
                   onClick={close}
-                  className="flex min-h-14 items-center rounded-lg px-2 font-heading text-h2 font-bold hover:bg-muted"
+                  className="group flex min-h-18 items-center gap-4 py-2 font-heading text-[2.5rem] leading-none font-extrabold tracking-tight"
                 >
+                  <span aria-hidden className="w-8 text-sm font-medium tabular-nums text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   {l.label}
+                  <ArrowUpRight aria-hidden className="ml-auto size-6 text-muted-foreground transition-colors group-hover:text-primary" />
                 </a>
               </li>
             ))}
           </ul>
-          <p className="mt-8 flex items-start gap-2 px-2 text-muted-foreground">
+          <p className="mt-8 flex items-start gap-2 text-muted-foreground">
             <MapPin aria-hidden className="mt-0.5 size-5 shrink-0" />
             {site.address.street}, {site.address.area} {site.address.postcode}
           </p>
         </nav>
 
-        <div className="grid grid-cols-2 gap-3 border-t px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="relative grid grid-cols-2 gap-3 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Link href={bookHref} onClick={close} className={cn(buttonVariants({ variant: "pop", size: "lg" }))}>
             Book
           </Link>

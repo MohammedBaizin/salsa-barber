@@ -9,9 +9,11 @@ export const metadata: Metadata = { title: "Page not found", robots: { index: fa
 
 export default function NotFound() {
   return (
-    <main id="main" className="flex min-h-dvh flex-col items-center justify-center px-4 py-16 text-center">
+    <main id="main" className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
+      <div aria-hidden className="glow-spot absolute top-1/2 left-1/2 -z-10 size-[36rem] -translate-x-1/2 -translate-y-1/2" />
       <Image src="/brand/badge-disc-160.webp" alt="" width={96} height={96} className="size-24" />
-      <h1 className="mt-6 text-h1 font-extrabold">Page not found</h1>
+      <p aria-hidden className="mt-6 font-heading text-[clamp(6rem,20vw,12rem)] leading-none font-extrabold tracking-tighter text-outline">404</p>
+      <h1 className="mt-2 text-h1 font-extrabold">Page not found</h1>
       <p className="mt-3 max-w-md text-lead text-muted-foreground">That page doesn&apos;t exist. It may have moved, or the link may be wrong.</p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link href="/" className={cn(buttonVariants({ variant: "pop", size: "lg" }))}>

@@ -81,17 +81,17 @@ export function ManageActions({
           )}
         </div>
       ) : active && past ? (
-        <p className="rounded-xl border p-4" data-testid="too-late">
+        <p className="rounded-2xl border p-4" data-testid="too-late">
           This appointment time has passed. To book again, use Book another below or call the shop.
         </p>
       ) : active ? (
-        <p className="rounded-xl border p-4" data-testid="too-late">
+        <p className="rounded-2xl border p-4" data-testid="too-late">
           It&apos;s less than {cutoffText} before your appointment, so it can&apos;t be changed or cancelled online. Please message or call the shop.
         </p>
       ) : null}
 
       {asking && canCancel ? (
-        <form action={action} role="group" aria-label="Cancel this booking?" className="rounded-xl border-2 border-destructive bg-card p-4">
+        <form action={action} role="group" aria-label="Cancel this booking?" className="rounded-2xl border-2 border-destructive bg-card p-5">
           <input type="hidden" name="token" value={token} />
           <p className="font-semibold">Cancel this booking? The time is given to someone else.</p>
           <div className="mt-3 flex flex-wrap gap-2 [&>*]:flex-1">

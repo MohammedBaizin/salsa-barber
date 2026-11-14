@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { lockScroll } from "@/lib/scroll-lock";
 import type { SitePhoto } from "@/lib/site-content";
 
 /**
- * Recent cuts (up to 4): grid of photos; tapping one opens a native <dialog> lightbox with
+ * Recent cuts (up to 4): a mosaic (first photo large on desktop); tapping one opens a native <dialog> lightbox with
  * previous/next (buttons, arrow keys, swipe), Esc to close, and focus back on the photo that opened it.
  */
 export function Gallery({ photos }: { photos: SitePhoto[] }) {
@@ -34,25 +35,42 @@ export function Gallery({ photos }: { photos: SitePhoto[] }) {
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {photos.map((p, i) => (
-          <li key={p.url}>
-            <button
-              type="button"
-              onClick={(e) => open(i, e.currentTarget)}
-              className="group relative block aspect-[3/4] w-full overflow-hidden rounded-xl border bg-muted"
-            >
-              <Image
-                src={p.url}
-                alt={p.alt}
-                fill
-                sizes="(min-width: 1152px) 260px, (min-width: 1024px) 23vw, (min-width: 640px) 45vw, 50vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-              />
-              <span className="sr-only">Open larger photo</span>
-            </button>
-          </li>
-        ))}
+      <ul className="reveal grid grid-cols-2 gap-2 sm:gap-3 lg:auto-rows-[15rem] lg:grid-cols-4 xl:auto-rows-[17rem]">
+        {photos.map((p, i) => {
+          const big = i === 0 && count >= 3;
+          const wide = i === 1 && count === 4;
+          return (
+            <li key={p.url} className={cn(big && "col-span-2 lg:row-span-2", wide && "lg:col-span-2")}>
+              <button
+                type="button"
+                onClick={(e) => open(i, e.currentTarget)}
+                className={cn(
+                  "group relative block w-full overflow-hidden rounded-2xl bg-muted sm:rounded-3xl lg:aspect-auto lg:h-full",
+                  big ? "aspect-[4/3]" : "aspect-[3/4]",
+                )}
+              >
+                <Image
+                  src={p.url}
+                  alt={p.alt}
+                  fill
+                  sizes={big ? "(min-width: 1024px) 50vw, 100vw" : wide ? "(min-width: 1024px) 50vw, 50vw" : "(min-width: 1024px) 25vw, 50vw"}
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                />
+                <span
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                />
+                <span
+                  aria-hidden
+                  className="absolute right-3 bottom-3 inline-flex size-10 translate-y-2 items-center justify-center rounded-full bg-white text-black opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+                >
+                  <Expand className="size-4" />
+                </span>
+                <span className="sr-only">Open larger photo</span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
 
       <dialog

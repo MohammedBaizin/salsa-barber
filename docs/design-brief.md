@@ -2,46 +2,41 @@
 
 ## Mood
 
-A neighbourhood shop with a loud, happy sign: the **"shop-front sticker"** look.
-Warm cream paper (or warm near-black at night), heavy friendly type, one punchy yellow, and the red/white/blue of the
-barber pole as small accents only.
+**Dark, editorial, premium.** Redesigned in November 2026 (replacing the earlier cream "shop-front sticker" look).
+Built from the shop's own sign: **near-black, warm white and Salsa yellow**. The barber-pole red/blue appear only in the logo.
 
-**Adjectives:** bold · warm · playful-sharp
-
-Brand source: the owner's two logos (`assets/logo-original.png` round badge, `assets/wordmark-original.png` wordmark)
-and price list, which use **yellow**, **red**, **barber-pole blue** and **cream** on black.
+**Adjectives:** sleek · confident · modern
 
 ## Layout concept
 
-- **Poster-style hero.** Big sentence-case headline in Bricolage Grotesque, one word on a yellow **marker swipe**,
-  a "pop" Book button (yellow, ink outline, hard offset shadow that presses in on tap). On phones the shop photo sits
-  below as a wide landscape card with a slight tilt and an "Open now" **sticker** pinned to its corner. On desktop the
-  hero splits into two columns, photo on the right overlapping a yellow block. When there's no photo, the badge logo
-  takes the photo's place on an ink disc.
-- **Barber-pole stripe.** A thin diagonal red/cream/blue band, used as dividers between sections and as the slideshow
-  progress track. Never large.
-- **Menu-board services.** A price list with dotted leaders and tabular prices. One column on phones, two columns on
-  desktop, with duration underneath each name. Tapping a row starts booking that service.
-- **Cards with stickers.** Gallery, team and review cards are flat with a 1px border; one sticker-style chip per card
-  (e.g. "Book with Sam").
-- **Section order** (proposed, decided in phase 5): Hero → Services & prices → Recent cuts → Slideshow ("Inside the shop") → Team → Reviews → Visit.
-  Headings are sentence case, never condensed or all caps.
-
-### What we deliberately avoid (§3)
-
-No gold/ink scheme, no gold header or footer (the header is the page background), no condensed uppercase sign
-headings or script wordmark pairing, no tall rounded photo frame with text on a dark fade, no scrolling marquee.
+- **Full-bleed hero frame.** The shop photo fills a large rounded panel under a dark gradient. The panel is a `.dark` island, so it
+  looks the same in both themes. Huge "Salsa *Barber*" headline (Archivo, expanded; "Barber" in yellow Instrument Serif italic),
+  live open-status pill, yellow Book button with a soft glow, glass Call button, glass chips for area and Google rating.
+  No photo: the badge logo glows on a dot grid instead. A slow, decorative **services ticker** runs under the hero.
+- **Section headings:** a small uppercase eyebrow with a yellow dot, then a big heading whose last word is set in the italic serif.
+- **Services:** sticky intro (heading, discount, Book) on the left on desktop; on the right, rows reading name, price, length,
+  each with a round arrow that fills yellow on hover. Tapping a row starts booking that service.
+- **Recent cuts:** mosaic grid (first photo large, second wide on desktop) with a lightbox.
+- **Inside the shop:** slideshow in a rounded card band; thin yellow progress bars.
+- **Team:** portrait cards (photo or glowing initials) with the name over a gradient and a "Book with" pill.
+- **Reviews:** big rating number beside the heading; quote cards with soft shadows.
+- **Visit:** bento of cards: hours, address and contact, map.
+- **Footer:** always-dark rounded panel: "Ready for a *fresh cut?*", details, and a giant outlined "Salsa" wordmark.
+- **Header:** sticky frosted glass; on desktop the section links sit in a centred pill.
+- **Motion:** sections slide up as they scroll into view (CSS scroll-driven animations, no JavaScript), image zoom on hover,
+  ticker. All of it is off with `prefers-reduced-motion`.
+- Pill-shaped buttons; large-radius cards.
 
 ## Phone vs desktop
 
 | | Phone (390px, checked 320–430) | Tablet (768) | Desktop (1280+) |
 | --- | --- | --- | --- |
-| Header | Name + theme toggle + menu button; full-screen menu | Same, with Call | Inline nav, Call, pop Book button |
-| Hero | Stacked: label, headline, buttons, tilted photo card | Stacked, wider photo | Two columns, photo overlaps a yellow block |
-| Book | Sticky bottom bar (hidden while the hero button is visible) | Sticky bar | Header button only |
-| Services | Single list | Two columns | Two columns + side note (discount, walk-in text) |
-| Gallery | Swipe row, 3 max | 3 across | 3 across, larger |
-| Visit | Stacked: hours, address, map card | Two columns | Three columns: hours · address/contact · map |
+| Header | Logo + name, theme toggle, menu button; full-screen dark menu with numbered links | Same, with Call | Centred link pill, Call, Book |
+| Hero | Tall photo panel, headline, Book + Call | + Pay / walk-in glass card | Headline left, glass info card right |
+| Book | Floating glass pill bar (hidden while the hero Book is visible) | Same | Header button only |
+| Services | Heading, then list | Same | Sticky intro + list in two columns |
+| Gallery | 2 columns, first photo full width | Same | Mosaic, 4 columns |
+| Visit | Stacked cards | Two columns | Hours, address, map |
 
 ## Design tokens
 
@@ -50,20 +45,21 @@ All colours live in `src/app/globals.css` as CSS variables mapped to shadcn toke
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--background` | `#fbf6ee` cream | `#141210` warm black | Page |
-| `--foreground` | `#1c1917` ink | `#f6efe4` cream | Text |
-| `--card` | `#ffffff` | `#1f1c19` | Cards, inputs |
-| `--muted` / `--muted-foreground` | `#f1e9dc` / `#5b5249` | `#2a2622` / `#bcb2a5` | Quiet surfaces, secondary text |
+| `--background` | `#f7f6f2` warm white | `#0a0a0b` near-black | Page |
+| `--foreground` | `#0e0e10` ink | `#f5f3ee` warm white | Text |
+| `--card` | `#ffffff` | `#141416` | Cards, inputs |
+| `--muted` / `--muted-foreground` | `#eeece6` / `#57534e` | `#1d1d20` / `#a8a49c` | Quiet surfaces, secondary text |
 | `--primary` | `#ffc20e` Salsa yellow | `#ffc20e` | Book buttons, highlights (ink text) |
-| `--secondary` | `#1c1917` ink | `#f6efe4` cream | Inverted buttons |
+| `--secondary` | `#0e0e10` ink | `#f5f3ee` | Inverted buttons |
 | `--accent` | `#c8102e` red | `#ff5d6c` | Small accents, chips |
 | `--destructive` | `#b42318` | `#ff7a6b` | Cancel, delete, errors |
-| `--link` | `#0b5cb5` | `#7cbcff` | Text links |
+| `--link` | `#8a5a00` amber | `#ffd24d` yellow | Text links |
 | `--ring` | `#0b63c4` | `#5aaeff` | Focus outline (3px) |
-| `--input` | `#8a7e70` | `#8a7f73` | Input borders (3:1) |
-| `--border` | `#e2d6c4` | `#39332d` | Decorative dividers |
+| `--input` | `#8a857c` | `#77746e` | Input borders (3:1) |
+| `--border` | `#e4e1d9` | `#2a2a2e` | Decorative dividers |
 | `--brand-red` / `--brand-blue` | `#d7263d` / `#0b7bd6` | `#ff5d6c` / `#4ba3ff` | Barber-pole stripe only |
-| `--shadow-hard` | ink | cream | "Pop" button outline + offset shadow |
+| `--shadow-hard` | ink | warm white | Strong outlines |
+| `--glow` | yellow | yellow | Soft glow under the Book button, glow spots |
 
 **Booking status colours** (chip background / text; both themes pass AA):
 
@@ -81,15 +77,16 @@ Status is never shown by colour alone: chips always carry a word, and cards have
 
 Self-hosted via `next/font` (no layout shift).
 
-- **Display / headings:** Bricolage Grotesque (variable, optical size axis), weights 700–800, tight tracking, sentence case.
+- **Display / headings:** Archivo (variable), weight 800, set at 112% width, very tight tracking, sentence case.
+- **Accent:** Instrument Serif *italic*, one word per heading (`.serif-accent`), often in yellow on dark.
 - **Body / UI:** Inter, 400–600.
-- **Prices:** `.price` class = Inter 800 with `tabular-nums lining-nums` (Bricolage's £ reads like "&"), so prices line up.
+- **Prices:** `.price` class = Inter 700 with `tabular-nums lining-nums`, so prices line up.
 
 | Token | Size (phone → desktop) | Line height |
 | --- | --- | --- |
-| `text-display` | 44px → 92px (fluid) | 0.95 |
-| `text-h1` | 34px → 56px | 1.02 |
-| `text-h2` | 28px → 42px | 1.08 |
+| `text-display` | 56px → 160px (fluid) | 0.86 |
+| `text-h1` | 40px → 72px | 0.98 |
+| `text-h2` | 34px → 64px | 1 |
 | `text-h3` | 20px → 24px | 1.2 |
 | `text-lead` | 17px → 20px | 1.55 |
 | `text-body` | 16px | 1.6 |
@@ -109,6 +106,8 @@ Inputs are always 16px so iPhones don't zoom.
   Decide during phase 6 once real flows exist.
 
 ## Component sketches
+
+> The homepage sketches below are from the original poster design; see *Layout concept* above for the current design.
 
 ### Homepage, phone (390px)
 

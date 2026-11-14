@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Star } from "lucide-react";
+import { ArrowUpRight, Phone, Star } from "lucide-react";
 import { PlaceholderTag } from "@/components/placeholder-tag";
 import { buttonVariants } from "@/components/ui/button";
 import { site, unconfirmed } from "@/lib/site";
@@ -9,93 +9,117 @@ import { cn } from "@/lib/utils";
 import { OpenStatus } from "./open-status";
 
 /**
- * Poster-style hero: label, big name with the yellow marker, live open status, Book + Call, payments and rating.
- * Shop photo as a tilted landscape card with the badge as a sticker; logo-led when there's no photo.
+ * Full-bleed hero in a rounded frame. It is always dark (a `.dark` island), so it reads the same in both themes:
+ * the shop photo behind a soft gradient, a huge "Salsa *Barber*" headline, live open status, Book + Call, and glass
+ * chips for the area and Google rating. With no photo, the badge logo glows on the right instead.
+ * A slow services ticker runs underneath.
  */
 export function Hero({ content }: { content: SiteContent }) {
   const { shopPhoto, googleRating, googleReviewCount, googleReviewUrl } = content;
   const closures = content.closures.map((c) => c.date);
 
   return (
-    <section aria-labelledby="hero-title" className="relative overflow-x-clip">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-14 sm:px-6 md:pt-14 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14 lg:px-8 lg:pb-20">
-        <div>
-          <p className="text-label font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+    <section aria-labelledby="hero-title" className="px-2 pt-2 sm:px-3 sm:pt-3">
+      <div className="dark relative isolate flex min-h-[calc(100svh-5.5rem)] flex-col overflow-hidden rounded-[1.75rem] bg-background text-foreground sm:rounded-[2.25rem] lg:min-h-[min(calc(100svh-6rem),58rem)]">
+        {shopPhoto ? (
+          <>
+            <Image src={shopPhoto.url} alt={shopPhoto.alt} fill preload sizes="100vw" className="-z-20 object-cover object-[50%_40%]" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0a0a0b] via-[#0a0a0b]/75 to-[#0a0a0b]/30" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0a0a0b]/85 via-[#0a0a0b]/35 to-transparent" />
+          </>
+        ) : (
+          <>
+            <div aria-hidden className="dot-grid absolute inset-0 -z-20 opacity-60 [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)]" />
+            <div aria-hidden className="glow-spot absolute top-1/2 right-[-10%] -z-10 size-[42rem] -translate-y-1/2" />
+            <div className="pointer-events-none absolute top-[38%] right-[-18%] -z-10 w-[min(34rem,80vw)] -translate-y-1/2 opacity-35 sm:right-[-6%] lg:top-1/2 lg:right-[6%] lg:opacity-100">
+              <Image
+                src="/brand/badge-disc-640.webp"
+                alt={`${site.name} logo`}
+                width={640}
+                height={640}
+                preload
+                sizes="34rem"
+                className="h-auto w-full drop-shadow-[0_30px_60px_rgba(255,194,14,0.25)]"
+              />
+            </div>
+          </>
+        )}
+
+        <div className="flex items-start justify-between gap-3 p-5 sm:p-8 lg:p-10">
+          <p className="glass inline-flex min-h-9 items-center rounded-full border border-white/15 px-4 text-xs font-semibold tracking-[0.16em] uppercase">
             Barbers in {site.address.area}
             {unconfirmed.area && <PlaceholderTag note="Confirm the area name" />}
           </p>
-          <h1 id="hero-title" className="mt-3 text-display font-extrabold">
-            Salsa <span className="marker">Barber</span>
-          </h1>
-          <OpenStatus hours={content.shopHours} closures={closures} className="mt-5" />
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link id="hero-book" href="/book" className={cn(buttonVariants({ variant: "pop", size: "lg" }), "min-w-40")}>
-              Book a cut
-            </Link>
-            <a href={`tel:${site.phone.e164}`} className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-              <Phone aria-hidden />
-              Call {site.phone.display}
-            </a>
-          </div>
-
-          <dl className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <div className="flex gap-1.5">
-              <dt className="text-muted-foreground">Pay by</dt>
-              <dd className="font-semibold">{site.paymentText}</dd>
-            </div>
-            {content.walkInText && (
-              <div>
-                <dt className="sr-only">Walk-ins</dt>
-                <dd className="font-semibold">{content.walkInText}</dd>
-              </div>
-            )}
-          </dl>
-
           {googleRating != null && (
             <a
               href={googleReviewUrl ?? undefined}
               target={googleReviewUrl ? "_blank" : undefined}
               rel="noopener noreferrer"
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border bg-card px-4 text-sm font-semibold hover:bg-muted"
+              className="glass inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-semibold hover:bg-white/10"
             >
               <Star aria-hidden className="size-4 fill-highlight text-highlight" />
               <span>
                 {googleRating.toFixed(1)} on Google
-                {googleReviewCount != null && <span className="font-normal text-muted-foreground"> · {googleReviewCount} reviews</span>}
+                {googleReviewCount != null && <span className="hidden font-normal text-muted-foreground sm:inline"> · {googleReviewCount} reviews</span>}
               </span>
             </a>
           )}
         </div>
 
-        {shopPhoto ? (
-          <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
-            <div aria-hidden className="absolute -inset-x-2 top-6 -bottom-4 -rotate-2 rounded-3xl bg-highlight sm:-inset-x-4" />
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border-2 border-shadow-hard bg-muted shadow-pop rotate-1">
-              <Image
-                src={shopPhoto.url}
-                alt={shopPhoto.alt}
-                fill
-                preload
-                sizes="(min-width: 1152px) 540px, (min-width: 1024px) 46vw, (min-width: 640px) 576px, calc(100vw - 2rem)"
-                className="object-cover"
-              />
+        <div className="mt-auto grid gap-8 p-5 pt-0 sm:p-8 sm:pt-0 lg:grid-cols-[1fr_auto] lg:items-end lg:p-10 lg:pt-0">
+          <div className="min-w-0 max-w-4xl">
+            <OpenStatus hours={content.shopHours} closures={closures} className="mb-6" />
+            <h1 id="hero-title" className="text-display font-extrabold">
+              Salsa <span className="serif-accent block text-[1.08em] text-primary">Barber</span>
+            </h1>
+            <p className="mt-6 max-w-md text-lead text-muted-foreground">
+              Cuts, fades, hot-towel shaves and beard trims on {site.address.street.replace(/^\d+\s*/, "")}, {site.address.area}.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link id="hero-book" href="/book" className={cn(buttonVariants({ variant: "pop", size: "lg" }), "min-w-44")}>
+                Book a cut
+                <ArrowUpRight aria-hidden className="size-5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" />
+              </Link>
+              <a href={`tel:${site.phone.e164}`} className={cn(buttonVariants({ variant: "outline", size: "lg" }), "glass")}>
+                <Phone aria-hidden />
+                Call {site.phone.display}
+              </a>
             </div>
-            <Image
-              src="/brand/badge-disc-160.webp"
-              alt=""
-              width={96}
-              height={96}
-              className="absolute -bottom-6 -left-2 size-20 rotate-[-8deg] drop-shadow-md sm:size-24"
-            />
           </div>
-        ) : (
-          <div className="relative mx-auto w-full max-w-sm">
-            <div aria-hidden className="pole-stripe absolute inset-x-6 -bottom-3 h-3 rounded-full" />
-            <Image src="/brand/badge-disc-640.webp" alt={`${site.name} logo`} width={640} height={640} preload sizes="24rem" className="relative h-auto w-full" />
-          </div>
-        )}
+
+          <dl className="glass hidden gap-4 rounded-3xl border border-white/10 p-5 text-sm sm:grid sm:grid-cols-2 lg:w-72 lg:grid-cols-1">
+            <div>
+              <dt className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Pay by</dt>
+              <dd className="mt-1 font-semibold">{site.paymentText}</dd>
+            </div>
+            {content.walkInText && (
+              <div>
+                <dt className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Walk-ins</dt>
+                <dd className="mt-1 font-semibold">{content.walkInText}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
       </div>
+
+      {content.services.length > 0 && <ServicesTicker names={content.services.map((s) => s.name)} />}
     </section>
+  );
+}
+
+/** Slow scrolling strip of service names. Decorative only: the real list is in the Services section. */
+function ServicesTicker({ names }: { names: string[] }) {
+  const items = [...names, ...names];
+  return (
+    <div aria-hidden className="relative mt-2 overflow-hidden py-5 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)] sm:mt-3">
+      <ul className="flex w-max animate-marquee motion-reduce:animate-none">
+        {items.map((n, i) => (
+          <li key={i} className="flex items-center gap-8 pr-8 font-heading text-2xl font-bold tracking-tight whitespace-nowrap text-muted-foreground sm:text-3xl">
+            {n}
+            <span className="text-primary">✦</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

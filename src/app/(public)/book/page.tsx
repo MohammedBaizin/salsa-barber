@@ -41,7 +41,7 @@ async function Flow({ searchParams }: { searchParams: PageProps<"/book">["search
     const b = await managed(changeToken);
     if (!b?.can_change) {
       return (
-        <div className="max-w-xl space-y-4 rounded-2xl border p-6" data-testid="change-refused">
+        <div className="max-w-xl space-y-4 rounded-3xl border bg-card p-6" data-testid="change-refused">
           <h2 className="text-h3 font-bold">This booking can&apos;t be changed online</h2>
           <p>It may be too close to the appointment, or it&apos;s already been cancelled. Please message or call the shop.</p>
           {b ? (
@@ -54,7 +54,7 @@ async function Flow({ searchParams }: { searchParams: PageProps<"/book">["search
     }
     return (
       <>
-        <p className="mb-6 rounded-xl border-2 border-status-request-foreground/30 bg-status-request p-4 font-medium text-status-request-foreground">
+        <p className="mb-6 rounded-2xl border border-status-request-foreground/30 bg-status-request p-4 font-medium text-status-request-foreground">
           Changing your booking. Your current time stays booked until the new one is sent; the change goes to the shop as a new request.
         </p>
         <BookingFlow
@@ -88,9 +88,12 @@ export default async function BookPage({ searchParams }: PageProps<"/book">) {
   const enabled = bookingEnabled();
   const content = enabled ? null : await getSiteContent();
   return (
-    <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
-      <h1 className="text-h1 font-extrabold">Book a cut</h1>
-      <div aria-hidden className="pole-stripe mt-3 mb-8 h-1.5 w-16 rounded-full" />
+    <main id="main" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+      <div aria-hidden className="glow-spot pointer-events-none absolute -top-32 right-0 -z-10 size-[30rem] opacity-70" />
+      <p className="eyebrow">Online booking</p>
+      <h1 className="mt-4 mb-10 text-h1 font-extrabold md:mb-14">
+        Book a <span className="serif-accent text-[1.1em]">cut</span>
+      </h1>
       {content ? (
         <BookingOff hours={content.shopHours} walkInText={content.walkInText} />
       ) : (

@@ -163,7 +163,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
       <div className="min-w-0">
         <div className="mb-6 flex items-center justify-between gap-3">
           {stepIndex > 0 ? (
-            <button type="button" onClick={back} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg pr-3 font-semibold hover:bg-muted">
+            <button type="button" onClick={back} className="inline-flex min-h-11 items-center gap-1.5 rounded-full pr-4 pl-2 font-semibold hover:bg-muted">
               <ArrowLeft aria-hidden className="size-5" />
               Back
             </button>
@@ -174,8 +174,8 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
             Step {stepIndex + 1} of {STEPS.length}
           </p>
         </div>
-        <div aria-hidden className="mb-8 h-1.5 overflow-hidden rounded-full bg-border">
-          <div className="pole-stripe h-full transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }} />
+        <div aria-hidden className="mb-8 h-1 overflow-hidden rounded-full bg-border">
+          <div className="h-full rounded-full bg-primary shadow-[0_0_12px_var(--glow)] transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }} />
         </div>
 
         <h2 ref={heading} tabIndex={-1} className="text-h2 font-extrabold outline-none" data-testid="step-heading">
@@ -196,8 +196,8 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                   }}
                   aria-pressed={(service?.id ?? picked.service) === s.id}
                   className={cn(
-                    "flex min-h-16 w-full items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-left hover:border-foreground",
-                    (service?.id ?? picked.service) === s.id && "border-2 border-foreground",
+                    "flex min-h-18 w-full items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:border-foreground/50",
+                    (service?.id ?? picked.service) === s.id && "border-primary ring-2 ring-primary",
                   )}
                 >
                   <span>
@@ -227,8 +227,8 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                   }}
                   aria-pressed={(barber ?? picked.barber) === b.id}
                   className={cn(
-                    "flex min-h-16 w-full items-center gap-4 rounded-xl border bg-card px-4 py-3 text-left hover:border-foreground",
-                    (barber ?? picked.barber) === b.id && "border-2 border-foreground",
+                    "flex min-h-18 w-full items-center gap-4 rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:border-foreground/50",
+                    (barber ?? picked.barber) === b.id && "border-primary ring-2 ring-primary",
                   )}
                 >
                   {b.id === "any" ? (
@@ -292,7 +292,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 .
               </p>
             ) : !firstOpenDay ? (
-              <div className="rounded-2xl border bg-card p-6" data-testid="no-times">
+              <div className="rounded-3xl border bg-card p-6" data-testid="no-times">
                 <h3 className="text-h3 font-bold">No free times online</h3>
                 <p className="mt-2 text-muted-foreground">
                   {barber === "any" ? "We're fully booked online for now." : `${barberName} has no free times online for now.`} Message or call us and
@@ -325,8 +325,8 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                           aria-pressed={selected}
                           onClick={() => setSelectedDate(d.date)}
                           className={cn(
-                            "relative flex min-h-16 w-16 flex-col items-center justify-center rounded-xl border text-sm",
-                            selected ? "border-2 border-shadow-hard bg-primary font-bold text-primary-foreground" : "bg-card hover:border-foreground",
+                            "relative flex min-h-18 w-16 flex-col items-center justify-center rounded-2xl border text-sm transition-colors",
+                            selected ? "border-primary bg-primary font-bold text-primary-foreground shadow-pop-sm" : "bg-card hover:border-foreground/50",
                             disabled && "cursor-not-allowed bg-transparent text-muted-foreground line-through opacity-60 hover:border-border",
                           )}
                         >
@@ -361,8 +361,8 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                                   }}
                                   aria-pressed={start === t.iso}
                                   className={cn(
-                                    "min-h-11 w-full rounded-lg border bg-card px-2 font-semibold tabular-nums hover:border-foreground",
-                                    start === t.iso && "border-2 border-shadow-hard bg-primary text-primary-foreground",
+                                    "min-h-11 w-full rounded-full border bg-card px-2 font-semibold tabular-nums transition-colors hover:border-foreground/50",
+                                    start === t.iso && "border-primary bg-primary text-primary-foreground",
                                   )}
                                 >
                                   {formatTime(t.start)}
@@ -449,7 +449,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
       </div>
 
       {service && (
-        <aside aria-label="Your booking" className="rounded-2xl border bg-card p-5 lg:sticky lg:top-24">
+        <aside aria-label="Your booking" className="rounded-3xl border bg-card p-6 shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
           <h2 className="font-heading text-lg font-bold">Your booking</h2>
           <dl className="mt-4 space-y-4 text-sm">
             <SummaryRow label="Service" onChange={step !== "service" ? () => navigate({ step: "service" }) : undefined}>

@@ -18,8 +18,8 @@ export const THEME_STORAGE_KEYS = {
 
 /** theme-color values matching the header / status bar of each area and theme. */
 export const THEME_COLORS = {
-  site: { light: "#fbf6ee", dark: "#141210" },
-  dashboard: { light: "#ffffff", dark: "#1a1715" },
+  site: { light: "#f7f6f2", dark: "#0a0a0b" },
+  dashboard: { light: "#ffffff", dark: "#111113" },
 } as const;
 
 /** Paths that belong to the staff area (dashboard theme preference). */

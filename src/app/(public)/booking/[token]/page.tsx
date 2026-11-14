@@ -65,7 +65,7 @@ async function BookingDetails({ params }: { params: PageProps<"/booking/[token]"
     <>
       <div
         className={cn(
-          "flex items-start gap-3 rounded-2xl border-2 p-5",
+          "flex items-start gap-3 rounded-3xl border p-6",
           status.tone === "wait" && "border-status-request-foreground/30 bg-status-request text-status-request-foreground",
           status.tone === "ok" && "border-status-done-foreground/30 bg-status-done text-status-done-foreground",
           status.tone === "off" && "border-border bg-status-cancelled text-status-cancelled-foreground",
@@ -79,7 +79,7 @@ async function BookingDetails({ params }: { params: PageProps<"/booking/[token]"
         </div>
       </div>
 
-      <dl className="mt-8 grid gap-x-8 gap-y-5 rounded-2xl border bg-card p-6 sm:grid-cols-2">
+      <dl className="mt-6 grid gap-x-8 gap-y-5 rounded-3xl border bg-card p-6 sm:p-8 sm:grid-cols-2">
         <Row label="Service">
           {b.service_name} · {formatPence(b.price_pence)} · {formatMinutes(b.duration_min)}
         </Row>
