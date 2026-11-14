@@ -92,7 +92,8 @@ export function BookingCard({
       data-testid="booking-card"
       data-status={b.status}
       className={cn(
-        "relative rounded-xl border border-l-4 bg-card p-3 transition-colors has-[>button:first-child:hover]:bg-muted/60 sm:p-4",
+        "relative rounded-2xl border bg-card p-4 pl-5 shadow-[var(--shadow-soft)] transition-all duration-200 has-[>button:first-child:hover]:-translate-y-0.5 has-[>button:first-child:hover]:border-foreground/30 sm:p-5 sm:pl-6",
+        "before:absolute before:inset-y-3 before:left-0 before:w-1 before:rounded-r-full before:content-['']",
         STATUS_STYLES[b.status].edge,
         flags.includes("stale") && "ring-2 ring-status-request-foreground/60",
       )}
@@ -101,12 +102,12 @@ export function BookingCard({
         type="button"
         onClick={() => show({ kind: "details", booking, flags })}
         aria-haspopup="dialog"
-        className="block w-full text-left after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:outline-ring"
+        className="block w-full text-left after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:outline-ring"
       >
         <span className="flex items-start justify-between gap-3">
           <span className="min-w-0">
-            <span className="block font-semibold tabular-nums">{when}</span>
-            <span className="mt-0.5 block truncate text-lg font-bold">{name}</span>
+            <span className="block text-sm font-semibold text-muted-foreground tabular-nums">{when}</span>
+            <span className="mt-0.5 block truncate font-heading text-lg font-bold tracking-tight">{name}</span>
           </span>
           <StatusChip status={b.status} className="mt-0.5 shrink-0" />
         </span>

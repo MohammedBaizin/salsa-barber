@@ -23,7 +23,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border bg-card p-3">
+    <div className="rounded-2xl border bg-card shadow-[var(--shadow-soft)] p-3">
       <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 font-semibold">{children}</dd>
     </div>
@@ -73,7 +73,7 @@ async function ClientPage({ params, searchParams }: PageProps<"/dashboard/client
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-h2 font-extrabold">{client.name}</h1>
+            <h1 className="text-title font-extrabold">{client.name}</h1>
             {labels.map((l) => (
               <ClientLabelChip key={l} label={l} />
             ))}

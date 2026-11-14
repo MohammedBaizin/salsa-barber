@@ -10,8 +10,9 @@ export const metadata: Metadata = { title: "More" };
 async function More() {
   const staff = await requireStaff(["owner", "admin"]);
   return (
-    <div className="max-w-xl">
-      <h1 className="text-h2 font-extrabold">More</h1>
+    <div className="max-w-3xl">
+      <p className="eyebrow">Manage the shop</p>
+      <h1 className="mt-3 text-title font-extrabold">More</h1>
       <MoreLinks items={moreItems(staff.role)} />
       {/* Full page load: the website keeps its own theme. */}
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}

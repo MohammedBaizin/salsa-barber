@@ -5,7 +5,7 @@ import { AlertsOffer } from "@/components/dashboard/push";
 import { backupReminder } from "@/lib/domain/backup";
 import { vapidKeys } from "@/lib/push/server";
 import { createSessionClient } from "@/lib/supabase/server";
-import { ChevronRight } from "lucide-react";
+import { CalendarClock, ChevronRight, Hourglass, PoundSterling, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { BookingCard, NewBookingButtons } from "@/components/dashboard/booking-card";
 import { BookingsProvider } from "@/components/dashboard/bookings-provider";
 import { LoadingLabel, Skeleton } from "@/components/dashboard/skeleton";
@@ -25,9 +25,14 @@ function Section({ id, title, count, children }: { id?: string; title: string; c
   const headingId = `${id ?? title.toLowerCase().replace(/\W+/g, "-")}-heading`;
   return (
     <section id={id} aria-labelledby={headingId} className="scroll-mt-20">
-      <h2 id={headingId} className="mb-3 flex items-baseline gap-2 text-h3 font-bold">
+      <h2 id={headingId} className="mb-4 flex items-center gap-2.5 font-heading text-xl font-bold tracking-tight">
         {title}
-        {count !== undefined ? <span className="text-base font-semibold text-muted-foreground">({count})</span> : null}
+        {count !== undefined ? (
+          <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-muted px-2 py-0.5 text-sm font-semibold text-muted-foreground">
+            <span aria-hidden>{count}</span>
+            <span className="sr-only">({count})</span>
+          </span>
+        ) : null}
       </h2>
       {children}
     </section>
@@ -35,15 +40,26 @@ function Section({ id, title, count, children }: { id?: string; title: string; c
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-xl border border-dashed p-4 text-muted-foreground">{children}</p>;
+  return <p className="rounded-2xl border border-dashed bg-card/50 px-5 py-6 text-center text-muted-foreground">{children}</p>;
 }
 
-function Stat({ label, value, detail }: { label: string; value: string; detail?: string }) {
+const statCard = "rounded-3xl border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5";
+
+function StatIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <div className="rounded-xl border bg-card p-3 sm:p-4">
+    <span aria-hidden className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/15 text-link">
+      <Icon className="size-[1.125rem]" />
+    </span>
+  );
+}
+
+function Stat({ label, value, detail, icon }: { label: string; value: string; detail?: string; icon: LucideIcon }) {
+  return (
+    <div className={statCard}>
+      <StatIcon icon={icon} />
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-1">
-        <span className="price text-h3">{value}</span>
+      <dd className="mt-0.5">
+        <span className="price block text-[1.75rem] leading-tight">{value}</span>
         {detail ? <span className="block text-sm text-muted-foreground">{detail}</span> : null}
       </dd>
     </div>
@@ -83,45 +99,54 @@ async function Today() {
   return (
     <BookingsProvider setup={data.setup} today={data.today}>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-h2 font-extrabold" data-testid="greeting">
-            {greeting(now)}, {firstName(staff.displayName)}
+        <div className="dark relative isolate overflow-hidden rounded-3xl border border-border bg-background p-6 text-foreground sm:p-8">
+          <div aria-hidden className="glow-spot absolute -top-32 -right-24 -z-10 size-96" />
+          <div aria-hidden className="dot-grid absolute inset-0 -z-20 opacity-40 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
+          <p className="eyebrow">{formatDayLong(data.today)}</p>
+          <h1 className="mt-3 text-title font-extrabold" data-testid="greeting">
+            {greeting(now)}, <span className="serif-accent text-[1.1em] text-primary">{firstName(staff.displayName)}</span>
           </h1>
-          <p className="mt-1 text-muted-foreground">{formatDayLong(data.today)}</p>
-          <NewBookingButtons date={data.today} className="mt-4" />
+          <p className="mt-2 text-muted-foreground">
+            {requests.length
+              ? `${requests.length} ${requests.length === 1 ? "request is" : "requests are"} waiting for an answer.`
+              : "No requests waiting. Add a walk-in or a phone booking below."}
+          </p>
+          <NewBookingButtons date={data.today} className="mt-5" />
         </div>
 
         {staff.role === "admin" ? <BackupReminder now={now} /> : null}
         <AlertsOffer pushKey={vapidKeys()?.publicKey ?? null} />
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="today-stats">
-          <Stat label="Bookings today" value={String(stats.bookings)} />
+          <Stat icon={CalendarClock} label="Bookings today" value={String(stats.bookings)} />
           <Stat
+            icon={PoundSterling}
             label={manager ? "Shop takings" : "Your takings"}
             value={formatPence(stats.takenPence)}
             detail={`of ${formatPence(stats.expectedPence)} expected`}
           />
-          <Stat label="Still to come" value={String(stats.upcoming)} />
-          <div className="rounded-xl border bg-card">
+          <Stat icon={Hourglass} label="Still to come" value={String(stats.upcoming)} />
+          <div className="rounded-3xl border bg-card shadow-[var(--shadow-soft)] transition-colors hover:border-primary/60">
             <dt className="sr-only">Due back</dt>
             <dd>
               <Link
                 href="/dashboard/clients?filter=due_back"
-                className="flex h-full min-h-full items-center justify-between gap-2 rounded-xl p-3 hover:bg-muted sm:p-4"
+                className="flex h-full min-h-full items-end justify-between gap-2 rounded-3xl p-4 sm:p-5"
                 data-testid="due-back"
               >
                 <span>
+                  <StatIcon icon={UserRoundCheck} />
                   <span className="block text-sm text-muted-foreground">Due back</span>
-                  <span className="price mt-1 block text-h3">{data.dueBack}</span>
+                  <span className="price mt-0.5 block text-[1.75rem] leading-tight">{data.dueBack}</span>
                   <span className="block text-sm text-muted-foreground">{data.dueBack === 1 ? "client" : "clients"} to invite</span>
                 </span>
-                <ChevronRight aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+                <ChevronRight aria-hidden className="mb-1 size-5 shrink-0 text-muted-foreground" />
               </Link>
             </dd>
           </div>
         </dl>
 
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-2 lg:items-start lg:gap-8">
           <div className="space-y-8">
             <Section id="requests" title="Requests" count={requests.length}>
               {requests.length ? (
@@ -180,13 +205,10 @@ function TodaySkeleton() {
   return (
     <div className="space-y-8">
       <LoadingLabel>Loading today…</LoadingLabel>
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-5 w-44" />
-      </div>
+      <Skeleton className="h-52 rounded-3xl" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24" />
+          <Skeleton key={i} className="h-36 rounded-3xl" />
         ))}
       </div>
       <div className="grid gap-8 lg:grid-cols-2">

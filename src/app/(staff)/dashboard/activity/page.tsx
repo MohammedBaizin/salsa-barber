@@ -28,7 +28,7 @@ async function Activity({ searchParams }: { searchParams: PageProps<"/dashboard/
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-h2 font-extrabold">Activity</h1>
+        <h1 className="text-title font-extrabold">Activity</h1>
         <p className="mt-1 text-muted-foreground">Changes made in the dashboard over the last 90 days. Sign-ins and page views aren&apos;t logged.</p>
       </div>
 
@@ -70,7 +70,7 @@ async function Activity({ searchParams }: { searchParams: PageProps<"/dashboard/
               <h2 id={`day-${day.date}`} className="mb-2 text-sm font-bold tracking-wide text-muted-foreground uppercase">
                 {formatRelativeDay(day.date, today)}
               </h2>
-              <ol className="divide-y rounded-xl border bg-card">
+              <ol className="divide-y rounded-2xl border bg-card shadow-[var(--shadow-soft)]">
                 {day.entries.map((e) => {
                   const detail = entryDetail(e);
                   return (

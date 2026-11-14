@@ -18,7 +18,7 @@ async function Backup() {
   return (
     <div className="max-w-2xl space-y-5">
       <div>
-        <h1 className="text-h2 font-extrabold">Backup</h1>
+        <h1 className="text-title font-extrabold">Backup</h1>
         <p className="mt-1 text-muted-foreground">Admin only. Downloads, restores and undos appear in the activity log.</p>
       </div>
       <DownloadCard lastDownload={last ? { at: last.at, by: last.actor_name } : null} />

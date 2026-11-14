@@ -514,9 +514,14 @@ export function MessageView({ booking, plan }: { booking: DashboardBooking; plan
       <p className="text-sm text-muted-foreground">
         To {bookingName(booking)} · {formatUkMobile(phone)}
       </p>
-      <p data-testid="message-preview" className="rounded-xl bg-muted p-3 text-sm whitespace-pre-wrap">
-        {text}
-      </p>
+      <div className="rounded-2xl bg-muted/60 p-3 dot-grid">
+        <p
+          data-testid="message-preview"
+          className="ml-auto max-w-[92%] rounded-2xl rounded-br-md border border-status-done-foreground/20 bg-status-done p-3.5 text-sm leading-relaxed whitespace-pre-wrap text-status-done-foreground shadow-sm"
+        >
+          {text}
+        </p>
+      </div>
       <SheetActions>
         <a
           href={whatsappLink(phone, text)}

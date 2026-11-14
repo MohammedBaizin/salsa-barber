@@ -90,7 +90,7 @@ export function ClosedDaysForm({ closures }: { closures: { id: string; date: str
       description="Whole days the shop is shut, e.g. bank holidays. Shown on the website; online booking skips them."
     >
       {closures.length ? (
-        <ul className="divide-y rounded-xl border" data-testid="closed-days">
+        <ul className="divide-y rounded-2xl border bg-background/50" data-testid="closed-days">
           {closures.map((c) => (
             <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2">
               <span>

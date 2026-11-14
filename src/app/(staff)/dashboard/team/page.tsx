@@ -31,7 +31,7 @@ async function Team({ searchParams }: { searchParams: PageProps<"/dashboard/team
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-h2 font-extrabold">Team</h1>
+        <h1 className="text-title font-extrabold">Team</h1>
         <AddPersonButton roles={creatable} />
       </div>
       {search.deleted === "1" ? (
@@ -42,7 +42,7 @@ async function Team({ searchParams }: { searchParams: PageProps<"/dashboard/team
       <ul className="space-y-2" data-testid="team-list">
         {members.map((m) => (
           <li key={m.id}>
-            <Link href={`/dashboard/team/${m.id}`} className="flex items-center gap-3 rounded-xl border bg-card p-3 hover:bg-muted sm:p-4" data-testid="team-row">
+            <Link href={`/dashboard/team/${m.id}`} className="flex items-center gap-3 rounded-2xl border bg-card shadow-[var(--shadow-soft)] p-3 hover:bg-muted sm:p-4" data-testid="team-row">
               <Avatar member={m} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold">{m.name}</span>

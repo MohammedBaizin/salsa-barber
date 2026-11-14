@@ -46,7 +46,7 @@ async function Settings() {
 
   return (
     <div className="max-w-2xl space-y-5">
-      <h1 className="text-h2 font-extrabold">Settings</h1>
+      <h1 className="text-title font-extrabold">Settings</h1>
       <nav aria-label="Jump to" className="-mx-4 overflow-x-auto px-4 pb-1 lg:hidden">
         <ul className="flex gap-1">
           {SETTINGS_SECTIONS.map((section) => (

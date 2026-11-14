@@ -3,17 +3,18 @@ import { cn } from "@/lib/utils";
 
 /** Chip colours per status (both themes pass AA; see docs/design-brief.md). Status is never colour alone. */
 export const STATUS_STYLES: Record<BookingStatus, { chip: string; edge: string }> = {
-  pending: { chip: "bg-status-request text-status-request-foreground", edge: "border-l-status-request-foreground" },
-  confirmed: { chip: "bg-status-confirmed text-status-confirmed-foreground", edge: "border-l-status-confirmed-foreground" },
-  completed: { chip: "bg-status-done text-status-done-foreground", edge: "border-l-status-done-foreground" },
-  no_show: { chip: "bg-status-noshow text-status-noshow-foreground", edge: "border-l-status-noshow-foreground" },
-  cancelled: { chip: "bg-status-cancelled text-status-cancelled-foreground", edge: "border-l-status-cancelled-foreground" },
-  declined: { chip: "bg-status-cancelled text-status-cancelled-foreground", edge: "border-l-status-cancelled-foreground" },
+  pending: { chip: "bg-status-request text-status-request-foreground", edge: "before:bg-status-request-foreground" },
+  confirmed: { chip: "bg-status-confirmed text-status-confirmed-foreground", edge: "before:bg-status-confirmed-foreground" },
+  completed: { chip: "bg-status-done text-status-done-foreground", edge: "before:bg-status-done-foreground" },
+  no_show: { chip: "bg-status-noshow text-status-noshow-foreground", edge: "before:bg-status-noshow-foreground" },
+  cancelled: { chip: "bg-status-cancelled text-status-cancelled-foreground", edge: "before:bg-status-cancelled-foreground" },
+  declined: { chip: "bg-status-cancelled text-status-cancelled-foreground", edge: "before:bg-status-cancelled-foreground" },
 };
 
 export function StatusChip({ status, className }: { status: BookingStatus; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLES[status].chip, className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", STATUS_STYLES[status].chip, className)}>
+      <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {STATUS_LABELS[status]}
     </span>
   );

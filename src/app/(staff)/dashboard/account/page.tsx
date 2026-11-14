@@ -22,7 +22,7 @@ async function Account() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-h2 font-extrabold">Account</h1>
+        <h1 className="text-title font-extrabold">Account</h1>
         <p className="mt-1 text-muted-foreground">
           {staff.displayName} · {ROLE_LABELS[staff.role]} · username {staff.username}
         </p>
@@ -30,7 +30,7 @@ async function Account() {
 
       {me && staff.role !== "admin" ? (
         <>
-          <section aria-labelledby="hours-heading" className="space-y-3 rounded-2xl border bg-card p-4 sm:p-6">
+          <section aria-labelledby="hours-heading" className="space-y-3 rounded-3xl border bg-card shadow-[var(--shadow-soft)] p-4 sm:p-6">
             <h2 id="hours-heading" className="text-h3 font-bold">
               Your working hours
             </h2>

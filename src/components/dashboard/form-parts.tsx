@@ -229,9 +229,9 @@ export function Form(props: ComponentProps<"form">) {
 
 export function Card({ id, title, description, children }: { id?: string; title: string; description?: ReactNode; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-20 space-y-4 rounded-2xl border bg-card p-4 sm:p-6" aria-label={title}>
+    <section id={id} className="scroll-mt-24 space-y-5 rounded-3xl border bg-card p-5 shadow-[var(--shadow-soft)] sm:p-7" aria-label={title}>
       <div>
-        <h2 className="text-h3 font-bold">{title}</h2>
+        <h2 className="font-heading text-xl font-bold tracking-tight">{title}</h2>
         {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
       </div>
       {children}

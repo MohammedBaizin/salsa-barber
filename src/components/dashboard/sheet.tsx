@@ -32,6 +32,8 @@ export function Sheet({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  /** Releases the page scroll lock; called as soon as the dialog closes (not a render later). */
+  const releaseLock = useRef<(() => void) | null>(null);
   const titleId = useId();
   const descriptionId = useId();
 
@@ -53,7 +55,14 @@ export function Sheet({
 
   useEffect(() => {
     if (!open) return;
-    const release = lockScroll();
+    const lock = lockScroll();
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      lock();
+    };
+    releaseLock.current = release;
     const dialog = ref.current;
     const viewport = window.visualViewport;
     // Keep the sheet above the iPhone keyboard (Android resizes the page via interactive-widget).
@@ -78,6 +87,7 @@ export function Sheet({
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onClose={() => {
+        releaseLock.current?.();
         onClose();
         window.dispatchEvent(new Event(SHEET_CLOSED_EVENT));
       }}
@@ -86,18 +96,18 @@ export function Sheet({
         if (event.target === event.currentTarget) event.currentTarget.close();
       }}
       className={cn(
-        "fixed m-0 flex-col overflow-hidden border bg-card p-0 text-card-foreground shadow-xl backdrop:bg-black/50 open:flex",
+        "fixed m-0 flex-col overflow-hidden border bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:fade-in open:slide-in-from-bottom-6 open:duration-300 sm:open:zoom-in-95 sm:open:slide-in-from-bottom-0",
         // Phone: bottom sheet above the keyboard.
-        "inset-x-0 top-auto bottom-[var(--keyboard-inset,0px)] w-full max-w-none rounded-t-2xl border-b-0",
+        "inset-x-0 top-auto bottom-[var(--keyboard-inset,0px)] w-full max-w-none rounded-t-3xl border-b-0",
         "max-h-[calc(100dvh-var(--keyboard-inset,0px)-max(1rem,env(safe-area-inset-top)))]",
         // Desktop: centred panel.
-        "sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[min(85dvh,48rem)] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:rounded-2xl sm:border-b",
+        "sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[min(85dvh,48rem)] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:rounded-3xl sm:border-b",
         className,
       )}
     >
       <div className="flex shrink-0 items-start gap-3 border-b px-4 pt-3 pb-3 sm:px-6 sm:pt-5">
         <div className="min-w-0 flex-1 pt-1.5">
-          <h2 id={titleId} className="text-h3 font-bold">
+          <h2 id={titleId} className="font-heading text-xl font-bold tracking-tight">
             {title}
           </h2>
           {description ? (
@@ -109,7 +119,7 @@ export function Sheet({
         <button
           type="button"
           onClick={() => ref.current?.close()}
-          className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-muted"
+          className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted"
         >
           <X aria-hidden className="size-5" />
           <span className="sr-only">Close</span>

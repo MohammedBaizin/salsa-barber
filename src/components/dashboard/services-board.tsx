@@ -182,15 +182,18 @@ export function ServicesBoard({ services, canEdit }: { services: ServiceRow[]; c
       ) : null}
 
       {order.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-4 text-muted-foreground">
+        <p className="rounded-2xl border border-dashed bg-card/50 px-5 py-6 text-center text-muted-foreground">
           No services yet.{canEdit ? " Add one to show prices on the website and take bookings." : ""}
         </p>
       ) : null}
-      <ol className="divide-y overflow-hidden rounded-2xl border bg-card empty:hidden" data-testid="service-list">
+      <ol className="divide-y overflow-hidden rounded-3xl border bg-card shadow-[var(--shadow-soft)] empty:hidden" data-testid="service-list">
         {order.map((s, i) => (
-          <li key={s.id} className="flex items-center gap-3 px-3 py-3 sm:px-4" data-testid="service-row">
+          <li key={s.id} className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40 sm:px-5" data-testid="service-row">
+            <span aria-hidden className="hidden w-6 text-sm font-semibold text-muted-foreground tabular-nums sm:block">
+              {String(i + 1).padStart(2, "0")}
+            </span>
             <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-2 font-semibold">
+              <p className="flex flex-wrap items-center gap-2 font-heading font-bold tracking-tight">
                 {s.name}
                 {s.active ? null : (
                   <span className="rounded-full bg-status-cancelled px-2 py-0.5 text-xs font-semibold text-status-cancelled-foreground">Switched off</span>

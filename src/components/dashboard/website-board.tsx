@@ -334,7 +334,7 @@ export function PhotoSetCard({
       <InlineError>{error ?? toggle.state.error}</InlineError>
 
       {order.length ? (
-        <ol className="divide-y rounded-xl border" data-testid={`${set}-list`}>
+        <ol className="divide-y rounded-2xl border bg-background/50" data-testid={`${set}-list`}>
           {order.map((p, i) => {
             const photo = { ...p, visible: shown.get(p.id) ?? p.visible };
             return (
@@ -481,7 +481,7 @@ export function ReviewsCard({ reviews }: { reviews: ReviewRow[] }) {
       </div>
       <InlineError>{error}</InlineError>
       {order.length ? (
-        <ol className="divide-y rounded-xl border" data-testid="review-list">
+        <ol className="divide-y rounded-2xl border bg-background/50" data-testid="review-list">
           {order.map((r, i) => (
             <li key={r.id} className="flex items-center gap-3 px-3 py-2.5" data-testid="review-row">
               <div className="min-w-0 flex-1">

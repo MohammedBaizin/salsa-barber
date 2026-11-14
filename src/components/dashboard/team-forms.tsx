@@ -351,7 +351,7 @@ export function TimeOffForm({
   return (
     <Card title="Time off" description="Whole days. Online booking won't offer these days; existing bookings stay put.">
       {entries.length ? (
-        <ul className="divide-y rounded-xl border" data-testid="time-off-list">
+        <ul className="divide-y rounded-2xl border bg-background/50" data-testid="time-off-list">
           {entries.map((t) => (
             <li key={t.id} className="flex items-center justify-between gap-3 px-3 py-2">
               <span>

@@ -24,7 +24,7 @@ export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   backup: Archive,
 };
 
-/** Desktop sidebar links. */
+/** Desktop sidebar links (the sidebar is always dark). The active link is a lifted card with a yellow icon. */
 export function SideNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
@@ -38,12 +38,19 @@ export function SideNav({ items }: { items: NavItem[] }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex min-h-11 items-center gap-3 rounded-lg px-3 font-medium transition-colors hover:bg-sidebar-accent",
-                active && "bg-sidebar-accent font-semibold",
+                "group relative flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.9375rem] font-medium text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
+                active && "bg-card font-semibold text-foreground shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_8%,transparent)]",
               )}
             >
-              {active ? <span aria-hidden className="absolute inset-y-2 left-0 w-1 rounded-full bg-primary" /> : null}
-              <Icon aria-hidden className="size-5" />
+              <span
+                aria-hidden
+                className={cn(
+                  "inline-flex size-8 items-center justify-center rounded-xl transition-colors",
+                  active ? "bg-primary text-primary-foreground shadow-pop-sm" : "bg-muted/60 group-hover:bg-muted",
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
               {item.label}
             </Link>
           </li>
@@ -86,9 +93,12 @@ export function TabBar({ items }: { items: NavItem[] }) {
       aria-label="Dashboard"
       data-typing={typing || undefined}
       inert={typing}
-      className="fixed inset-x-0 bottom-0 z-30 border-t bg-sidebar pb-[env(safe-area-inset-bottom)] text-sidebar-foreground transition-transform data-typing:translate-y-full lg:hidden"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 transition-transform duration-300 data-typing:translate-y-[calc(100%+2rem)] lg:hidden"
     >
-      <ul className="mx-auto grid max-w-xl" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+      <ul
+        className="glass mx-auto grid max-w-xl gap-1 rounded-full border border-border/80 p-1.5 shadow-[var(--shadow-soft)]"
+        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+      >
         {items.map((item) => {
           const Icon = NAV_ICONS[item.icon];
           const active = isActive(item, pathname);
@@ -98,12 +108,11 @@ export function TabBar({ items }: { items: NavItem[] }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-xs font-medium text-muted-foreground",
-                  active && "font-semibold text-foreground",
+                  "flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[0.6875rem] font-semibold text-muted-foreground transition-colors",
+                  active ? "bg-foreground text-background" : "hover:text-foreground",
                 )}
               >
-                {active ? <span aria-hidden className="absolute inset-x-4 top-0 h-1 rounded-b-full bg-primary" /> : null}
-                <Icon aria-hidden className="size-6" />
+                <Icon aria-hidden className="size-5" />
                 <span className="max-w-full truncate">{item.label}</span>
               </Link>
             </li>

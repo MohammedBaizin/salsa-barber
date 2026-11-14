@@ -7,7 +7,7 @@ async function Guarded({ roles, title, children }: { roles?: readonly Role[]; ti
   await requireStaff(roles);
   return (
     <div className="max-w-xl">
-      <h1 className="text-h2 font-extrabold">{title}</h1>
+      <h1 className="text-title font-extrabold">{title}</h1>
       <p className="mt-3 text-muted-foreground" data-testid="coming-soon">
         {children}
       </p>

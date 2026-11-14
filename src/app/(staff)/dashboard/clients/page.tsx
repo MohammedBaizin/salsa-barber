@@ -34,7 +34,7 @@ function ClientRow({ row, now, today, weeks, back }: { row: ClientListRow; now: 
     <li>
       <Link
         href={`/dashboard/clients/${row.id}?back=${encodeURIComponent(back)}`}
-        className="flex items-center gap-3 rounded-xl border bg-card p-3 hover:bg-muted sm:p-4"
+        className="flex items-center gap-3 rounded-2xl border bg-card shadow-[var(--shadow-soft)] p-3 hover:bg-muted sm:p-4"
         data-testid="client-row"
       >
         <span className="min-w-0 flex-1">
@@ -68,7 +68,7 @@ async function Clients({ searchParams }: { searchParams: PageProps<"/dashboard/c
 
   return (
     <div className="space-y-5">
-      <h1 className="text-h2 font-extrabold">Clients</h1>
+      <h1 className="text-title font-extrabold">Clients</h1>
       {search.deleted === "1" ? (
         <p role="status" className="rounded-lg border border-status-done-foreground bg-status-done px-3 py-2 font-medium text-status-done-foreground">
           Client deleted.

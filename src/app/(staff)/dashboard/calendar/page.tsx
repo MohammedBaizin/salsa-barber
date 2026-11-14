@@ -38,7 +38,7 @@ async function Calendar({ searchParams }: { searchParams: PageProps<"/dashboard/
     <BookingsProvider setup={data.setup} today={data.today}>
       <div className="space-y-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-h2 font-extrabold">Calendar</h1>
+          <h1 className="text-title font-extrabold">Calendar</h1>
           <NewBookingButtons date={params.view === "day" ? params.date : data.today} />
         </div>
 

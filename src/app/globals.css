@@ -206,6 +206,10 @@
   --text-h2: clamp(2.125rem, 1.4rem + 3vw, 4rem);
   --text-h2--line-height: 1;
   --text-h2--letter-spacing: -0.035em;
+  /* Dashboard page titles: big but calmer than the website's h2. */
+  --text-title: clamp(1.875rem, 1.5rem + 1.4vw, 2.625rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.035em;
   --text-h3: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
   --text-h3--line-height: 1.2;
   --text-h3--letter-spacing: -0.01em;

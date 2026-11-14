@@ -34,7 +34,7 @@ async function Website() {
   return (
     <div className="max-w-2xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-h2 font-extrabold">Website</h1>
+        <h1 className="text-title font-extrabold">Website</h1>
         <Link href="/" target="_blank" className="inline-flex min-h-11 items-center gap-2 text-link underline underline-offset-4 hover:no-underline">
           View the website
           <ExternalLink aria-hidden className="size-4" />

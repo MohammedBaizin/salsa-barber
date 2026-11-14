@@ -44,7 +44,7 @@ async function Member({ params, searchParams }: PageProps<"/dashboard/team/[id]"
       <div className="flex items-center gap-4">
         <Avatar member={member} size="size-16" />
         <div>
-          <h1 className="text-h2 font-extrabold">{member.name}</h1>
+          <h1 className="text-title font-extrabold">{member.name}</h1>
           <p className="text-muted-foreground">
             {ROLE_LABELS[member.role]}
             {member.active ? "" : " · switched off"}

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export default function DashboardError({ retry }: { error: unknown; retry: () => void }) {
   return (
     <div className="max-w-xl py-6" role="alert">
-      <h1 className="text-h2 font-extrabold">Something went wrong</h1>
+      <h1 className="text-title font-extrabold">Something went wrong</h1>
       <p className="mt-3 text-muted-foreground">
         This page didn&apos;t load. Check your connection and try again. Nothing you saved has been lost.
       </p>

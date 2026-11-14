@@ -27,7 +27,7 @@ async function Services() {
   }));
   return (
     <div className="max-w-3xl space-y-5">
-      <h1 className="text-h2 font-extrabold">Services and prices</h1>
+      <h1 className="text-title font-extrabold">Services and prices</h1>
       {/* Keyed by the data so a refresh after a change resets the optimistic order. */}
       <ServicesBoard key={services.map((s) => `${s.id}:${s.active}`).join()} services={services} canEdit={isManager(staff)} />
     </div>
