@@ -69,6 +69,8 @@ const noteField = z
 
 export const websiteNotesSchema = z.object({ walkInText: noteField, discountText: noteField });
 
+export const onlineBookingSchema = z.object({ onlineBooking: z.enum(["on", "off"]) });
+
 export const publicThemeSchema = z.object({ publicTheme: z.enum(["light", "dark"]) });
 
 export const closureSchema = z.object({
@@ -109,6 +111,7 @@ export function closureWarning(bookings: number): string | null {
 
 /** Card ids, in page order (jump bar on phones). */
 export const SETTINGS_SECTIONS = [
+  { id: "online-booking", label: "Online booking" },
   { id: "hours", label: "Opening hours" },
   { id: "closed-days", label: "Closed days" },
   { id: "booking-rules", label: "Booking rules" },

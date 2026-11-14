@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { CalendarCheck2, CalendarX2, Trash2 } from "lucide-react";
 import {
-  addClosure, removeClosure, saveBookingRules, saveGoogle, saveOpeningHours, savePublicTheme, saveWebsiteNotes,
+  addClosure, removeClosure, saveBookingRules, saveGoogle, saveOnlineBooking, saveOpeningHours, savePublicTheme, saveWebsiteNotes,
 } from "@/app/(staff)/dashboard/settings/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -428,6 +428,69 @@ export function WebsiteThemeForm({ theme }: { theme: "light" | "dark" }) {
         </fieldset>
         <FormError>{state.error}</FormError>
         <SaveButton pending={pending}>Save website theme</SaveButton>
+      </Form>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Online booking
+// ---------------------------------------------------------------------------
+
+/** On/off switch for booking on the website. Staff can still add bookings in the dashboard either way. */
+export function OnlineBookingForm({ on }: { on: boolean }) {
+  const { state, submit, pending } = useSave(saveOnlineBooking);
+  const [choice, setChoice] = useState<"on" | "off">(on ? "on" : "off");
+  return (
+    <Card
+      id="online-booking"
+      title="Online booking"
+      description="When it's on, customers pick a service, barber and time on the website and send a request with their name and mobile number. You accept or decline it here."
+    >
+      <Form onSubmit={submit} className="space-y-4">
+        <fieldset>
+          <legend className="sr-only">Online booking</legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(
+              [
+                { value: "on", label: "On", hint: "Customers can book online", Icon: CalendarCheck2 },
+                { value: "off", label: "Off", hint: "Website asks them to call or WhatsApp", Icon: CalendarX2 },
+              ] as const
+            ).map(({ value, label, hint, Icon }) => (
+              <label
+                key={value}
+                className={cn(
+                  "flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-ring",
+                  choice === value ? "border-primary bg-primary/10 ring-1 ring-primary" : "hover:border-foreground/40",
+                )}
+              >
+                <input
+                  type="radio"
+                  name="onlineBooking"
+                  value={value}
+                  checked={choice === value}
+                  onChange={() => setChoice(value)}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden
+                  className={cn(
+                    "inline-flex size-10 shrink-0 items-center justify-center rounded-full",
+                    choice === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <span>
+                  <span className="block font-semibold">{label}</span>
+                  <span className="block text-sm text-muted-foreground">{hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <FormError>{state.error}</FormError>
+        <SaveButton pending={pending}>Save online booking</SaveButton>
       </Form>
     </Card>
   );

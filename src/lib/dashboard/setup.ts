@@ -10,13 +10,13 @@ import type { Supabase } from "./bookings";
 import type { BookingSetup } from "./types";
 
 /** Shop details used in customer messages. */
-export function messageShop(): BookingSetup["shop"] {
+export async function messageShop(): Promise<BookingSetup["shop"]> {
   return {
     name: site.name,
     address: `${site.address.street}, ${site.address.area} ${site.address.postcode}`,
     phoneDisplay: site.phone.display,
     siteUrl: siteUrl(),
-    bookingEnabled: bookingEnabled(),
+    bookingEnabled: await bookingEnabled(),
   };
 }
 
@@ -51,7 +51,7 @@ export async function loadBookingSetup(supabase: Supabase, staff: Staff): Promis
       name: b.display_name,
       serviceIds: (links.data ?? []).filter((l) => l.staff_id === b.id).map((l) => l.service_id),
     })),
-    shop: messageShop(),
+    shop: await messageShop(),
   };
 }
 

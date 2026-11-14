@@ -80,7 +80,7 @@ The full walk-through is in [docs/launch-guide.md](docs/launch-guide.md). In sho
 3. `npm run test:smoke` against the live address.
 
 `NEXT_PUBLIC_*` variables are built into the site: change them in Vercel, then **redeploy**.
-`NEXT_PUBLIC_BOOKING_ENABLED=false` keeps online booking off (a call/WhatsApp panel instead).
+Online booking is switched on or off in **Dashboard → Settings → Online booking** (when off, `/book` shows a call/WhatsApp panel instead).
 
 ## Backups
 

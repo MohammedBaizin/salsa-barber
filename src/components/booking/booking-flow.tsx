@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, MessageCircle, Phone, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock, MessageCircle, Moon, Phone, ShieldCheck, Sparkles, Sun, Sunrise } from "lucide-react";
 import { requestBooking, type RequestState } from "@/app/(public)/book/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,18 @@ const STEP_TITLES: Record<Step, string> = {
   time: "Pick a day and time",
   details: "Your details",
 };
+const STEP_SHORT: Record<Step, string> = { service: "Service", barber: "Barber", time: "Time", details: "Details" };
+const STEP_HINTS: Record<Step, string> = {
+  service: "Tap a service to start. You pay in the shop.",
+  barber: "Pick someone you know, or any barber for the earliest time.",
+  time: "Pick a day, then a time. All times are UK time.",
+  details: "Just your name and mobile. We'll message you to confirm.",
+};
+const PART_ICONS = { morning: Sunrise, afternoon: Sun, evening: Moon } as const;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+/** "2026-11-15" -> "November 2026". */
+const formatMonth = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
+
 /** Codes that mean "pick another time": go back to the times with a fresh list. */
 const RETIME_CODES = new Set(["slot_taken", "too_soon", "too_far", "shop_closed", "service_day", "outside_hours", "barber_unavailable", "invalid_time"]);
 
@@ -48,6 +60,10 @@ export type BookingFlowProps = {
 
 const requestSafely = safely(requestBooking);
 const INITIAL: RequestState = { error: null, code: null, fields: {}, token: null, attempt: 0 };
+
+/** Card style shared by the service and barber choices. */
+const choiceCard =
+  "group flex h-full min-h-20 w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-[var(--shadow-soft)] sm:p-5";
 
 /**
  * Booking flow: Service → Barber (or any) → Date & time → Name & mobile → request sent.
@@ -157,134 +173,186 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
   const barberName = barber === "any" ? "Any barber" : (barbers.find((b) => b.id === barber)?.name ?? null);
   const startDate = start ? new Date(start) : null;
   const showDetailsError = step === "details" && state.error && !(state.code && RETIME_CODES.has(state.code));
+  const monthLabel = day ? formatMonth(day.date) : null;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+    <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-8 lg:items-start lg:gap-10", service && "lg:grid-cols-[minmax(0,1fr)_22rem]")}>
       <div className="min-w-0">
-        <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="mb-8 flex items-center gap-3">
           {stepIndex > 0 ? (
-            <button type="button" onClick={back} className="inline-flex min-h-11 items-center gap-1.5 rounded-full pr-4 pl-2 font-semibold hover:bg-muted">
-              <ArrowLeft aria-hidden className="size-5" />
+            <button
+              type="button"
+              onClick={back}
+              className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card pr-4 pl-3 text-sm font-semibold transition-colors hover:border-foreground/40"
+            >
+              <ArrowLeft aria-hidden className="size-4" />
               Back
             </button>
-          ) : (
-            <span />
-          )}
-          <p className="text-sm font-semibold text-muted-foreground">
-            Step {stepIndex + 1} of {STEPS.length}
-          </p>
-        </div>
-        <div aria-hidden className="mb-8 h-1 overflow-hidden rounded-full bg-border">
-          <div className="h-full rounded-full bg-primary shadow-[0_0_12px_var(--glow)] transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }} />
+          ) : null}
+          <ol className="flex min-w-0 flex-1 items-center gap-1.5" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}>
+            {STEPS.map((s, i) => (
+              <li key={s} className="flex min-w-0 flex-1 items-center gap-1.5 last:flex-none" aria-current={i === stepIndex ? "step" : undefined}>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "inline-flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
+                    i < stepIndex && "bg-foreground text-background",
+                    i === stepIndex && "bg-primary text-primary-foreground shadow-pop-sm",
+                    i > stepIndex && "border border-border text-muted-foreground",
+                  )}
+                >
+                  {i < stepIndex ? <Check className="size-3.5" /> : i + 1}
+                </span>
+                <span aria-hidden className={cn("hidden truncate text-sm font-semibold md:block", i === stepIndex ? "text-foreground" : "text-muted-foreground")}>
+                  {STEP_SHORT[s]}
+                </span>
+                <span className="sr-only">{STEP_SHORT[s]}</span>
+                {i < STEPS.length - 1 && (
+                  <span aria-hidden className="h-0.5 min-w-3 flex-1 overflow-hidden rounded-full bg-border">
+                    <span className={cn("block h-full bg-foreground transition-[width] duration-500", i < stepIndex ? "w-full" : "w-0")} />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
 
         <h2 ref={heading} tabIndex={-1} className="text-h2 font-extrabold outline-none" data-testid="step-heading">
           {STEP_TITLES[step]}
         </h2>
+        <p className="mt-2 text-muted-foreground">{STEP_HINTS[step]}</p>
 
         {step === "service" && (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {services.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const keep = barber && (barber === "any" || barbers.find((b) => b.id === barber)?.serviceIds.includes(s.id));
-                    setStart(null);
-                    setPicked((p) => ({ ...p, service: s.id }));
-                    navigate({ step: keep ? "time" : "barber", service: s.id, barber: keep ? barber : null });
-                  }}
-                  aria-pressed={(service?.id ?? picked.service) === s.id}
-                  className={cn(
-                    "flex min-h-18 w-full items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:border-foreground/50",
-                    (service?.id ?? picked.service) === s.id && "border-primary ring-2 ring-primary",
-                  )}
-                >
-                  <span>
-                    <span className="block font-semibold">{s.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatMinutes(s.durationMin)}
-                      {s.bookableDays && <> · {formatDays(s.bookableDays)} only</>}
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((s) => {
+              const selected = (service?.id ?? picked.service) === s.id;
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const keep = barber && (barber === "any" || barbers.find((b) => b.id === barber)?.serviceIds.includes(s.id));
+                      setStart(null);
+                      setPicked((p) => ({ ...p, service: s.id }));
+                      navigate({ step: keep ? "time" : "barber", service: s.id, barber: keep ? barber : null });
+                    }}
+                    aria-pressed={selected}
+                    className={cn(choiceCard, "justify-between", selected && "border-primary ring-2 ring-primary")}
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-heading text-lg leading-tight font-bold tracking-tight">{s.name}</span>
+                      <span className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5">
+                          <Clock aria-hidden className="size-3" />
+                          {formatMinutes(s.durationMin)}
+                        </span>
+                        {s.bookableDays && <span className="rounded-full bg-muted px-2 py-0.5">{formatDays(s.bookableDays)} only</span>}
+                      </span>
                     </span>
-                  </span>
-                  <span className="price text-price">{formatPence(s.pricePence)}</span>
-                </button>
-              </li>
-            ))}
+                    <span className="flex shrink-0 items-center gap-3">
+                      <span className="price text-price">{formatPence(s.pricePence)}</span>
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "inline-flex size-8 items-center justify-center rounded-full border border-border transition-colors group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground",
+                          selected && "border-primary bg-primary text-primary-foreground",
+                        )}
+                      >
+                        <ArrowRight className="size-4" />
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
 
         {step === "barber" && service && (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {[{ id: "any", name: "Any barber", title: "First one free", photo: null as BookingBarber["photo"] }, ...eligible].map((b) => (
-              <li key={b.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStart(null);
-                    setPicked((p) => ({ ...p, barber: b.id }));
-                    navigate({ step: "time", barber: b.id });
-                  }}
-                  aria-pressed={(barber ?? picked.barber) === b.id}
-                  className={cn(
-                    "flex min-h-18 w-full items-center gap-4 rounded-2xl border bg-card px-5 py-4 text-left transition-colors hover:border-foreground/50",
-                    (barber ?? picked.barber) === b.id && "border-primary ring-2 ring-primary",
-                  )}
-                >
-                  {b.id === "any" ? (
-                    <span aria-hidden className="inline-flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                      <Users className="size-6" />
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+            {[{ id: "any", name: "Any barber", title: "Quickest: first one free", photo: null as BookingBarber["photo"] }, ...eligible].map((b) => {
+              const selected = (barber ?? picked.barber) === b.id;
+              return (
+                <li key={b.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStart(null);
+                      setPicked((p) => ({ ...p, barber: b.id }));
+                      navigate({ step: "time", barber: b.id });
+                    }}
+                    aria-pressed={selected}
+                    className={cn(choiceCard, selected && "border-primary ring-2 ring-primary")}
+                  >
+                    {b.id === "any" ? (
+                      <span aria-hidden className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-pop-sm">
+                        <Sparkles className="size-6" />
+                      </span>
+                    ) : b.photo ? (
+                      <Image src={b.photo.url} alt="" width={56} height={56} className="size-14 shrink-0 rounded-full object-cover ring-2 ring-border" />
+                    ) : (
+                      <span aria-hidden className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-lg font-extrabold text-secondary-foreground">
+                        {initials(b.name)}
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-heading text-lg leading-tight font-bold tracking-tight">{b.name}</span>
+                      {b.title && <span className="mt-0.5 block text-sm text-muted-foreground">{b.title}</span>}
                     </span>
-                  ) : b.photo ? (
-                    <Image src={b.photo.url} alt="" width={48} height={48} className="size-12 rounded-full object-cover" />
-                  ) : (
-                    <span aria-hidden className="inline-flex size-12 items-center justify-center rounded-full bg-highlight font-heading text-lg font-extrabold text-highlight-foreground">
-                      {initials(b.name)}
-                    </span>
-                  )}
-                  <span>
-                    <span className="block font-semibold">{b.name}</span>
-                    {b.title && <span className="text-sm text-muted-foreground">{b.title}</span>}
-                  </span>
-                </button>
-              </li>
-            ))}
+                    <ArrowRight aria-hidden className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
 
         {step === "time" && service && barber && (
-          <div className="mt-6">
+          <div className="mt-8">
             {notice && (
-              <p role="alert" className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 font-medium text-destructive">
+              <p role="alert" className="mb-6 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 font-medium text-destructive">
                 {notice}
               </p>
             )}
-            <div className="mb-6 max-w-xs space-y-2">
-              <Label htmlFor="barber-switch">Barber</Label>
-              <NativeSelect
-                id="barber-switch"
-                className="w-full"
-                value={barber}
-                onChange={(e) => {
-                  setStart(null);
-                  navigate({ step: "time", barber: e.target.value }, true);
-                }}
-              >
-                <NativeSelectOption value="any">Any barber</NativeSelectOption>
-                {eligible.map((b) => (
-                  <NativeSelectOption key={b.id} value={b.id}>
-                    {b.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+              <div className="w-full max-w-xs space-y-2">
+                <Label htmlFor="barber-switch">Barber</Label>
+                <NativeSelect
+                  id="barber-switch"
+                  className="w-full"
+                  value={barber}
+                  onChange={(e) => {
+                    setStart(null);
+                    navigate({ step: "time", barber: e.target.value }, true);
+                  }}
+                >
+                  <NativeSelectOption value="any">Any barber</NativeSelectOption>
+                  {eligible.map((b) => (
+                    <NativeSelectOption key={b.id} value={b.id}>
+                      {b.name}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+              {monthLabel && <p className="eyebrow">{monthLabel}</p>}
             </div>
 
             {!current ? (
-              <p className="py-10 text-muted-foreground" role="status">
-                Finding free times…
-              </p>
+              <div role="status" className="space-y-4">
+                <span className="sr-only">Finding free times…</span>
+                <div aria-hidden className="flex gap-2 overflow-hidden">
+                  {Array.from({ length: 8 }, (_, i) => (
+                    <span key={i} className="h-[4.5rem] w-14 shrink-0 animate-pulse rounded-2xl bg-muted" />
+                  ))}
+                </div>
+                <div aria-hidden className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <span key={i} className="h-10 animate-pulse rounded-full bg-muted" />
+                  ))}
+                </div>
+              </div>
             ) : current.status === "error" ? (
-              <p role="alert" className="rounded-lg bg-muted px-4 py-3">
+              <p role="alert" className="rounded-2xl bg-muted px-4 py-3">
                 Couldn&apos;t load free times. Check your connection and{" "}
                 <button type="button" className="font-semibold underline" onClick={() => setRefresh((n) => n + 1)}>
                   try again
@@ -313,7 +381,11 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
               </div>
             ) : (
               <>
-                <ul aria-label="Days" className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0" data-testid="day-strip">
+                <ul
+                  aria-label="Days"
+                  className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:thin] sm:mx-0 sm:px-0"
+                  data-testid="day-strip"
+                >
                   {days.map((d) => {
                     const disabled = d.times.length === 0;
                     const selected = day?.date === d.date;
@@ -325,13 +397,19 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                           aria-pressed={selected}
                           onClick={() => setSelectedDate(d.date)}
                           className={cn(
-                            "relative flex min-h-18 w-16 flex-col items-center justify-center rounded-2xl border text-sm transition-colors",
-                            selected ? "border-primary bg-primary font-bold text-primary-foreground shadow-pop-sm" : "bg-card hover:border-foreground/50",
-                            disabled && "cursor-not-allowed bg-transparent text-muted-foreground line-through opacity-60 hover:border-border",
+                            "relative flex h-[4.5rem] w-14 flex-col items-center justify-center gap-0.5 rounded-2xl border text-xs font-semibold transition-all duration-200",
+                            selected
+                              ? "border-primary bg-primary text-primary-foreground shadow-pop-sm"
+                              : "bg-card hover:-translate-y-0.5 hover:border-foreground/40",
+                            disabled && "cursor-not-allowed border-dashed bg-transparent text-muted-foreground opacity-60 hover:translate-y-0 hover:border-border",
                           )}
                         >
                           <span>{today && formatRelativeDay(d.date, today) === "Today" ? "Today" : formatDay(d.date).split(" ")[0]}</span>
-                          <span className="font-heading text-lg font-bold">{Number(d.date.slice(8))}</span>
+                          <span className="font-heading text-xl leading-none font-extrabold">{Number(d.date.slice(8))}</span>
+                          <span
+                            aria-hidden
+                            className={cn("mt-0.5 size-1 rounded-full", disabled ? "bg-transparent" : selected ? "bg-primary-foreground" : "bg-status-done-foreground")}
+                          />
                           <span className="sr-only">
                             {` ${formatDay(d.date).split(" ")[2]}, ${disabled ? "no free times" : `${d.times.length} free times`}`}
                           </span>
@@ -342,36 +420,47 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 </ul>
 
                 {day && (
-                  <div className="mt-4 space-y-6" data-testid="times">
-                    <p className="font-semibold">{formatDayLong(day.date)}</p>
-                    {(Object.entries(groupByPartOfDay(day.times.map((t) => ({ start: new Date(t), iso: t })))) as [string, { start: Date; iso: string }[]][])
-                      .filter(([, list]) => list.length > 0)
-                      .map(([part, list]) => (
-                        <div key={part}>
-                          <h3 className="text-label font-semibold tracking-[0.14em] text-muted-foreground uppercase">{part}</h3>
-                          <ul className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                            {list.map((t) => (
-                              <li key={t.iso}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setStart(t.iso);
-                                    setNotice(null);
-                                    navigate({ step: "details" });
-                                  }}
-                                  aria-pressed={start === t.iso}
-                                  className={cn(
-                                    "min-h-11 w-full rounded-full border bg-card px-2 font-semibold tabular-nums transition-colors hover:border-foreground/50",
-                                    start === t.iso && "border-primary bg-primary text-primary-foreground",
-                                  )}
-                                >
-                                  {formatTime(t.start)}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                  <div className="mt-4 rounded-3xl border bg-card p-4 sm:p-6" data-testid="times">
+                    <p className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="font-heading text-lg font-bold">{formatDayLong(day.date)}</span>
+                      <span className="text-sm text-muted-foreground">{day.times.length} free</span>
+                    </p>
+                    <div className="mt-4 space-y-5">
+                      {(Object.entries(groupByPartOfDay(day.times.map((t) => ({ start: new Date(t), iso: t })))) as [keyof typeof PART_ICONS, { start: Date; iso: string }[]][])
+                        .filter(([, list]) => list.length > 0)
+                        .map(([part, list]) => {
+                          const Icon = PART_ICONS[part];
+                          return (
+                            <div key={part}>
+                              <h3 className="flex items-center gap-2 text-label font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                                <Icon aria-hidden className="size-4" />
+                                {part}
+                              </h3>
+                              <ul className="mt-2.5 grid grid-cols-4 gap-2 sm:grid-cols-5 xl:grid-cols-6">
+                                {list.map((t) => (
+                                  <li key={t.iso}>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setStart(t.iso);
+                                        setNotice(null);
+                                        navigate({ step: "details" });
+                                      }}
+                                      aria-pressed={start === t.iso}
+                                      className={cn(
+                                        "h-10 w-full rounded-full border bg-background px-1 text-sm font-semibold tabular-nums transition-colors duration-150 hover:border-foreground/50 hover:bg-muted",
+                                        start === t.iso && "border-primary bg-primary text-primary-foreground hover:bg-primary",
+                                      )}
+                                    >
+                                      {formatTime(t.start)}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
                 )}
               </>
@@ -380,7 +469,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
         )}
 
         {step === "details" && service && barber && start && (
-          <form action={formAction} className="mt-6 max-w-md space-y-5" noValidate>
+          <form action={formAction} className="mt-8 max-w-lg space-y-5 rounded-3xl border bg-card p-5 sm:p-7" noValidate>
             <input type="hidden" name="serviceId" value={service.id} />
             <input type="hidden" name="barberId" value={barber === "any" ? "" : barber} />
             <input type="hidden" name="start" value={start} />
@@ -392,7 +481,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
             </div>
 
             {showDetailsError && (
-              <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 font-medium text-destructive">
+              <p role="alert" className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 font-medium text-destructive">
                 {state.error}
               </p>
             )}
@@ -407,6 +496,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 autoComplete="name"
                 maxLength={80}
                 required
+                className="h-12 rounded-xl text-base"
                 aria-invalid={state.fields.name ? true : undefined}
                 aria-describedby={state.fields.name ? "name-error" : undefined}
               />
@@ -428,10 +518,12 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 autoComplete="tel"
                 placeholder="07123 456789"
                 required
+                className="h-12 rounded-xl text-base tabular-nums"
                 aria-invalid={state.fields.phone ? true : undefined}
                 aria-describedby={state.fields.phone ? "phone-error phone-hint" : "phone-hint"}
               />
-              <p id="phone-hint" className="text-sm text-muted-foreground">
+              <p id="phone-hint" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MessageCircle aria-hidden className="size-4 shrink-0" />
                 We&apos;ll confirm by WhatsApp or text. UK mobiles only.
               </p>
               {state.fields.phone && (
@@ -440,18 +532,25 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 </p>
               )}
             </div>
-            <Button type="submit" variant="pop" size="lg" className="w-full sm:w-auto" disabled={pending || Boolean(state.token)}>
+            <Button type="submit" variant="pop" size="lg" className="w-full" disabled={pending || Boolean(state.token)}>
               {pending || state.token ? "Sending…" : replaces ? "Send change request" : "Send booking request"}
             </Button>
-            <p className="text-sm text-muted-foreground">Your booking isn&apos;t confirmed until the shop replies.</p>
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
+              Your booking isn&apos;t confirmed until the shop replies. Nothing to pay now.
+            </p>
           </form>
         )}
       </div>
 
       {service && (
-        <aside aria-label="Your booking" className="rounded-3xl border bg-card p-6 shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
-          <h2 className="font-heading text-lg font-bold">Your booking</h2>
-          <dl className="mt-4 space-y-4 text-sm">
+        <aside aria-label="Your booking" className="overflow-hidden rounded-3xl border bg-card shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
+          <div className="dark relative overflow-hidden bg-background px-6 py-5 text-foreground">
+            <div aria-hidden className="glow-spot absolute -top-16 -right-16 size-48" />
+            <h2 className="relative font-heading text-lg font-bold">Your booking</h2>
+            <p className="relative mt-0.5 text-sm text-muted-foreground">Request · confirmed by the shop</p>
+          </div>
+          <dl className="space-y-4 p-6 text-sm">
             <SummaryRow label="Service" onChange={step !== "service" ? () => navigate({ step: "service" }) : undefined}>
               {service.name} · {formatPence(service.pricePence)} · {formatMinutes(service.durationMin)}
             </SummaryRow>
@@ -465,6 +564,10 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
                 {formatDay(startDate)}, {formatTime(startDate)}
               </SummaryRow>
             )}
+            <div className="flex items-baseline justify-between border-t border-border pt-4">
+              <dt className="font-semibold">Pay in the shop</dt>
+              <dd className="price text-price">{formatPence(service.pricePence)}</dd>
+            </div>
           </dl>
         </aside>
       )}
@@ -482,7 +585,7 @@ function SummaryRow({ label, children, onChange }: { label: string; children: Re
       </dd>
       {onChange && (
         <dd className="col-start-2 row-span-2 row-start-1">
-          <button type="button" onClick={onChange} className="min-h-11 px-2 font-semibold text-link underline underline-offset-4 hover:no-underline">
+          <button type="button" onClick={onChange} className="min-h-11 rounded-full px-3 text-sm font-semibold text-link transition-colors hover:bg-muted">
             Change<span className="sr-only"> {label.toLowerCase()}</span>
           </button>
         </dd>

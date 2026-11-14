@@ -75,7 +75,6 @@ Then **Project Settings → API keys** and copy three values:
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key |
 | `SUPABASE_SECRET_KEY` | Secret key, marked **Sensitive** |
 | `NEXT_PUBLIC_SITE_URL` | The site's address, e.g. `https://salsa-barber.vercel.app` (no slash at the end) |
-| `NEXT_PUBLIC_BOOKING_ENABLED` | `false` for now (step 9 turns it on) |
 | `NEXT_PUBLIC_SHOW_PLACEHOLDERS` | `false` |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | From `npm run vapid:keys` on your computer; the private one **Sensitive** |
 | `VAPID_SUBJECT` | `mailto:` and an address you read, e.g. `mailto:you@example.com` |
@@ -147,8 +146,8 @@ Everything should pass. Then try it yourself on a phone: the homepage, `/book`, 
 
 ## 9. Turn on online booking
 
-When the owner has confirmed hours, service lengths and who does which service: in Vercel set
-`NEXT_PUBLIC_BOOKING_ENABLED` to `true` and **redeploy**. Make a test booking with your own mobile number, accept it in
+When the owner has confirmed hours, service lengths and who does which service: open **Dashboard → Settings →
+Online booking**, choose **On** and save (no redeploy needed). Make a test booking with your own mobile number, accept it in
 the dashboard, then cancel it.
 
 ## 10. Booking alerts on staff phones

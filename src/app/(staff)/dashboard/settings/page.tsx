@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { LoadingLabel, Skeleton } from "@/components/dashboard/skeleton";
 import {
-  BookingRulesForm, ClosedDaysForm, GoogleForm, OpeningHoursForm, WebsiteNotesForm, WebsiteThemeForm,
+  BookingRulesForm, ClosedDaysForm, GoogleForm, OnlineBookingForm, OpeningHoursForm, WebsiteNotesForm, WebsiteThemeForm,
 } from "@/components/dashboard/settings-forms";
 import { requireStaff } from "@/lib/auth/staff";
 import type { WeeklyHours } from "@/lib/domain/hours";
@@ -22,7 +22,7 @@ async function Settings() {
     supabase
       .from("settings")
       .select(
-        "shop_hours, min_notice_minutes, booking_window_days, due_back_weeks, max_open_requests, change_cutoff_minutes, google_rating, google_review_count, google_review_url, public_theme, walk_in_text, discount_text",
+        "shop_hours, online_booking, min_notice_minutes, booking_window_days, due_back_weeks, max_open_requests, change_cutoff_minutes, google_rating, google_review_count, google_review_url, public_theme, walk_in_text, discount_text",
       )
       .eq("id", 1)
       .single(),
@@ -58,6 +58,7 @@ async function Settings() {
           ))}
         </ul>
       </nav>
+      <OnlineBookingForm key={key("online", s.online_booking)} on={s.online_booking} />
       <OpeningHoursForm key={key("hours", s.shop_hours)} hours={s.shop_hours as WeeklyHours} />
       <ClosedDaysForm closures={closures.data.map((c) => ({ id: c.id, date: c.closed_on, reason: c.reason }))} />
       <BookingRulesForm key={key("rules", rules)} rules={rules} />

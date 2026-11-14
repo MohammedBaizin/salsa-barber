@@ -93,7 +93,7 @@ export const COLUMN_LABELS: Record<string, Record<string, string>> = {
     shop_hours: "opening hours", min_notice_minutes: "minimum notice", booking_window_days: "how far ahead",
     due_back_weeks: "due-back weeks", max_open_requests: "waiting requests per phone",
     change_cutoff_minutes: "change/cancel cut-off", google_rating: "Google rating", google_review_count: "Google review count",
-    google_review_url: "Google link", public_theme: "website theme", walk_in_text: "walk-in text",
+    google_review_url: "Google link", public_theme: "website theme", online_booking: "online booking", walk_in_text: "walk-in text",
     discount_text: "discount text", shop_photo_path: "shop photo",
   },
   client: { name: "name", phone: "phone number" },

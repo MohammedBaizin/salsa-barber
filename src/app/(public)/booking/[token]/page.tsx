@@ -46,7 +46,7 @@ async function BookingDetails({ params }: { params: PageProps<"/booking/[token]"
   ]);
   const b = data?.[0];
   if (!b) notFound();
-  const online = bookingEnabled();
+  const online = await bookingEnabled();
   const active = b.status === "pending" || b.status === "confirmed";
   const barberParam = b.any_barber ? "any" : b.staff_id;
   const changeHref = b.can_change && online ? `/book?${new URLSearchParams({ service: b.service_id, barber: barberParam, step: "time", change: token })}` : null;

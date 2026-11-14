@@ -12,6 +12,7 @@ import type { SiteContent } from "@/lib/site-content";
 /** Day one: no photos, no team, no reviews, no rating. Every section must degrade gracefully. */
 const empty: SiteContent = {
   shopHours: {},
+  onlineBooking: true,
   googleRating: null,
   googleReviewCount: null,
   googleReviewUrl: null,

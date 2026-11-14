@@ -15,6 +15,8 @@ export type SitePhoto = { url: string; alt: string };
 
 export type SiteContent = {
   shopHours: WeeklyHours;
+  /** Customers can book on the website (Settings → Online booking). */
+  onlineBooking: boolean;
   googleRating: number | null;
   googleReviewCount: number | null;
   googleReviewUrl: string | null;
@@ -43,7 +45,7 @@ export async function getSiteContent(): Promise<SiteContent> {
   const [settings, services, team, photos, reviews, closures] = await Promise.all([
     db
       .from("settings")
-      .select("shop_hours, google_rating, google_review_count, google_review_url, walk_in_text, discount_text, shop_photo_path")
+      .select("shop_hours, online_booking, google_rating, google_review_count, google_review_url, walk_in_text, discount_text, shop_photo_path")
       .eq("id", 1)
       .single(),
     db.from("services").select("id, name, price_pence, duration_min, bookable_days, sort").order("sort").order("name"),
@@ -61,6 +63,7 @@ export async function getSiteContent(): Promise<SiteContent> {
 
   return {
     shopHours: (s.shop_hours ?? {}) as WeeklyHours,
+    onlineBooking: s.online_booking,
     googleRating: s.google_rating,
     googleReviewCount: s.google_review_count,
     googleReviewUrl: s.google_review_url,

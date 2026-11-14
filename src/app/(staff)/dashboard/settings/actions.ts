@@ -6,7 +6,7 @@ import { nextSaveState as state, type SaveState } from "@/lib/dashboard/action-s
 import { parseHoursForm } from "@/lib/domain/hours";
 import {
   bookingRulesSchema, bookingsOutsideHours, CLOSURE_TAKEN, closureDateProblem, closureSchema, closureWarning, googleSchema,
-  hoursChangeWarning, publicThemeSchema, websiteNotesSchema,
+  hoursChangeWarning, onlineBookingSchema, publicThemeSchema, websiteNotesSchema,
 } from "@/lib/domain/settings";
 import { NOT_ALLOWED_ERROR } from "@/lib/domain/staff-bookings";
 import { addDays, dateKey, fromLondon } from "@/lib/domain/time";
@@ -147,4 +147,12 @@ export async function savePublicTheme(prev: SaveState, formData: FormData): Prom
   const parsed = publicThemeSchema.safeParse({ publicTheme: formData.get("publicTheme") });
   if (!parsed.success) return fail(prev, "Please choose Light or Dark.", { publicTheme: "Please choose Light or Dark." });
   return updateSettings(prev, { public_theme: parsed.data.publicTheme }, "Website theme saved.");
+}
+
+export async function saveOnlineBooking(prev: SaveState, formData: FormData): Promise<SaveState> {
+  await requireStaff(["owner", "admin"]);
+  const parsed = onlineBookingSchema.safeParse({ onlineBooking: formData.get("onlineBooking") });
+  if (!parsed.success) return fail(prev, "Please choose On or Off.", { onlineBooking: "Please choose On or Off." });
+  const on = parsed.data.onlineBooking === "on";
+  return updateSettings(prev, { online_booking: on }, on ? "Online booking is on." : "Online booking is off.");
 }

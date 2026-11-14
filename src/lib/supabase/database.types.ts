@@ -195,14 +195,14 @@ isOneToOne: false
                   ]
                 },"settings": {
                   Row: {
-                    "booking_window_days": number,"change_cutoff_minutes": number,"discount_text": string | null,"due_back_weeks": number,"google_rating": number | null,"google_review_count": number | null,"google_review_url": string | null,"id": number,"max_open_requests": number,"min_notice_minutes": number,"public_theme": string,"shop_hours": NonNullable<Json>,"shop_photo_path": string | null,"updated_at": string,"walk_in_text": string | null
+                    "booking_window_days": number,"change_cutoff_minutes": number,"discount_text": string | null,"due_back_weeks": number,"google_rating": number | null,"google_review_count": number | null,"google_review_url": string | null,"id": number,"max_open_requests": number,"min_notice_minutes": number,"online_booking": boolean,"public_theme": string,"shop_hours": NonNullable<Json>,"shop_photo_path": string | null,"updated_at": string,"walk_in_text": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "booking_window_days"?: number,"change_cutoff_minutes"?: number,"discount_text"?: string | null,"due_back_weeks"?: number,"google_rating"?: number | null,"google_review_count"?: number | null,"google_review_url"?: string | null,"id"?: number,"max_open_requests"?: number,"min_notice_minutes"?: number,"public_theme"?: string,"shop_hours"?: NonNullable<Json>,"shop_photo_path"?: string | null,"updated_at"?: string,"walk_in_text"?: string | null
+                    "booking_window_days"?: number,"change_cutoff_minutes"?: number,"discount_text"?: string | null,"due_back_weeks"?: number,"google_rating"?: number | null,"google_review_count"?: number | null,"google_review_url"?: string | null,"id"?: number,"max_open_requests"?: number,"min_notice_minutes"?: number,"online_booking"?: boolean,"public_theme"?: string,"shop_hours"?: NonNullable<Json>,"shop_photo_path"?: string | null,"updated_at"?: string,"walk_in_text"?: string | null
                   }
                   Update: {
-                    "booking_window_days"?: number,"change_cutoff_minutes"?: number,"discount_text"?: string | null,"due_back_weeks"?: number,"google_rating"?: number | null,"google_review_count"?: number | null,"google_review_url"?: string | null,"id"?: number,"max_open_requests"?: number,"min_notice_minutes"?: number,"public_theme"?: string,"shop_hours"?: NonNullable<Json>,"shop_photo_path"?: string | null,"updated_at"?: string,"walk_in_text"?: string | null
+                    "booking_window_days"?: number,"change_cutoff_minutes"?: number,"discount_text"?: string | null,"due_back_weeks"?: number,"google_rating"?: number | null,"google_review_count"?: number | null,"google_review_url"?: string | null,"id"?: number,"max_open_requests"?: number,"min_notice_minutes"?: number,"online_booking"?: boolean,"public_theme"?: string,"shop_hours"?: NonNullable<Json>,"shop_photo_path"?: string | null,"updated_at"?: string,"walk_in_text"?: string | null
                   }
                   Relationships: [
                     

@@ -1,7 +1,10 @@
+import { getSiteContent } from "@/lib/site-content";
+
 /**
- * Online booking switch (spec §4.3). Off until the owner confirms hours, service lengths and barbers.
+ * Online booking switch, controlled in Dashboard → Settings → Online booking (settings.online_booking).
+ * Read through the cached site content; saving Settings refreshes it straight away.
  * When off, /book shows "call us / WhatsApp" and the booking API and action refuse.
  */
-export function bookingEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_BOOKING_ENABLED === "true";
+export async function bookingEnabled(): Promise<boolean> {
+  return (await getSiteContent()).onlineBooking;
 }

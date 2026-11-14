@@ -21,7 +21,7 @@ const noStore = { "Cache-Control": "no-store" };
  */
 export async function GET(request: NextRequest) {
   await connection();
-  if (!bookingEnabled()) return NextResponse.json({ error: "Online booking is off" }, { status: 404, headers: noStore });
+  if (!(await bookingEnabled())) return NextResponse.json({ error: "Online booking is off" }, { status: 404, headers: noStore });
 
   const parsed = query.safeParse(Object.fromEntries(request.nextUrl.searchParams));
   if (!parsed.success) return NextResponse.json({ error: "Bad request" }, { status: 400, headers: noStore });

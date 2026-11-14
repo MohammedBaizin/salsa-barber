@@ -6,6 +6,7 @@ import { expectAccessible, expectNoHorizontalScroll, formAlert, setTheme, sql } 
 const COLUMNS = [
   "shop_hours", "min_notice_minutes", "booking_window_days", "due_back_weeks", "max_open_requests", "change_cutoff_minutes",
   "google_rating", "google_review_count", "google_review_url", "public_theme", "walk_in_text", "discount_text",
+  "online_booking",
 ];
 let original: Record<string, unknown> = {};
 let startedAt = new Date();
@@ -154,6 +155,27 @@ test.describe("settings", () => {
     await expect(page.locator("#main")).toContainText("4.7 on Google");
     await expect(page.locator("#visit")).toContainText("E2E walk-ins welcome all day");
     await expect(page.locator("html")).toHaveClass(original.public_theme === "light" ? /\bdark\b/ : /^(?!.*\bdark\b)/);
+  });
+
+  test("online booking switch: Off shows the call panel on /book and refuses the API; On brings booking back", async ({ page, request }) => {
+    await openSettings(page);
+    const online = card(page, "Online booking");
+    await online.getByRole("radio", { name: /^Off/ }).check({ force: true });
+    await online.getByRole("button", { name: "Save online booking" }).click();
+    await expect(toast(page)).toHaveText("Online booking is off.");
+    expect((await sql("select online_booking from public.settings"))[0].online_booking).toBe(false);
+
+    await page.goto("/book");
+    await expect(page.getByText(/isn't available right now/)).toBeVisible();
+    const [{ id }] = await sql("select id from public.services where name = 'Hair Cut'");
+    expect((await request.get(`/api/availability?service=${id}`)).status()).toBe(404);
+
+    await page.goto("/dashboard/settings");
+    await online.getByRole("radio", { name: /^On/ }).check({ force: true });
+    await online.getByRole("button", { name: "Save online booking" }).click();
+    await expect(toast(page)).toHaveText("Online booking is on.");
+    await page.goto("/book");
+    await expect(page.getByTestId("step-heading")).toHaveText("Choose a service");
   });
 
   for (const theme of ["light", "dark"] as const) {

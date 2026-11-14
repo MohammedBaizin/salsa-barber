@@ -24,7 +24,7 @@ export type RequestState = {
  */
 export async function requestBooking(prev: RequestState, formData: FormData): Promise<RequestState> {
   const attempt = prev.attempt + 1;
-  if (!bookingEnabled()) return { error: "Online booking is off. Please call the shop.", code: "service_unavailable", fields: {}, token: null, attempt };
+  if (!(await bookingEnabled())) return { error: "Online booking is off. Please call the shop.", code: "service_unavailable", fields: {}, token: null, attempt };
 
   const parsed = bookingRequestSchema.safeParse({
     serviceId: formData.get("serviceId"),
