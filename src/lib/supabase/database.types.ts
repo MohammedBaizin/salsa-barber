@@ -312,6 +312,9 @@ isOneToOne: false
               "booking_id": string,"starts_at": string
             }[]
                            },
+"clear_login_failures":
+{ Args: { "p_visitor": string }; Returns: undefined
+                           },
 "client_list":
 { Args: { "p_filter"?: string,"p_limit"?: number,"p_name"?: string,"p_offset"?: number,"p_phone"?: string,"p_staff"?: string }; Returns: {
               "created_at": string,"id": string,"last_visit": string,"n_all": number,"n_due_back": number,"n_new": number,"n_regular": number,"name": string,"next_visit": string,"no_shows": number,"phone": string,"spent_pence": number,"visits": number
@@ -342,8 +345,14 @@ isOneToOne: false
 "log_account_event":
 { Args: { "p_action": string,"p_staff": string }; Returns: undefined
                            },
+"login_wait_seconds":
+{ Args: { "p_user": string,"p_visitor": string }; Returns: number
+                           },
 "purge_old_data":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"record_login_failure":
+{ Args: { "p_user": string,"p_visitor": string }; Returns: undefined
                            },
 "request_booking":
 { Args: { "p_ip_hash"?: string,"p_name": string,"p_phone": string,"p_replaces"?: string,"p_service": string,"p_staff"?: string,"p_start": string }; Returns: {

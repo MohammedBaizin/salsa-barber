@@ -52,11 +52,24 @@ export async function expectNoHorizontalScroll(page: Page) {
   expect(scroll).toBeLessThanOrEqual(width);
 }
 
-/** Deletes files from a LOCAL storage bucket (test cleanup only; global setup refuses non-local Supabase). */
+/** Secret-key client for the LOCAL stack (test setup/cleanup only; global setup refuses non-local Supabase). */
+export async function adminClient() {
+  const { createClient } = await import("@supabase/supabase-js");
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
+}
+
+/** Deletes files from a LOCAL storage bucket. */
 export async function removeStorageFiles(bucket: string, paths: string[]) {
   if (!paths.length) return;
-  const { createClient } = await import("@supabase/supabase-js");
-  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
-  const { error } = await admin.storage.from(bucket).remove(paths);
+  const { error } = await (await adminClient()).storage.from(bucket).remove(paths);
   if (error) throw error;
+}
+
+/** Puts a sample login's password back (and removes any authenticator app), e.g. after a test changed it. */
+export async function resetSampleLogin(username: string) {
+  const [row] = await sql("select user_id from public.staff where username = $1", [username]);
+  const admin = await adminClient();
+  const { error } = await admin.auth.admin.updateUserById(row.user_id, { password: SAMPLE_PASSWORD });
+  if (error) throw error;
+  await sql("delete from auth.mfa_factors where user_id = $1", [row.user_id]);
 }

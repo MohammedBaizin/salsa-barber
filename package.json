@@ -20,6 +20,8 @@
     "env:local": "node scripts/env-local.mjs",
     "create-admin": "node scripts/create-admin.mts",
     "create-admin:prod": "node scripts/create-admin.mts --prod",
+    "reset-2fa": "node scripts/reset-2fa.mts",
+    "dev:code": "node scripts/dev-code.mts",
     "test:e2e": "node scripts/e2e.mjs",
     "photos:import": "node scripts/photos-import.mts",
     "photos:import:prod": "node scripts/photos-import.mts --prod"

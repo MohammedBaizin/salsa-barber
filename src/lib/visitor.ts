@@ -11,3 +11,9 @@ export function visitorHash(headers: Headers): string {
   const key = process.env.SUPABASE_SECRET_KEY ?? "local-dev-only";
   return createHmac("sha256", key).update(`visitor:${ip}`).digest("hex").slice(0, 32);
 }
+
+/** A keyed hash of a username for sign-in limits (case-insensitive; unknown usernames hash the same way). */
+export function userHash(username: string): string {
+  const key = process.env.SUPABASE_SECRET_KEY ?? "local-dev-only";
+  return createHmac("sha256", key).update(`user:${username.trim().toLowerCase()}`).digest("hex").slice(0, 32);
+}

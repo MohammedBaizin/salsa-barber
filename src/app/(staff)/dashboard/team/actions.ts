@@ -6,7 +6,7 @@ import { requireStaff, type Staff } from "@/lib/auth/staff";
 import { tempPassword } from "@/lib/auth/temp-password";
 import { parseHoursForm } from "@/lib/domain/hours";
 import {
-  canChangeRole, canDelete, canEditPerson, canResetPassword, canSwitchOff, creatableRoles, isManager, loginEmail, newPersonSchema,
+  canChangeRole, canDelete, canEditPerson, canReset2fa, canResetPassword, canSwitchOff, creatableRoles, isManager, loginEmail, newPersonSchema,
   profileSchema, switchOffWarning, TEAM_ERRORS, timeOffSchema, timeOffWarning, USERNAME_TAKEN, type Role,
 } from "@/lib/domain/team";
 import { addDays, fromLondon } from "@/lib/domain/time";
@@ -311,6 +311,25 @@ export async function resetPassword(prev: TeamFormState, formData: FormData): Pr
   await admin.rpc("end_user_sessions", { p_user: target.userId });
   await supabase.rpc("log_account_event", { p_action: "account.password_reset", p_staff: target.id });
   return state(prev, { done: { notice: `New password for ${target.name}.`, password } });
+}
+
+/** Removes someone else's authenticator app (admin only), ends their sessions; logged. They sign in with just their password. */
+export async function resetTwoStep(prev: TeamFormState, formData: FormData): Promise<TeamFormState> {
+  const staff = await requireStaff(["admin"]);
+  const supabase = await createSessionClient();
+  const target = await loadTarget(supabase, formData.get("id"));
+  if (!target || !canReset2fa(actorOf(staff), target) || !target.userId) return fail(prev, TEAM_ERRORS.not_allowed);
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.mfa.listFactors({ userId: target.userId });
+  if (error) return fail(prev, GENERIC_ERROR);
+  for (const f of data.factors) {
+    const r = await admin.auth.admin.mfa.deleteFactor({ id: f.id, userId: target.userId });
+    if (r.error) return fail(prev, GENERIC_ERROR);
+  }
+  await admin.rpc("end_user_sessions", { p_user: target.userId });
+  await supabase.rpc("log_account_event", { p_action: "account.2fa_reset", p_staff: target.id });
+  return changed(`Two-step sign-in reset for ${target.name}.`, prev, false);
 }
 
 export async function setActive(prev: TeamFormState, formData: FormData): Promise<TeamFormState> {

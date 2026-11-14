@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ImageUp, KeyRound, Power, Trash2, UserPlus } from "lucide-react";
 import {
-  addTimeOff, changeRole, createPerson, deleteAccount, removePhoto, removeTimeOff, resetPassword, saveHours, savePhoto, saveProfile,
+  addTimeOff, changeRole, createPerson, deleteAccount, removePhoto, removeTimeOff, resetPassword, resetTwoStep, saveHours, savePhoto, saveProfile,
   saveServices, setActive,
 } from "@/app/(staff)/dashboard/team/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -433,16 +433,19 @@ export function AccountSection({
   member,
   can,
   upcomingBookings,
+  twoStepOn,
 }: {
   member: { id: string; name: string; username: string; role: Role; active: boolean };
-  can: { resetPassword: boolean; switchOff: boolean; delete: boolean; changeRole: boolean };
+  can: { resetPassword: boolean; reset2fa: boolean; switchOff: boolean; delete: boolean; changeRole: boolean };
   upcomingBookings: number;
+  twoStepOn: boolean;
 }) {
   const role = useSave(changeRole);
   const reset = useSave(resetPassword);
+  const reset2fa = useSave(resetTwoStep);
   const active = useSave(setActive);
   const remove = useSave(deleteAccount);
-  const [confirm, setConfirm] = useState<"reset" | "delete" | null>(null);
+  const [confirm, setConfirm] = useState<"reset" | "reset2fa" | "delete" | null>(null);
   const [warnedAt, setWarnedAt] = useState(-1);
   const switchArmed = Boolean(active.state.warning) && warnedAt !== active.state.attempt;
   const send = (run: (d: FormData) => void, fields: Record<string, string>) => {
@@ -495,6 +498,31 @@ export function AccountSection({
               Reset password
             </Button>
           )}
+        </div>
+      ) : null}
+
+      {can.reset2fa ? (
+        <div className="space-y-3 border-t pt-4">
+          <h3 className="font-semibold">Two-step sign-in</h3>
+          <p data-testid="member-two-step">{twoStepOn ? "On: they enter a code from an authenticator app after their password." : "Off."}</p>
+          {twoStepOn ? (
+            confirm === "reset2fa" ? (
+              <ConfirmBar
+                question={`Reset two-step sign-in for ${member.name}? Their authenticator app stops working here and they're signed out everywhere. They can set it up again in Account.`}
+                confirmLabel="Reset two-step sign-in"
+                pending={reset2fa.pending}
+                onKeep={() => setConfirm(null)}
+                onConfirm={() => {
+                  setConfirm(null);
+                  send(reset2fa.send, {});
+                }}
+              />
+            ) : (
+              <Button type="button" variant="outline" onClick={() => setConfirm("reset2fa")}>
+                Reset two-step sign-in
+              </Button>
+            )
+          ) : null}
         </div>
       ) : null}
 
@@ -558,7 +586,7 @@ export function AccountSection({
         </div>
       ) : null}
 
-      <FormError>{role.state.error ?? reset.state.error ?? active.state.error ?? remove.state.error}</FormError>
+      <FormError>{role.state.error ?? reset.state.error ?? reset2fa.state.error ?? active.state.error ?? remove.state.error}</FormError>
     </Card>
   );
 }

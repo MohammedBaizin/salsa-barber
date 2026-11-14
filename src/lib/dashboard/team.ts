@@ -3,10 +3,11 @@ import type { Staff } from "@/lib/auth/staff";
 import type { WeeklyHours } from "@/lib/domain/hours";
 import { weeklyHoursSchema } from "@/lib/domain/hours-schema";
 import {
-  canChangeRole, canDelete, canEditPerson, canResetPassword, canSwitchOff, creatableRoles, type Role,
+  canChangeRole, canDelete, canEditPerson, canReset2fa, canResetPassword, canSwitchOff, creatableRoles, type Role,
 } from "@/lib/domain/team";
 import { dateKey } from "@/lib/domain/time";
 import { storageUrl } from "@/lib/site-content";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createSessionClient } from "@/lib/supabase/server";
 
 /** Team queries through the signed-in person's session (RLS: admin accounts are only visible to admins). */
@@ -69,7 +70,9 @@ export type MemberPage = {
   serviceIds: string[];
   timeOff: { id: string; startsOn: string; endsOn: string; reason: string | null }[];
   upcomingBookings: number;
-  can: { edit: boolean; resetPassword: boolean; switchOff: boolean; delete: boolean; changeRole: boolean };
+  can: { edit: boolean; resetPassword: boolean; reset2fa: boolean; switchOff: boolean; delete: boolean; changeRole: boolean };
+  /** Whether they use two-step sign-in (only looked up for admins, who can reset it). */
+  twoStepOn: boolean;
   isSelf: boolean;
 };
 
@@ -98,6 +101,16 @@ export async function loadMember(staff: Staff, id: string): Promise<MemberPage |
   const actor = { id: staff.id, role: staff.role };
   const target = { id: member.id, role: member.role };
   const count = upcoming.count ?? 0;
+  const reset2fa = canReset2fa(actor, target);
+  let twoStepOn = false;
+  if (reset2fa) {
+    const admin = createAdminClient();
+    const { data: login } = await admin.from("staff").select("user_id").eq("id", member.id).maybeSingle();
+    if (login?.user_id) {
+      const { data } = await admin.auth.admin.mfa.listFactors({ userId: login.user_id });
+      twoStepOn = Boolean(data?.factors.some((f) => f.status === "verified"));
+    }
+  }
   return {
     member,
     services: services.data ?? [],
@@ -107,10 +120,12 @@ export async function loadMember(staff: Staff, id: string): Promise<MemberPage |
     can: {
       edit: canEditPerson(actor, target),
       resetPassword: canResetPassword(actor, target),
+      reset2fa,
       switchOff: canSwitchOff(actor, target),
       delete: canDelete(actor, target, count),
       changeRole: canChangeRole(actor, target),
     },
+    twoStepOn,
     isSelf: staff.id === member.id,
   };
 }

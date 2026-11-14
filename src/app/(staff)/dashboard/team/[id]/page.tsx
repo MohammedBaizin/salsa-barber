@@ -93,7 +93,7 @@ async function Member({ params, searchParams }: PageProps<"/dashboard/team/[id]"
               . Nobody can switch off or delete their own account.
             </p>
           ) : (
-            <AccountSection member={member} can={can} upcomingBookings={data.upcomingBookings} />
+            <AccountSection member={member} can={can} upcomingBookings={data.upcomingBookings} twoStepOn={data.twoStepOn} />
           )
         ) : null}
       </div>

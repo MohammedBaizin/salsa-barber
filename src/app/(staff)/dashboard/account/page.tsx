@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { PasswordForm, ThemeChoice, TwoStepCard } from "@/components/dashboard/account-forms";
 import { PageSkeleton } from "@/components/dashboard/skeleton";
 import { requireStaff } from "@/lib/auth/staff";
 import { loadMember } from "@/lib/dashboard/team";
 import { groupWeeklyHours, hasAnyHours } from "@/lib/domain/hours";
 import { ROLE_LABELS } from "@/lib/domain/team";
 import { formatDay } from "@/lib/domain/time";
+import { createSessionClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Account" };
 
 async function Account() {
   const staff = await requireStaff();
-  const me = await loadMember(staff, staff.id);
+  const supabase = await createSessionClient();
+  const [me, { data: factors }] = await Promise.all([loadMember(staff, staff.id), supabase.auth.mfa.listFactors()]);
+  const twoStepOn = Boolean(factors?.totp.some((f) => f.status === "verified"));
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -67,12 +71,9 @@ async function Account() {
         </>
       ) : null}
 
-      <section className="space-y-2 rounded-2xl border bg-card p-4 sm:p-6">
-        <h2 className="text-h3 font-bold">Password and sign-in</h2>
-        <p className="text-muted-foreground" data-testid="coming-soon">
-          Changing your password, the dashboard theme and two-step sign-in are coming soon.
-        </p>
-      </section>
+      <PasswordForm username={staff.username} name={staff.displayName} />
+      <TwoStepCard key={twoStepOn ? "on" : "off"} on={twoStepOn} />
+      <ThemeChoice />
 
       <Link href="/dashboard/services" className="inline-flex min-h-11 items-center text-link underline underline-offset-4">
         Services and prices
@@ -81,7 +82,7 @@ async function Account() {
   );
 }
 
-/** Own hours and time off since phase 9; password, theme, two-step sign-in and alerts come later. */
+/** Password, two-step sign-in, theme, own hours and time off. Booking alerts on this phone come with push (phase 16). */
 export default function AccountPage() {
   return (
     <Suspense fallback={<PageSkeleton />}>

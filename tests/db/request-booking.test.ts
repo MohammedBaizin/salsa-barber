@@ -134,7 +134,10 @@ describe("request_booking: every error code", () => {
 
   it("barber_unavailable (not working that day / on time off), slot_taken", async () => {
     await expectCode({ service: hairCut, staff: STAFF.sam, start: at(wednesday, "11:00") }, "barber_unavailable");
-    await expectCode({ service: hairCut, staff: STAFF.sam, start: at(addDays(today, 8), "11:00") }, isoWeekday(addDays(today, 8)) === 7 ? "outside_hours" : "barber_unavailable");
+    // Sam's time off covers today + 8. If the shop itself is shut that weekday, that's reported first.
+    const day8 = addDays(today, 8);
+    const [{ open }] = await sql<{ open: boolean }>("select (shop_hours ->> $1) is not null as open from public.settings", [String(isoWeekday(day8))]);
+    await expectCode({ service: hairCut, staff: STAFF.sam, start: at(day8, "11:00") }, open ? "barber_unavailable" : "outside_hours");
     await request({ service: hairCut, staff: STAFF.sam, start: at(monday, "10:00"), phone: phone(5) });
     await expectCode({ service: hairCut, staff: STAFF.sam, start: at(monday, "10:15"), phone: phone(6) }, "slot_taken");
   });

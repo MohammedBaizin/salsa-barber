@@ -18,8 +18,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 11 | Settings + Activity | Done (committed on `phase-11-settings`) |
 | 12 | Website content | Done (committed on `phase-12-website`) |
 | 13 | Retention job, error/loading/empty states, performance | Done (committed on `phase-13-retention`) |
-| 14 | Customer manage link + owner email | **Done, awaiting review** |
-| 15 | Sign-in security + 2FA | Not started |
+| 14 | Customer manage link + owner email | Done (committed on `phase-14-manage`) |
+| 15 | Sign-in security + 2FA | **Done, awaiting review** |
 | 16 | Push alerts + PWA | Not started |
 | 17 | Backup / restore | Not started |
 | 18 | Launch prep (headers, robots, sitemap, smoke tests, guides) | Not started |
@@ -881,6 +881,64 @@ Branch `phase-14-manage` (stacked on `phase-13-retention`).
 
 ```
 feat(manage): add customer change, cancel, book another and copy link, and owner alert emails
+```
+
+---
+
+## Phase 15: Sign-in security + two-step sign-in
+
+Branch `phase-15-security` (stacked on `phase-14-manage`).
+
+**Scope**
+
+- Migration `sign_in_security`:
+  - `login_wait_seconds`, `record_login_failure`, `clear_login_failures` (service role only): visitor + username
+    5 failures / 15 min, visitor 20 / 15 min, username 50 / hour; keyed hashes only; rows last an hour.
+  - `log_account_event()` widened: your own password change and two-step on/off (yourself only), admin's two-step
+    reset (someone else only), password reset as before; anything else refused.
+- **Sign-in**: limits checked before the password ("Too many attempts. Try again in N minutes."), unknown usernames
+  limited the same way, a success clears the visitor's failures.
+- **`/login/2fa`**: the 6-digit code from the authenticator app; wrong codes share the limits; "Use a different
+  account". Until the code is entered the dashboard sends you back here and the database keeps every table locked
+  (`require_2fa`, since phase 1).
+- **Account**: change password (current password checked without touching this session; NCSC-style rules with a
+  live checklist, the server has the final say; logged), **two-step sign-in** (QR code + typed key, confirm with a
+  code; turning off needs a current code; logged), **dashboard theme** Light / Dark / System for this device.
+- **Team → Account** (admin): two-step status and **Reset two-step sign-in** (removes the app, signs them out
+  everywhere, logged).
+- Scripts: `npm run reset-2fa -- <username> [--prod]` (recovery; not in the activity log, so note when/why);
+  `npm run dev:code -- <username>` (local only: prints the current code for an account with two-step on).
+- Tests can call server actions **by id** from the build's manifest (fields first, arguments last, as React sends
+  them), skipping the UI.
+
+**Tests actually run**
+
+- `npm test`: **376 passed** (8 new: password rules, wait message, RFC 6238 code vectors).
+- `npm run test:db`: **151 passed** (6 new): each limit and its window, clearing, older failures ignored; only the
+  server can use them; account events for yourself only, two-step reset admin-only, unknown actions refused.
+  Also fixed a date-dependent expectation in an earlier booking test (it assumed the shop is shut on Sundays, which
+  stopped being true when the real hours went in; it failed only when "today + 8" was a Sunday).
+- `npm run test:e2e`: **286 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures.
+  New: lockout after 5 wrong passwords even with the right one, unknown usernames too, hashes only; change password
+  (checklist, wrong current password, new one works, old one doesn't, logged); two-step on (wrong code refused),
+  sign-in then needs a code (dashboard locked, bad and wrong codes refused, right code continues to the page asked
+  for), off with a code, both logged; admin reset (signed out, password-only sign-in); theme Light/Dark/System;
+  **direct calls**: the owner's call works (control), a barber's calls to settings, services (add, reorder), delete
+  client, reset password and reset two-step change nothing, signed-out calls change nothing; axe WCAG 2.1 AA light and
+  dark, 320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Spec difference: no seeded authenticator secrets for the sample logins (seeding one would force every test sign-in
+  through the code step). `dev:code` works for any account where two-step was turned on locally.
+- In production, check Supabase → Authentication → Multi-factor: TOTP enrol and verify must be on (they are in
+  `supabase/config.toml` for local).
+
+**Suggested commit**
+
+```
+feat(security): add sign-in limits, two-step sign-in, password change, theme choice and direct-call tests
 ```
 
 ---

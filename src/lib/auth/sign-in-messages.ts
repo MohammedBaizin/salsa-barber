@@ -11,3 +11,15 @@ export const LOGIN_NOTICES: Record<string, string> = {
   signed_out: "You've signed out.",
   switched_off: SIGN_IN_ERRORS.switchedOff,
 };
+
+/** "Too many attempts. Try again in 12 minutes." (rounded up, at least 1 minute) */
+export function tooManyAttempts(seconds: number): string {
+  const minutes = Math.max(1, Math.ceil(seconds / 60));
+  return `Too many attempts. Try again in ${minutes === 1 ? "1 minute" : `${minutes} minutes`}.`;
+}
+
+/** Two-step sign-in code messages. */
+export const CODE_ERRORS = {
+  format: "Enter the 6-digit code from your authenticator app.",
+  wrong: "That code didn't work. Codes change every 30 seconds: try the newest one, and check your phone's clock is right.",
+} as const;

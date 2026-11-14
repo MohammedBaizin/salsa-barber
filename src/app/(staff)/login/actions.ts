@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { safeNextPath } from "@/lib/auth/redirect";
-import { SIGN_IN_ERRORS } from "@/lib/auth/sign-in-messages";
+import { attemptKeys, attemptWait, clearFailures, recordFailure } from "@/lib/auth/limits";
+import { SIGN_IN_ERRORS, tooManyAttempts } from "@/lib/auth/sign-in-messages";
 import { loginEmail, usernameSchema } from "@/lib/domain/team";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -12,8 +13,9 @@ export type SignInState = { error: string | null; username: string };
 
 /**
  * Username + password sign-in. The username becomes <username>@<staff domain> for Supabase Auth.
- * Unknown usernames and wrong passwords get the same answer (no user enumeration).
- * Per-visitor/username attempt limits are added in the sign-in security phase.
+ * Unknown usernames and wrong passwords get the same answer (no user enumeration). Attempt limits are checked
+ * before the password (per visitor + username, per visitor, per username); unknown usernames count the same way.
+ * A success clears this visitor's failures.
  */
 export async function signIn(_prev: SignInState, formData: FormData): Promise<SignInState> {
   const rawUsername = String(formData.get("username") ?? "").slice(0, 100);
@@ -21,14 +23,25 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
   const next = safeNextPath(formData.get("next"));
 
   if (!rawUsername.trim() || !password) return { error: SIGN_IN_ERRORS.missing, username: rawUsername };
+
+  const keys = await attemptKeys(rawUsername);
+  const wait = await attemptWait(keys);
+  if (wait > 0) return { error: tooManyAttempts(wait), username: rawUsername };
+
   const username = usernameSchema.safeParse(rawUsername);
-  if (!username.success || password.length > 200) return { error: SIGN_IN_ERRORS.wrong, username: rawUsername };
+  if (!username.success || password.length > 200) {
+    await recordFailure(keys);
+    return { error: SIGN_IN_ERRORS.wrong, username: rawUsername };
+  }
 
   const supabase = await createSessionClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail(username.data), password });
   if (error || !data.user) {
-    return { error: error?.status === 429 ? SIGN_IN_ERRORS.busy : SIGN_IN_ERRORS.wrong, username: rawUsername };
+    if (error?.status === 429) return { error: SIGN_IN_ERRORS.busy, username: rawUsername };
+    await recordFailure(keys);
+    return { error: SIGN_IN_ERRORS.wrong, username: rawUsername };
   }
+  await clearFailures(keys);
 
   const { data: staff } = await createAdminClient()
     .from("staff")
