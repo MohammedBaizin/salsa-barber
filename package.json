@@ -25,6 +25,7 @@
     "dev:code": "node scripts/dev-code.mts",
     "vapid:keys": "node scripts/vapid-keys.mts",
     "test:e2e": "node scripts/e2e.mjs",
+    "test:smoke": "playwright test --config playwright.smoke.config.ts",
     "photos:import": "node scripts/photos-import.mts",
     "photos:import:prod": "node scripts/photos-import.mts --prod",
     "backup:prod": "node scripts/backup.mts --prod",

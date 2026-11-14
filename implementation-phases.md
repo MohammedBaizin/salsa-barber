@@ -21,8 +21,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 14 | Customer manage link + owner email | Done (committed on `phase-14-manage`) |
 | 15 | Sign-in security + 2FA | Done (committed on `phase-15-security`) |
 | 16 | Push alerts + PWA | Done (committed on `phase-16-push`) |
-| 17 | Backup / restore | **Done, awaiting review** |
-| 18 | Launch prep (headers, robots, sitemap, smoke tests, guides) | Not started |
+| 17 | Backup / restore | Done (committed on `phase-17-backup`) |
+| 18 | Launch prep (headers, robots, sitemap, smoke tests, guides) | **Done, awaiting review** |
 
 ---
 
@@ -1059,6 +1059,57 @@ Branch `phase-17-backup` (stacked on `phase-16-push`).
 
 ```
 feat(backup): add backup download, preview and restore with undo, Today reminder and local backup script
+```
+
+---
+
+## Phase 18: Launch prep
+
+Branch `phase-18-launch` (stacked on `phase-17-backup`). No migration.
+
+**Scope**
+
+- `robots.ts` (disallow `/dashboard`, `/login`, `/api`, `/booking`; sitemap link) and `sitemap.ts` (`/`, `/book`),
+  both from `NEXT_PUBLIC_SITE_URL`.
+- `vercel.json`: daily **Vercel Cron** on `/api/health` (08:00 UTC), which keeps a free Supabase project from pausing.
+- Security headers, `poweredByHeader: false`, `noindex` on staff and private pages, `.vercelignore` for `.env*` were
+  already in place (phases 0, 5); now checked by the smoke tests.
+- **Smoke tests** (`npm run test:smoke`, `playwright.smoke.config.ts`, `tests/smoke/`): read-only checks of a
+  deployed site: health, security headers on every response, homepage loads with every image showing, no
+  placeholder tags or sample data, honest `BarberShop` JSON-LD (no self-reported reviews), `/book` answers, dashboard →
+  sign-in, robots and sitemap, a made-up booking link is "not found" and not indexed, availability returns times only;
+  with `SMOKE_SUPABASE_URL`/`SMOKE_SUPABASE_KEY`: sign-up is off, the public can't read bookings, clients, the activity
+  log, alert keys or usernames.
+- **Guides** (no secrets): `docs/launch-guide.md` (step by step for a beginner: Supabase project in London, `db push`
+  without the seed, auth/MFA/cron/storage checks, Vercel env vars, first admin, photos, real details, smoke test,
+  switching booking on, phone alerts, owner emails, backups, custom domain, changing things later),
+  `docs/supabase-guide.md` (plain-language: tables, who can see what, keys, logins, storage, nightly jobs, migrations,
+  backups, what to check when something's wrong, don'ts), and a rewritten `README.md` (links, how the parts fit,
+  local setup, every script, deploying, backups, troubleshooting table, privacy and security).
+
+**Tests actually run**
+
+- `npm test`: **389 passed**.
+- `npm run test:db`: **158 passed**.
+- `npm run test:e2e`: **not run yet**: the build succeeded, but port 3418 was held by a leftover server. Run it
+  before merging. New in this suite: robots/sitemap content, `noindex` on sign-in and private booking pages, the daily health cron is configured.
+- `npm run test:smoke` against a local production build (`SMOKE_URL=http://localhost:3420`, local Supabase keys):
+  **20 passed** (phone + desktop); without the Supabase settings the 2 database checks skip themselves.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- A made-up private booking link shows "Page not found" with `noindex`, but the HTTP status is 200: the page streams
+  (its lookup happens inside a loading boundary), so the status line is sent before "not found" is known. That's how
+  Next handles streamed pages; search engines are kept out by `noindex` and robots.
+- Not done here (they need your accounts): creating the Supabase and Vercel projects, pushing migrations, setting
+  environment variables, the first admin, and running the smoke tests against the live address. The launch guide
+  walks through each.
+
+**Suggested commit**
+
+```
+feat(launch): add robots, sitemap, daily health cron, smoke tests and launch, Supabase and README guides
 ```
 
 ---
