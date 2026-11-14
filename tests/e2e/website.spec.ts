@@ -79,7 +79,8 @@ test.describe("website content", () => {
     const current = async () => (await sql("select shop_photo_path from public.settings"))[0].shop_photo_path as string;
     await expect.poll(current).not.toBe(first);
     const second = await current();
-    expect(await fileExists(first)).toBe(false);
+    // The old file is deleted just after the new path is saved, so wait for it too.
+    await expect.poll(() => fileExists(first)).toBe(false);
 
     await page.goto("/");
     await expect(page.getByRole("img", { name: /shopfront/ })).toBeVisible();

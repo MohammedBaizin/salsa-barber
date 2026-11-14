@@ -1091,8 +1091,9 @@ Branch `phase-18-launch` (stacked on `phase-17-backup`). No migration.
 
 - `npm test`: **389 passed**.
 - `npm run test:db`: **158 passed**.
-- `npm run test:e2e`: **not run yet**: the build succeeded, but port 3418 was held by a leftover server. Run it
-  before merging. New in this suite: robots/sitemap content, `noindex` on sign-in and private booking pages, the daily health cron is configured.
+- `npm run test:e2e`: **325 passed, 8 skipped, 1 failed**. The failure was a timing race in the shop-photo test (it
+  checked the old file was gone before the server had deleted it). Fixed the test to wait, then `website.spec.ts`
+  ×3: **36 passed**. New in this suite: robots/sitemap content, `noindex` on sign-in and private booking pages, the daily health cron is configured.
 - `npm run test:smoke` against a local production build (`SMOKE_URL=http://localhost:3420`, local Supabase keys):
   **20 passed** (phone + desktop); without the Supabase settings the 2 database checks skip themselves.
 - typecheck clean · lint clean · build success.
