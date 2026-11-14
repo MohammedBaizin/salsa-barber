@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { AlertsOffer } from "@/components/dashboard/push";
+import { backupReminder } from "@/lib/domain/backup";
 import { vapidKeys } from "@/lib/push/server";
+import { createSessionClient } from "@/lib/supabase/server";
 import { ChevronRight } from "lucide-react";
 import { BookingCard, NewBookingButtons } from "@/components/dashboard/booking-card";
 import { BookingsProvider } from "@/components/dashboard/bookings-provider";
@@ -48,6 +50,22 @@ function Stat({ label, value, detail }: { label: string; value: string; detail?:
   );
 }
 
+/** Admins only: a reminder when there's been no backup download for a week. */
+async function BackupReminder({ now }: { now: Date }) {
+  const supabase = await createSessionClient();
+  const { data } = await supabase.from("audit_log").select("at").eq("action", "backup.download").order("id", { ascending: false }).limit(1).maybeSingle();
+  const text = backupReminder(data ? new Date(data.at) : null, now);
+  if (!text) return null;
+  return (
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border-2 border-status-request-foreground bg-status-request p-4 text-status-request-foreground" data-testid="backup-reminder">
+      <span className="font-semibold">{text}</span>
+      <Link href="/dashboard/backup" className="font-semibold underline underline-offset-4 hover:no-underline">
+        Go to Backup
+      </Link>
+    </p>
+  );
+}
+
 async function Today() {
   const staff = await requireStaff();
   const data = await loadToday(staff);
@@ -73,6 +91,7 @@ async function Today() {
           <NewBookingButtons date={data.today} className="mt-4" />
         </div>
 
+        {staff.role === "admin" ? <BackupReminder now={now} /> : null}
         <AlertsOffer pushKey={vapidKeys()?.publicKey ?? null} />
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="today-stats">

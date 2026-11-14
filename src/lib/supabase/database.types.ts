@@ -345,6 +345,9 @@ isOneToOne: false
 "log_account_event":
 { Args: { "p_action": string,"p_staff": string }; Returns: undefined
                            },
+"log_backup_event":
+{ Args: { "p_action": string,"p_summary": string }; Returns: undefined
+                           },
 "login_wait_seconds":
 { Args: { "p_user": string,"p_visitor": string }; Returns: number
                            },
@@ -358,6 +361,9 @@ isOneToOne: false
 { Args: { "p_ip_hash"?: string,"p_name": string,"p_phone": string,"p_replaces"?: string,"p_service": string,"p_staff"?: string,"p_start": string }; Returns: {
               "booking_id": string,"is_new": boolean,"manage_token": string,"staff_id": string
             }[]
+                           },
+"restore_backup":
+{ Args: { "p_admin_user": string,"p_tables": Json }; Returns: Json
                            },
 "tables_missing_2fa_policy":
 { Args: Record<PropertyKey, never>; Returns: string[]

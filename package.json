@@ -26,7 +26,9 @@
     "vapid:keys": "node scripts/vapid-keys.mts",
     "test:e2e": "node scripts/e2e.mjs",
     "photos:import": "node scripts/photos-import.mts",
-    "photos:import:prod": "node scripts/photos-import.mts --prod"
+    "photos:import:prod": "node scripts/photos-import.mts --prod",
+    "backup:prod": "node scripts/backup.mts --prod",
+    "backup:local": "node scripts/backup.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

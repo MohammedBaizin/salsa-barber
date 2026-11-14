@@ -20,8 +20,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 13 | Retention job, error/loading/empty states, performance | Done (committed on `phase-13-retention`) |
 | 14 | Customer manage link + owner email | Done (committed on `phase-14-manage`) |
 | 15 | Sign-in security + 2FA | Done (committed on `phase-15-security`) |
-| 16 | Push alerts + PWA | **Done, awaiting review** |
-| 17 | Backup / restore | Not started |
+| 16 | Push alerts + PWA | Done (committed on `phase-16-push`) |
+| 17 | Backup / restore | **Done, awaiting review** |
 | 18 | Launch prep (headers, robots, sitemap, smoke tests, guides) | Not started |
 
 ---
@@ -1000,6 +1000,65 @@ Branch `phase-16-push` (stacked on `phase-15-security`). No migration (`push_sub
 
 ```
 feat(push): add booking alerts on staff phones (web push, no library) and the installable dashboard app
+```
+
+---
+
+## Phase 17: Backup and restore
+
+Branch `phase-17-backup` (stacked on `phase-16-push`).
+
+**Scope**
+
+- Migration `backup`:
+  - `restore_backup(tables, admin_user)` (service role only), one transaction: refuses a backup whose tables or
+    columns don't match (`backup_mismatch`), switches the tables' own triggers off while it empties and refills them in
+    dependency order (nothing re-audited, audit flags kept exactly), unlinks staff from logins that no longer exist
+    (before inserting), skips photos whose files are gone, keeps the restoring admin active (re-adding them if the
+    backup predates them), never lowers the activity log's sequence. Returns the counts.
+  - `log_backup_event(action, summary)`: download / restore / undo, admins only.
+- **Own zip writer and reader** (`src/lib/backup/zip.ts`, node:zlib + CRC-32, no dependency); opens in Windows'
+  Expand-Archive, and Windows-made zips read back.
+- **Typed table list** (`src/lib/backup/tables.ts`): every table must be listed as backed up or skipped, or the
+  build fails. Skipped: `request_attempts`, `login_failures`, `push_subscriptions`.
+- **Backup page** (`/dashboard/backup`, admin only):
+  - **Download**: `.zip` with `backup.json` (every backed-up table, logins without passwords or two-step secrets,
+    photo file names) + `README.txt`; logged; refused with a pointer to the local script if it ever passed 4 MB.
+  - **Restore**: choose the zip → preview (backup date, each table's count next to today's) → type `RESTORE`
+    (checked on the server) → the current data is saved first as an undo snapshot (private `restore-snapshots`
+    bucket, kept only once the restore works) → logins deleted since the backup are re-created (same id and username,
+    a new random password to reset in Team) → `restore_backup()`. Logged.
+  - **Undo last restore** (once).
+- **Today** (admins): a reminder after 7 days without a backup download.
+- `npm run backup:prod` (and `backup:local`): rows, logins and every photo file into a dated folder under
+  `BACKUP_DIR`, keeping the newest 8; read-only for the live site.
+
+**Tests actually run**
+
+- `npm test`: **389 passed** (7 new: CRC-32 check value, zip round trip (UTF-8 names, binary), damaged/non-zip/too
+  many entries refused, table list decisions, pack/unpack, readable refusals, the 7-day reminder).
+- `npm run test:db`: **158 passed** (5 new): restore puts every table back without new log entries, keeps audit
+  flags, never lowers the sequence; mismatched columns and missing tables refused with nothing changed; gone photos
+  skipped, missing logins unlinked, restoring admin kept active; server only; backup events admin only.
+  (The restore test starts from a real backup and restores it at the end; DB test files run one at a time.)
+- `npm run test:e2e`: **320 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures.
+  New: download (zip contents, no passwords, no push keys, logged, Today's reminder goes); restore (preview counts,
+  RESTORE required, data replaced, logged) then undo (data back, undo gone); RESTORE checked on the server (direct
+  call); non-backup files refused; owner gets "not found" for the page and the download; axe WCAG 2.1 AA, 320 px.
+- typecheck clean · lint clean · build success · `npm run backup:local` tried (10 bookings, 4 clients, 5 logins,
+  10 photos).
+
+**Notes**
+
+- The local database was reset once during this phase (to re-apply the edited, not-yet-pushed backup migration);
+  website photos are re-imported automatically by the next `npm run test:e2e`.
+- Restoring re-creates deleted logins with a random password: reset those people's passwords in Team afterwards
+  (the success message says how many).
+
+**Suggested commit**
+
+```
+feat(backup): add backup download, preview and restore with undo, Today reminder and local backup script
 ```
 
 ---
