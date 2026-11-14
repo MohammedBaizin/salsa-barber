@@ -5,57 +5,80 @@ import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { HeaderShell } from "./header-shell";
 import { MobileMenu } from "./mobile-menu";
-import type { NavLink } from "./nav";
+import { headerIconButton, type NavLink } from "./nav";
+import { SectionNav } from "./section-nav";
 
-/** Sticky frosted-glass header: badge + name, section links in a pill (desktop), theme toggle, Call, Book. */
+/**
+ * Floating header. At the top of the page it's a clear, full-width row; once you scroll it tightens into a
+ * narrower frosted-glass pill with a soft shadow. Desktop: badge + name, section links with a gliding highlight
+ * and scroll-spy, Call and Book. Phones: badge + name, theme toggle, Call icon and the menu button.
+ */
 export function SiteHeader({ links }: { links: NavLink[] }) {
   return (
-    <header className="glass sticky top-0 z-40 border-b border-border/60 pt-[env(safe-area-inset-top)]">
-      <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:px-6 md:h-18 lg:px-8">
-        <Link href="/" className="group mr-auto flex min-h-11 items-center gap-3 rounded-full" aria-label={`${site.name}, home`}>
-          <Image
-            src="/brand/badge-disc-160.webp"
-            alt=""
-            width={40}
-            height={40}
-            loading="eager"
-            className="size-10 transition-transform duration-500 group-hover:rotate-[-12deg]"
-          />
-          <span className="font-heading text-lg leading-none font-extrabold tracking-tight">
-            Salsa <span className="serif-accent text-[1.15em] font-normal">Barber</span>
+    <HeaderShell>
+      <div
+        className={cn(
+          "relative mx-auto flex h-16 max-w-7xl items-center gap-2 rounded-full border border-transparent pr-2 pl-2 sm:pl-3",
+          "transition-[max-width,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "group-data-[scrolled=true]/header:max-w-6xl group-data-[scrolled=true]/header:border-border/70",
+          "group-data-[scrolled=true]/header:bg-background/70 group-data-[scrolled=true]/header:shadow-[var(--shadow-soft)]",
+          "group-data-[scrolled=true]/header:backdrop-blur-xl group-data-[scrolled=true]/header:backdrop-saturate-150",
+        )}
+      >
+        <Link href="/" className="group mr-auto flex min-h-11 items-center gap-2.5 rounded-full pr-2">
+          <span className="relative">
+            <span aria-hidden className="absolute inset-0 rounded-full bg-primary/40 opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+            <Image
+              src="/brand/badge-disc-160.webp"
+              alt=""
+              width={44}
+              height={44}
+              loading="eager"
+              className="relative size-11 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-[-20deg]"
+            />
+          </span>
+          <span className="flex flex-col">
+            <span className="font-heading text-lg leading-none font-extrabold tracking-tight">
+              Salsa <span className="serif-accent text-[1.15em] font-normal">Barber</span>
+            </span>
+            <span className="mt-1 hidden text-[0.6875rem] leading-none font-semibold tracking-[0.18em] text-muted-foreground uppercase sm:block">
+              Barbers · {site.address.area}
+            </span>
+            <span className="sr-only">, home</span>
           </span>
         </Link>
 
         <nav aria-label="Sections" className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          <ul className="flex items-center gap-1 rounded-full border border-border/70 bg-card/60 p-1">
-            {links.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <SectionNav links={links} />
         </nav>
 
-        <ThemeToggle />
+        <ThemeToggle className={headerIconButton} />
+        <a href={`tel:${site.phone.e164}`} className={cn(headerIconButton, "hidden sm:inline-flex xl:hidden")}>
+          <Phone aria-hidden className="size-4" />
+          <span className="sr-only">Call {site.phone.display}</span>
+        </a>
         <a
           href={`tel:${site.phone.e164}`}
-          className="hidden min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold tabular-nums hover:bg-muted sm:inline-flex lg:hidden xl:inline-flex"
+          className="hidden min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold tabular-nums transition-colors hover:bg-muted xl:inline-flex"
         >
-          <Phone aria-hidden className="size-4" />
+          <span className="relative inline-flex size-7 items-center justify-center rounded-full bg-primary/15 text-link">
+            <Phone aria-hidden className="size-3.5" />
+          </span>
           {site.phone.display}
         </a>
-        <Link href="/book" className={cn(buttonVariants({ variant: "pop" }), "hidden lg:inline-flex")}>
+        <Link href="/book" className={cn(buttonVariants({ variant: "pop" }), "hidden pr-2 lg:inline-flex")}>
           Book
-          <ArrowUpRight aria-hidden className="size-4 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" />
+          <span
+            aria-hidden
+            className="inline-flex size-7 items-center justify-center rounded-full bg-primary-foreground text-primary transition-transform duration-300 group-hover/button:rotate-45"
+          >
+            <ArrowUpRight className="size-4" />
+          </span>
         </Link>
         <MobileMenu links={links} bookHref="/book" />
       </div>
-    </header>
+    </HeaderShell>
   );
 }

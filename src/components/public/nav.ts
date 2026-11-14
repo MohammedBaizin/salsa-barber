@@ -1,5 +1,9 @@
 import type { SiteContent } from "@/lib/site-content";
 
+/** Shared class for the round icon buttons in the header (theme, phone, menu). */
+export const headerIconButton =
+  "inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-card/40 text-foreground transition-colors hover:border-foreground/40 hover:bg-muted";
+
 export type NavLink = { href: string; label: string };
 
 /** Section links for the header and phone menu: only sections that have content. */
