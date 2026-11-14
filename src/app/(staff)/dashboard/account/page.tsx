@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PasswordForm, ThemeChoice, TwoStepCard } from "@/components/dashboard/account-forms";
+import { AlertsCard } from "@/components/dashboard/push";
 import { PageSkeleton } from "@/components/dashboard/skeleton";
 import { requireStaff } from "@/lib/auth/staff";
 import { loadMember } from "@/lib/dashboard/team";
 import { groupWeeklyHours, hasAnyHours } from "@/lib/domain/hours";
 import { ROLE_LABELS } from "@/lib/domain/team";
 import { formatDay } from "@/lib/domain/time";
+import { vapidKeys } from "@/lib/push/server";
 import { createSessionClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Account" };
@@ -73,6 +75,7 @@ async function Account() {
 
       <PasswordForm username={staff.username} name={staff.displayName} />
       <TwoStepCard key={twoStepOn ? "on" : "off"} on={twoStepOn} />
+      <AlertsCard pushKey={vapidKeys()?.publicKey ?? null} />
       <ThemeChoice />
 
       <Link href="/dashboard/services" className="inline-flex min-h-11 items-center text-link underline underline-offset-4">
@@ -82,7 +85,7 @@ async function Account() {
   );
 }
 
-/** Password, two-step sign-in, theme, own hours and time off. Booking alerts on this phone come with push (phase 16). */
+/** Password, two-step sign-in, booking alerts on this device, theme, own hours and time off. */
 export default function AccountPage() {
   return (
     <Suspense fallback={<PageSkeleton />}>

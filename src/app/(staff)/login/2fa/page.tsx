@@ -7,7 +7,10 @@ import { safeNextPath } from "@/lib/auth/redirect";
 import { site } from "@/lib/site";
 import { CodeForm } from "./code-form";
 
-export const metadata: Metadata = { title: "Two-step sign-in", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Two-step sign-in", robots: { index: false, follow: false },
+  manifest: "/dashboard.webmanifest",
+  appleWebApp: { capable: true, title: `${site.shortName} Dashboard`, statusBarStyle: "default" },
+};
 
 /** Only for a signed-in person whose account has two-step sign-in and who hasn't entered a code yet. */
 async function Step({ searchParams }: { searchParams: PageProps<"/login/2fa">["searchParams"] }) {

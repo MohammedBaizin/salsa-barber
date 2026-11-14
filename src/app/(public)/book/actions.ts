@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { after } from "next/server";
 import { bookingEnabled } from "@/lib/booking/config";
 import { bookingErrorMessage, bookingRequestSchema, fieldErrors, GENERIC_ERROR, isBookingErrorCode, type BookingErrorCode } from "@/lib/domain/validation";
-import { alertOwner } from "@/lib/email/owner-alert";
+import { bookingAlert } from "@/lib/alerts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { visitorHash } from "@/lib/visitor";
 
@@ -57,7 +57,7 @@ export async function requestBooking(prev: RequestState, formData: FormData): Pr
     return { error: bookingErrorMessage(error?.message), code, fields: {}, token: null, attempt };
   }
   const row = data[0];
-  // Owner email after the response (never for a repeated send of the same request).
-  if (row.is_new) after(() => alertOwner(r.replaces ? "change" : "request", row.manage_token));
+  // Owner email and staff push alerts after the response (never for a repeated send of the same request).
+  if (row.is_new) after(() => bookingAlert(r.replaces ? "change" : "request", row.manage_token));
   return { error: null, code: null, fields: {}, token: row.manage_token, attempt };
 }

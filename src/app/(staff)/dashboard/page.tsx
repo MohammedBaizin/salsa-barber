@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
+import { AlertsOffer } from "@/components/dashboard/push";
+import { vapidKeys } from "@/lib/push/server";
 import { ChevronRight } from "lucide-react";
 import { BookingCard, NewBookingButtons } from "@/components/dashboard/booking-card";
 import { BookingsProvider } from "@/components/dashboard/bookings-provider";
@@ -70,6 +72,8 @@ async function Today() {
           <p className="mt-1 text-muted-foreground">{formatDayLong(data.today)}</p>
           <NewBookingButtons date={data.today} className="mt-4" />
         </div>
+
+        <AlertsOffer pushKey={vapidKeys()?.publicKey ?? null} />
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="today-stats">
           <Stat label="Bookings today" value={String(stats.bookings)} />

@@ -19,8 +19,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 12 | Website content | Done (committed on `phase-12-website`) |
 | 13 | Retention job, error/loading/empty states, performance | Done (committed on `phase-13-retention`) |
 | 14 | Customer manage link + owner email | Done (committed on `phase-14-manage`) |
-| 15 | Sign-in security + 2FA | **Done, awaiting review** |
-| 16 | Push alerts + PWA | Not started |
+| 15 | Sign-in security + 2FA | Done (committed on `phase-15-security`) |
+| 16 | Push alerts + PWA | **Done, awaiting review** |
 | 17 | Backup / restore | Not started |
 | 18 | Launch prep (headers, robots, sitemap, smoke tests, guides) | Not started |
 
@@ -939,6 +939,67 @@ Branch `phase-15-security` (stacked on `phase-14-manage`).
 
 ```
 feat(security): add sign-in limits, two-step sign-in, password change, theme choice and direct-call tests
+```
+
+---
+
+## Phase 16: Push alerts + PWA
+
+Branch `phase-16-push` (stacked on `phase-15-security`). No migration (`push_subscriptions` exists since phase 1).
+
+**Scope**
+
+- **Web Push without a library** (`src/lib/push/web-push.ts`, Node crypto only): payload encryption (RFC 8291,
+  `aes128gcm`) and VAPID (RFC 8292, ES256). Off unless `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` are set;
+  `npm run vapid:keys` makes a pair.
+- **Who gets what** (`domain/push.ts`): admin and owner every online request/change/cancel, a barber only their own,
+  never switched-off or deleted accounts; walk-ins and staff bookings don't alert. "New booking request" /
+  "Jo · Skin Fade with Sam · Fri 20 Nov, 4:00pm" (a change adds "(was …)"); never the phone number; tap opens Today
+  (new/changed) or that day in the Calendar (cancelled). Gone devices (404/410) are deleted.
+- `bookingAlert()` (`src/lib/alerts.ts`) loads the booking once and sends the owner email (phase 14) and the pushes,
+  in `after()`; never throws.
+- Subscriptions: only from real browser push services (Google, Apple, Mozilla, Microsoft), at most 10 per login (the
+  oldest go), stored with the secret key against the login; this device's endpoint is kept in an http-only cookie
+  so **signing out removes it**.
+- **Installable dashboard**: `public/dashboard.webmanifest` (linked from staff pages only: dashboard, login, two-step),
+  Apple Home Screen meta; `public/sw.js` (scope `/dashboard`): push + notification click only, **no fetch handler,
+  no caching, no offline mode**, served `no-cache`; registration awaited directly (not `serviceWorker.ready`).
+- **Account → Booking alerts on this device**: turn on (permission asked from the tap), send a test, turn off;
+  "blocked" with How to fix steps (iPhone, Android, computer); iPhone Safari tab → Add to Home Screen first;
+  unsupported browsers say so; "not set up for this shop" without keys.
+- **Notifications bar** in the installed app (and iPhone Safari tabs) until alerts are on: Turn on, How to fix when
+  blocked, Not now (per session). **Today**: a one-time offer in browsers that can show alerts.
+- Android `interactive-widget=resizes-content` and the iPhone keyboard height (`visualViewport`) were already in place
+  (phase 6).
+- `npm run dev:phone`: dev server + a temporary HTTPS tunnel (Cloudflare quick tunnel via npx) to try alerts and the
+  installed app on a real phone.
+- Tests: Playwright makes throwaway VAPID keys per run and points the server at a local stand-in push service.
+
+**Tests actually run**
+
+- `npm test`: **382 passed** (6 new: recipients, text without phone numbers, allowed push services, a real
+  encrypt → decrypt round trip (and a different browser can't read it), VAPID signature/claims, sending + gone).
+- `npm run test:db`: **153 passed** (2 new): staff (even admin) can't read or write subscriptions, only the server;
+  removed with the login.
+- `npm run test:e2e`: **306 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures.
+  New: turn on → test alert arrives encrypted and VAPID-signed (decrypted by the test) → turn off; a customer's
+  request alerts owner, admin and that barber only (not another barber, not a switched-off account), text checked,
+  no phone number, the gone device removed; signing out removes this device; a non-push-service endpoint refused;
+  installed-app bar (Not now for the session), blocked → How to fix; Today's one-time offer; manifest/service worker
+  checks (staff-only manifest, no fetch handler, `no-cache`); axe WCAG 2.1 AA light and dark.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Push on real phones can't be tested automatically (needs a real push service); please try `npm run dev:phone`
+  once on an iPhone (Home Screen app, iOS 16.4+) and an Android phone.
+- Alerts are off until the keys are set in Vercel (`npm run vapid:keys`, then Production + Preview; private key
+  Sensitive). Changing the keys later means everyone turns alerts on again.
+
+**Suggested commit**
+
+```
+feat(push): add booking alerts on staff phones (web push, no library) and the installable dashboard app
 ```
 
 ---

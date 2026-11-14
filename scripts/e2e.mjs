@@ -2,7 +2,8 @@
 /**
  * npm run test:e2e [-- <playwright args>]
  * Imports website photos if the local gallery is empty, builds with online booking ON (the e2e suite tests the
- * booking flow; real environment variables override .env.local), then runs Playwright against that build.
+ * booking flow; real environment variables override .env.local), then runs Playwright against that build
+ * (playwright.config.ts sets up booking alerts with throwaway keys and a local stand-in push service).
  */
 import { spawnSync } from "node:child_process";
 

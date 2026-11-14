@@ -5,15 +5,20 @@ import { ExternalLink } from "lucide-react";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { ToastHost } from "@/components/dashboard/form-parts";
 import { HeaderBar, HeaderSkeleton } from "@/components/dashboard/header";
+import { NotificationsBar } from "@/components/dashboard/push";
 import { SideNav, TabBar } from "@/components/dashboard/nav";
 import { Skeleton } from "@/components/dashboard/skeleton";
 import { requireStaff } from "@/lib/auth/staff";
 import { navItems } from "@/lib/dashboard/nav";
+import { vapidKeys } from "@/lib/push/server";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: { default: "Dashboard", template: `%s · ${site.shortName} Dashboard` },
   robots: { index: false, follow: false },
+  // Installable staff app (staff pages only): Add to Home Screen opens the dashboard full screen.
+  manifest: "/dashboard.webmanifest",
+  appleWebApp: { capable: true, title: `${site.shortName} Dashboard`, statusBarStyle: "default" },
 };
 
 // Android: the keyboard resizes the page, so sheets and sticky buttons stay visible above it.
@@ -27,6 +32,12 @@ export const viewport: Viewport = {
 async function RoleSideNav() {
   const staff = await requireStaff();
   return <SideNav items={navItems(staff.role)} />;
+}
+
+/** The notifications bar needs the shop's public alert key (only once signed in). */
+async function AlertsBar() {
+  await requireStaff();
+  return <NotificationsBar pushKey={vapidKeys()?.publicKey ?? null} />;
 }
 
 async function RoleTabBar() {
@@ -86,6 +97,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </Suspense>
           </div>
         </header>
+        <Suspense fallback={null}>
+          <AlertsBar />
+        </Suspense>
         <main
           id="main"
           tabIndex={-1}

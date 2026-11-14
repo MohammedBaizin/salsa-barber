@@ -10,6 +10,8 @@ import { LoginForm } from "./login-form";
 export const metadata: Metadata = {
   title: "Staff sign in",
   robots: { index: false, follow: false },
+  manifest: "/dashboard.webmanifest",
+  appleWebApp: { capable: true, title: `${site.shortName} Dashboard`, statusBarStyle: "default" },
 };
 
 async function LoginFormWithParams({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {

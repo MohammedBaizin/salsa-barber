@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { after } from "next/server";
 import { bookingErrorMessage, GENERIC_ERROR } from "@/lib/domain/validation";
-import { alertOwner } from "@/lib/email/owner-alert";
+import { bookingAlert } from "@/lib/alerts";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type CancelState = { error: string | null; done: boolean; attempt: number };
@@ -24,7 +24,7 @@ export async function cancelBooking(prev: CancelState, formData: FormData): Prom
     refresh();
     return { error: bookingErrorMessage(error?.message), done: false, attempt };
   }
-  after(() => alertOwner("cancel", token));
+  after(() => bookingAlert("cancel", token));
   refresh();
   return { error: null, done: true, attempt };
 }
