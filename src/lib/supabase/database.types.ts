@@ -307,7 +307,12 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "client_list":
+            "cancel_managed_booking":
+{ Args: { "p_token": string }; Returns: {
+              "booking_id": string,"starts_at": string
+            }[]
+                           },
+"client_list":
 { Args: { "p_filter"?: string,"p_limit"?: number,"p_name"?: string,"p_offset"?: number,"p_phone"?: string,"p_staff"?: string }; Returns: {
               "created_at": string,"id": string,"last_visit": string,"n_all": number,"n_due_back": number,"n_new": number,"n_regular": number,"name": string,"next_visit": string,"no_shows": number,"phone": string,"spent_pence": number,"visits": number
             }[]

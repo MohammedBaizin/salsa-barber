@@ -17,8 +17,8 @@ Spec: `new-barbershop-project-prompt.md`. One phase at a time: build → test �
 | 10 | Services | Done (committed on `phase-10-services`) |
 | 11 | Settings + Activity | Done (committed on `phase-11-settings`) |
 | 12 | Website content | Done (committed on `phase-12-website`) |
-| 13 | Retention job, error/loading/empty states, performance | **Done, awaiting review** |
-| 14 | Customer manage link + owner email | Not started |
+| 13 | Retention job, error/loading/empty states, performance | Done (committed on `phase-13-retention`) |
+| 14 | Customer manage link + owner email | **Done, awaiting review** |
 | 15 | Sign-in security + 2FA | Not started |
 | 16 | Push alerts + PWA | Not started |
 | 17 | Backup / restore | Not started |
@@ -828,6 +828,59 @@ Branch `phase-13-retention` (stacked on `phase-12-website`).
 
 ```
 feat(retention): add nightly purge_old_data job, empty/error-state fixes and smaller homepage bundle
+```
+
+---
+
+## Phase 14: Customer manage link + owner email
+
+Branch `phase-14-manage` (stacked on `phase-13-retention`).
+
+**Scope**
+
+- Migration `manage`: `cancel_managed_booking(token)`, service role only, under the same shop-wide lock as
+  `request_booking()`. Only pending/confirmed bookings, only until the change/cancel cut-off; otherwise
+  `not_changeable`. Marks the booking cancelled by the customer (not logged as a staff action).
+- `/booking/[token]` (the customer's private page):
+  - **Change** → `/book?change=<token>` with service and barber filled in, starting at the time step; name and number
+    kept (nothing to retype); their current time counts as free; one transaction; the same link keeps working and the
+    change reaches the shop as a new request. Shown only before the cut-off and while online booking is on.
+  - **Cancel** asks first (focus on "Keep booking"), then cancels; the page shows the new status.
+  - After the cut-off: "It's less than 2 hours before your appointment… please message or call" (or "this time has
+    passed"); `/book?change=` refuses too.
+  - **WhatsApp the shop** prefilled with "I'd like to change my booking" + the booking (no phone number), Call,
+    Directions, **Book another** (`/book?for=<token>`: name and number filled in, "Who is this for?"; a different name
+    is stored on that booking only), **Copy link**.
+- **Owner alert emails** (Resend HTTP API, no SDK): new online request, customer change (with the old time),
+  customer cancel. Name, service, barber and time only, never the phone number; link to the dashboard. Sent in
+  `after()` so the customer never waits; never throws, so a failed email can't affect a booking; not sent again for a
+  repeated send of the same request. Off unless `RESEND_API_KEY` and `OWNER_ALERT_EMAIL` are set (still off here, as
+  agreed); `ALERT_FROM_EMAIL` optional (Resend's shared test sender otherwise, which only delivers to the Resend
+  account's own address).
+
+**Tests actually run**
+
+- `npm test`: **368 passed** (5 new: email text for request/change/cancel, never a phone number, off without settings,
+  failures don't throw, the exact request sent to Resend).
+- `npm run test:db`: **145 passed** (3 new): cancel pending and confirmed once (marked by customer, not in the staff
+  log), refused after the cut-off, for finished bookings and unknown tokens; anon and staff can't call it.
+- `npm run test:e2e`: **266 passed, 8 skipped** (phone-only/desktop-only layout checks), no failures (run in the morning, so the "today" tests ran too).
+  New: cancel (asks first, Keep works, status updates, buttons gone); change (filled in, nothing retyped, same link, old
+  booking cancelled with a fresh token, new pending request); too close to the appointment (message, no buttons,
+  change page refuses); book another ("Who is this for?", different name kept on that booking only); WhatsApp text
+  and Copy link; axe WCAG 2.1 AA light and dark, 320 px.
+- typecheck clean · lint clean · build success.
+
+**Notes**
+
+- Emails aren't sent by the automated tests (no real Resend calls); the sender is tested with a stand-in.
+- To switch emails on later: create a Resend account, verify the shop's domain (or use the test sender to your own
+  address), then set `RESEND_API_KEY`, `OWNER_ALERT_EMAIL` and `ALERT_FROM_EMAIL` in Vercel.
+
+**Suggested commit**
+
+```
+feat(manage): add customer change, cancel, book another and copy link, and owner alert emails
 ```
 
 ---

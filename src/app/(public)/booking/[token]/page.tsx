@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CheckCircle2, Clock, MapPin, MessageCircle, Phone, XCircle } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ManageActions } from "@/components/booking/manage-actions";
+import { bookingEnabled } from "@/lib/booking/config";
+import { customerChangeRequest, whatsappLink } from "@/lib/domain/messages";
 import { formatPence } from "@/lib/domain/money";
 import { formatUkMobile } from "@/lib/domain/phone";
 import { formatDateTime, formatMinutes } from "@/lib/domain/time";
-import { site } from "@/lib/site";
+import { noticeLabel } from "@/lib/domain/settings";
+import { site, siteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { cn } from "@/lib/utils";
 import { connection } from "next/server";
@@ -29,16 +32,30 @@ const STATUS: Record<string, { title: string; text: string; tone: "wait" | "ok" 
 };
 
 /**
- * The customer's private page, opened ONLY by its unguessable token (never by phone number).
- * Change / cancel / book another come in the manage-link phase.
+ * The customer's private page, opened ONLY by its unguessable token (never by phone number). Change, cancel
+ * (both stop at the shop's cut-off, enforced in the database), WhatsApp/Call, book another, copy link.
  */
 async function BookingDetails({ params }: { params: PageProps<"/booking/[token]">["params"] }) {
   await connection();
   const { token } = await params;
   if (!UUID.test(token)) notFound();
-  const { data } = await createAdminClient().rpc("get_managed_booking", { p_token: token });
+  const db = createAdminClient();
+  const [{ data }, { data: settings }] = await Promise.all([
+    db.rpc("get_managed_booking", { p_token: token }),
+    db.from("settings").select("change_cutoff_minutes").eq("id", 1).single(),
+  ]);
   const b = data?.[0];
   if (!b) notFound();
+  const online = bookingEnabled();
+  const active = b.status === "pending" || b.status === "confirmed";
+  const barberParam = b.any_barber ? "any" : b.staff_id;
+  const changeHref = b.can_change && online ? `/book?${new URLSearchParams({ service: b.service_id, barber: barberParam, step: "time", change: token })}` : null;
+  const shopText = active
+    ? customerChangeRequest(
+        { name: b.customer_name, serviceName: b.service_name, barberName: b.staff_name, startsAt: new Date(b.starts_at), pricePence: b.price_pence, manageToken: token },
+        { name: site.name, siteUrl: siteUrl() },
+      )
+    : `Hi ${site.name}, `;
 
   const status = STATUS[b.status] ?? STATUS.pending;
   const Icon = status.tone === "ok" ? CheckCircle2 : status.tone === "off" ? XCircle : Clock;
@@ -75,23 +92,18 @@ async function BookingDetails({ params }: { params: PageProps<"/booking/[token]"
         </Row>
       </dl>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        {site.whatsapp && (
-          <a href={`https://wa.me/${site.whatsapp.e164.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: "outline" }))}>
-            <MessageCircle aria-hidden />
-            WhatsApp the shop
-          </a>
-        )}
-        <a href={`tel:${site.phone.e164}`} className={cn(buttonVariants({ variant: "outline" }))}>
-          <Phone aria-hidden />
-          Call {site.phone.display}
-        </a>
-        <a href={site.maps.directionsUrl} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: "outline" }))}>
-          <MapPin aria-hidden />
-          Directions
-        </a>
-      </div>
-      <p className="mt-6 text-sm text-muted-foreground">Keep this page&apos;s link: it&apos;s the only way to see this booking online.</p>
+      <ManageActions
+        token={token}
+        canCancel={b.can_change}
+        active={active}
+        past={new Date(b.starts_at) <= new Date()}
+        cutoffText={noticeLabel(settings?.change_cutoff_minutes ?? 120)}
+        changeHref={changeHref}
+        anotherHref={online ? `/book?for=${token}` : null}
+        whatsappHref={site.whatsapp ? whatsappLink(site.whatsapp.e164, shopText) : null}
+        phone={{ display: site.phone.display, e164: site.phone.e164 }}
+        directionsUrl={site.maps.directionsUrl}
+      />
     </>
   );
 }

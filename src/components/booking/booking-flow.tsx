@@ -40,6 +40,10 @@ export type BookingFlowProps = {
   replaces?: string | null;
   initialName?: string;
   initialPhone?: string;
+  /** Label for the name field ("Who is this for?" when booking for someone else). */
+  nameLabel?: string;
+  /** Extra URL parameters kept on every step (e.g. ?for= so a reload still fills the details in). */
+  carry?: Record<string, string>;
 };
 
 const requestSafely = safely(requestBooking);
@@ -50,7 +54,7 @@ const INITIAL: RequestState = { error: null, code: null, fields: {}, token: null
  * The step, service and barber live in the URL (?service=&barber=&step=), so Back works and links can preselect.
  * Choosing an option moves on; focus moves to each step's heading. All times are London time.
  */
-export function BookingFlow({ services, barbers, shop, replaces = null, initialName = "", initialPhone = "" }: BookingFlowProps) {
+export function BookingFlow({ services, barbers, shop, replaces = null, initialName = "", initialPhone = "", nameLabel, carry }: BookingFlowProps) {
   const params = useSearchParams();
   const service = services.find((s) => s.id === params.get("service")) ?? null;
   const rawBarber = params.get("barber");
@@ -83,6 +87,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
     if (b) q.set("barber", b);
     q.set("step", next.step);
     if (replaces) q.set("change", replaces);
+    for (const [k, v] of Object.entries(carry ?? {})) q.set(k, v);
     const url = `${window.location.pathname}?${q.toString()}`;
     if (replace) window.history.replaceState(null, "", url);
     else {
@@ -393,7 +398,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">{replaces ? "Name" : "Your name"}</Label>
+              <Label htmlFor="name">{nameLabel ?? (replaces ? "Name" : "Your name")}</Label>
               <Input
                 id="name"
                 name="name"
