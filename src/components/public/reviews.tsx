@@ -32,7 +32,7 @@ export function Reviews({ reviews, googleRating, googleReviewCount, googleReview
           id="reviews-title"
           eyebrow="Word of mouth"
           title="What customers say"
-          accent="say"
+         
           action={
             googleRating != null ? (
               <div className="flex items-center gap-4">

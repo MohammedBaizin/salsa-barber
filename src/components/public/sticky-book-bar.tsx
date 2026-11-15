@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Phone } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { BookCallButtons } from "./book-call-buttons";
 
 /**
- * Phone-only Book bar. Hidden (inert, slid off-screen) while the hero's Book button is visible,
- * so only one Book button shows at a time.
+ * Phone-only Book bar: a dark floating pill with the same Book + Call buttons as the hero. Hidden (inert, slid
+ * off-screen) while the hero's Book button is visible, so only one Book button shows at a time.
  */
 export function StickyBookBar({ watchId = "hero-book" }: { watchId?: string }) {
   const [heroVisible, setHeroVisible] = useState(true);
@@ -34,19 +31,11 @@ export function StickyBookBar({ watchId = "hero-book" }: { watchId?: string }) {
       data-visible={!heroVisible}
       aria-hidden={heroVisible}
       className={cn(
-        "fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 rounded-full border border-border/70 p-1.5 shadow-[var(--shadow-soft)] glass transition-transform duration-300 motion-reduce:transition-none md:hidden",
+        "dark fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 rounded-full border border-white/10 bg-background/80 p-1.5 text-foreground shadow-[0_18px_50px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl backdrop-saturate-150 transition-transform duration-300 motion-reduce:transition-none md:hidden",
         heroVisible ? "translate-y-[calc(100%+2rem)]" : "translate-y-0",
       )}
     >
-      <div className="grid grid-cols-[1fr_auto] gap-1.5">
-        <Link href="/book" className={cn(buttonVariants({ variant: "pop" }))}>
-          Book a cut
-        </Link>
-        <a href={`tel:${site.phone.e164}`} className={cn(buttonVariants({ variant: "outline" }))}>
-          <Phone aria-hidden />
-          Call
-        </a>
-      </div>
+      <BookCallButtons compact />
     </div>
   );
 }

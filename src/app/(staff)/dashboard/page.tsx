@@ -104,7 +104,7 @@ async function Today() {
           <div aria-hidden className="dot-grid absolute inset-0 -z-20 opacity-40 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
           <p className="eyebrow">{formatDayLong(data.today)}</p>
           <h1 className="mt-3 text-title font-extrabold" data-testid="greeting">
-            {greeting(now)}, <span className="serif-accent text-[1.1em] text-primary">{firstName(staff.displayName)}</span>
+            {greeting(now)}, {firstName(staff.displayName)}
           </h1>
           <p className="mt-2 text-muted-foreground">
             {requests.length

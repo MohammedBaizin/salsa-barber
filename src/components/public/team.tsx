@@ -11,7 +11,7 @@ export function Team({ team }: Pick<SiteContent, "team">) {
   return (
     <section aria-labelledby="team-title" id="team" className="scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-        <SectionHeading id="team-title" eyebrow="The chairs" title="The team" accent="team" />
+        <SectionHeading id="team-title" eyebrow="The chairs" title="The team" />
         <ul className="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {team.map((m) => (
             <li key={m.id} className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card">

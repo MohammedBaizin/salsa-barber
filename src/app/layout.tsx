@@ -1,30 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Geist, Instrument_Serif } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { site, siteUrl } from "@/lib/site";
 import { getPublicTheme } from "@/lib/site-content";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
 /*
- * Display: Archivo, set slightly expanded (width axis) for big, confident headings.
- * Accent: Instrument Serif italic for one word per heading. Body and UI: Geist (clean, modern, tabular figures).
+ * One typeface for the whole site: Plus Jakarta Sans, a warm, modern geometric sans. Headings, body, UI and prices
+ * all use it, told apart only by size and weight.
  */
-const display = Archivo({
-  variable: "--font-display",
-  subsets: ["latin"],
-  axes: ["wdth"],
-  display: "swap",
-});
-
-const accent = Instrument_Serif({
-  variable: "--font-accent",
-  subsets: ["latin"],
-  weight: "400",
-  style: ["italic"],
-  display: "swap",
-});
-
-const body = Geist({
+const body = Plus_Jakarta_Sans({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
@@ -54,7 +39,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en-GB"
       data-scroll-behavior="smooth"
-      className={`${display.variable} ${accent.variable} ${body.variable} ${publicDefault === "dark" ? "dark" : ""}`}
+      className={`${body.variable} ${publicDefault === "dark" ? "dark" : ""}`}
       style={{ colorScheme: publicDefault }}
       suppressHydrationWarning
     >

@@ -92,7 +92,7 @@ export default async function BookPage({ searchParams }: PageProps<"/book">) {
       <div aria-hidden className="glow-spot pointer-events-none absolute -top-32 right-0 -z-10 size-[30rem] opacity-70" />
       <p className="eyebrow">Online booking</p>
       <h1 className="mt-4 mb-10 text-h1 font-extrabold md:mb-14">
-        Book a <span className="serif-accent text-[1.1em]">cut</span>
+        Book a cut
       </h1>
       {content ? (
         <BookingOff hours={content.shopHours} walkInText={content.walkInText} />

@@ -15,7 +15,7 @@ export function Visit({ content }: { content: SiteContent }) {
   return (
     <section aria-labelledby="visit-title" id="visit" className="scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-        <SectionHeading id="visit-title" eyebrow="Come by" title="Visit us" accent="us" />
+        <SectionHeading id="visit-title" eyebrow="Come by" title="Visit us" />
         <div className="reveal grid gap-4 md:grid-cols-2 lg:grid-cols-12 lg:gap-6">
           <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 lg:col-span-4">
             <h3 className="flex items-center gap-2 text-h3 font-bold">

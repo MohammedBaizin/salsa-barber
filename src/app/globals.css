@@ -131,8 +131,7 @@
 
 @theme inline {
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-accent), ui-serif, Georgia, serif;
+  --font-heading: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -288,7 +287,6 @@
   h3,
   .font-heading {
     font-family: var(--font-heading);
-    font-stretch: 112%;
     text-wrap: balance;
   }
   ::selection {
@@ -319,7 +317,7 @@
 }
 
 @layer components {
-  /* Prices: the body font (Geist) with tabular figures so columns line up. */
+  /* Prices: tabular figures so columns line up. */
   .price {
     font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     font-variant-numeric: tabular-nums lining-nums;
@@ -327,21 +325,8 @@
     letter-spacing: -0.02em;
   }
 
-  /* Italic serif accent word, the brand's signature in headings ("Salsa *Barber*"). */
-  .serif-accent {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 400;
-    font-stretch: normal;
-    letter-spacing: -0.02em;
-  }
-
-  /* Kept for the design page: an accent word with a thin yellow underline. */
+  /* Kept for the design page: a word with a thin yellow underline (same font as the text around it). */
   .marker {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 400;
-    font-stretch: normal;
     background-image: linear-gradient(var(--highlight), var(--highlight));
     background-size: 100% 0.08em;
     background-position: 0 92%;

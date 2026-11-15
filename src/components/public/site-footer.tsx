@@ -21,7 +21,7 @@ export function SiteFooter({ content }: { content: SiteContent }) {
         <div className="mx-auto max-w-7xl px-5 pt-16 pb-[max(2rem,calc(env(safe-area-inset-bottom)+6rem))] sm:px-8 md:pb-8 lg:px-10 lg:pt-24">
           <div className="flex flex-col gap-8 border-b border-border pb-14 lg:flex-row lg:items-end lg:justify-between">
             <p className="font-heading text-h1 font-extrabold">
-              Ready for a <span className="serif-accent text-[1.1em] text-primary">fresh cut?</span>
+              Ready for a fresh cut?
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/book" className={cn(buttonVariants({ variant: "pop", size: "lg" }))}>

@@ -58,7 +58,7 @@ export default async function HomePage() {
                 id="cuts-title"
                 eyebrow="Portfolio"
                 title="Recent cuts"
-                accent="cuts"
+               
                 action={
                   <Link href="/book" className="group inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
                     Want one like these? Book
@@ -74,8 +74,13 @@ export default async function HomePage() {
         {content.slideshow.length > 0 && (
           <section aria-labelledby="inside-title" id="inside" className="scroll-mt-20 px-2 sm:px-3">
             <div className="mx-auto max-w-7xl rounded-[1.75rem] bg-card px-4 py-16 sm:rounded-[2.25rem] sm:px-6 lg:px-10 lg:py-24">
-              <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" accent="shop" className="items-center text-center md:flex-col md:items-center" />
-              <Slideshow photos={content.slideshow} />
+              <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" className="items-center text-center md:flex-col md:items-center" />
+              <Slideshow
+                photos={content.slideshow}
+                googleRating={content.googleRating}
+                googleReviewCount={content.googleReviewCount}
+                googleReviewUrl={content.googleReviewUrl}
+              />
             </div>
           </section>
         )}
