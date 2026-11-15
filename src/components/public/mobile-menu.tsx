@@ -100,7 +100,7 @@ export function MobileMenu({ links, bookHref }: { links: NavLink[]; bookHref: st
               <MapPin aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
               {site.address.street}, {site.address.area} {site.address.postcode}
             </p>
-            <SocialLinks />
+            <SocialLinks variant="icons" />
           </div>
         </nav>
 

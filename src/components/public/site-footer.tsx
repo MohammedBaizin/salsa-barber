@@ -59,7 +59,7 @@ export function SiteFooter({ content }: { content: SiteContent }) {
             <div>
               <h2 className="eyebrow">Payments</h2>
               <p className="mt-5">{site.paymentText}</p>
-              <h2 className="eyebrow mt-8">Follow</h2>
+              <h2 className="eyebrow mt-8">Follow us</h2>
               <SocialLinks className="mt-3" />
             </div>
           </div>

@@ -44,9 +44,9 @@ export const site = {
 
   maps: {
     /** Keyless embed, only loaded after the visitor taps "Show map". */
-    embedUrl:
-      "https://www.google.com/maps?q=Salsa+Barber,+41+Liverpool+Road+South,+Maghull,+L31+7BN&output=embed",
-    directionsUrl: "https://maps.app.goo.gl/529KvjdrRqt25VS29",
+    embedUrl: "https://www.google.com/maps?q=Salsa+Barber,+41+Liverpool+Rd+S,+Liverpool+L31+7BN&output=embed",
+    /** The shop's own Google Maps listing (place id in `ftid`), tracking parameters removed. */
+    directionsUrl: "https://www.google.com/maps?q=Salsa+Barber,+41+Liverpool+Rd+S,+Liverpool+L31+7BN&ftid=0x487b235f46352c8d:0x55d00b6787b5e2f0",
     appleMapsUrl:
       "https://maps.apple.com/?q=Salsa+Barber&address=41+Liverpool+Road+South,+Maghull,+L31+7BN,+United+Kingdom",
   },

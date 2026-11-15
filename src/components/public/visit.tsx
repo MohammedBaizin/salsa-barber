@@ -63,7 +63,8 @@ export function Visit({ content }: { content: SiteContent }) {
                 <span className="text-muted-foreground">Pay by </span>
                 <span className="font-semibold">{site.paymentText}</span>
               </p>
-              <SocialLinks className="mt-2" />
+              <h3 className="eyebrow mt-6">Follow us</h3>
+              <SocialLinks className="mt-3" />
             </div>
           </div>
 

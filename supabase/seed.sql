@@ -2,7 +2,7 @@
 -- (`supabase db push` applies migrations only).
 --
 -- Local sample logins (password for all: LocalDev-Sample-1):
---   admin  (admin)   owner  (owner, shown as Hewr)   sam  (barber, shown as Sardar)   jamie (barber)   off  (barber, switched off)
+--   admin  (admin)   owner  (owner, shown as Hewr)   sam  (barber, shown as Sardar)   jamie (barber, bookable but not on the website's team section)   off  (barber, switched off)
 -- Everything below is labelled SAMPLE, except the real names of the owner (Hewr) and barber Sardar. Phone numbers use Ofcom's drama range (07700 900000–900999).
 
 -- ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ values
   ('10000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000004', 'jamie', 'SAMPLE Jamie', 'barber',
     true, 'Junior barber', null,
     '{"3":{"open":"09:00","close":"17:00"},"4":{"open":"09:00","close":"17:00"},"5":{"open":"09:00","close":"17:00"},"6":{"open":"09:00","close":"17:00"}}',
-    true, true, 30),
+    false, true, 30),
   ('10000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000005', 'off', 'SAMPLE Switched-off', 'barber',
     false, 'Barber', null, '{}', false, false, 40);
 
