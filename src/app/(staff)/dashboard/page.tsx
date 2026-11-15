@@ -43,24 +43,25 @@ function Empty({ children }: { children: ReactNode }) {
   return <p className="rounded-2xl border border-dashed bg-card/50 px-5 py-6 text-center text-muted-foreground">{children}</p>;
 }
 
-const statCard = "rounded-3xl border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5";
+const statCard = "relative rounded-2xl border bg-card p-3.5 shadow-[var(--shadow-soft)] sm:p-4";
 
 function StatIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <span aria-hidden className="mb-3 inline-flex size-9 items-center justify-center rounded-xl bg-primary/15 text-link">
-      <Icon className="size-[1.125rem]" />
+    <span aria-hidden className="absolute top-3 right-3 inline-flex size-7 items-center justify-center rounded-lg bg-primary/15 text-link sm:top-3.5 sm:right-3.5">
+      <Icon className="size-3.5" />
     </span>
   );
 }
 
+/** Compact stat: label and a small icon on top, the number below, an optional note under it. */
 function Stat({ label, value, detail, icon }: { label: string; value: string; detail?: string; icon: LucideIcon }) {
   return (
     <div className={statCard}>
       <StatIcon icon={icon} />
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5">
-        <span className="price block text-[1.75rem] leading-tight">{value}</span>
-        {detail ? <span className="block text-sm text-muted-foreground">{detail}</span> : null}
+      <dt className="pt-1 pr-9 text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="mt-1.5">
+        <span className="price block text-2xl leading-none">{value}</span>
+        {detail ? <span className="mt-1 block text-xs text-muted-foreground">{detail}</span> : null}
       </dd>
     </div>
   );
@@ -99,25 +100,38 @@ async function Today() {
   return (
     <BookingsProvider setup={data.setup} today={data.today}>
       <div className="space-y-8">
-        <div className="dark relative isolate overflow-hidden rounded-3xl border border-border bg-background p-6 text-foreground sm:p-8">
-          <div aria-hidden className="glow-spot absolute -top-32 -right-24 -z-10 size-96" />
-          <div aria-hidden className="dot-grid absolute inset-0 -z-20 opacity-40 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
-          <p className="eyebrow">{formatDayLong(data.today)}</p>
-          <h1 className="mt-3 text-title font-extrabold" data-testid="greeting">
-            {greeting(now)}, {firstName(staff.displayName)}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {requests.length
-              ? `${requests.length} ${requests.length === 1 ? "request is" : "requests are"} waiting for an answer.`
-              : "No requests waiting. Add a walk-in or a phone booking below."}
-          </p>
-          <NewBookingButtons date={data.today} className="mt-5" />
+        <div className="dark relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-background p-5 text-foreground shadow-[0_24px_60px_-30px_rgba(0,0,0,0.6)] sm:p-6">
+          <div aria-hidden className="glow-spot absolute -top-32 -right-20 -z-10 size-80 opacity-90" />
+          <div aria-hidden className="dot-grid absolute inset-0 -z-20 opacity-30 [mask-image:linear-gradient(to_left,black,transparent_60%)]" />
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <p className="text-[0.6875rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">{formatDayLong(data.today)}</p>
+            {requests.length ? (
+              <Link
+                href="#requests"
+                className="inline-flex h-7 items-center gap-2 rounded-full border border-status-request-foreground/30 bg-status-request px-3 text-xs font-semibold text-status-request-foreground transition-colors hover:border-status-request-foreground/60"
+              >
+                <span aria-hidden className="live-dot inline-block size-1.5 rounded-full bg-status-request-foreground text-status-request-foreground" />
+                {requests.length} {requests.length === 1 ? "request" : "requests"} waiting
+              </Link>
+            ) : (
+              <p className="inline-flex h-7 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-muted-foreground">
+                <span aria-hidden className="inline-block size-1.5 rounded-full bg-status-done-foreground" />
+                All caught up
+              </p>
+            )}
+          </div>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <h1 className="text-[1.75rem] leading-[1.1] font-extrabold tracking-[-0.03em] text-balance sm:text-[2rem]" data-testid="greeting">
+              {greeting(now)}, {firstName(staff.displayName)}
+            </h1>
+            <NewBookingButtons date={data.today} className="shrink-0 gap-2" />
+          </div>
         </div>
 
         {staff.role === "admin" ? <BackupReminder now={now} /> : null}
         <AlertsOffer pushKey={vapidKeys()?.publicKey ?? null} />
 
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="today-stats">
+        <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3" data-testid="today-stats">
           <Stat icon={CalendarClock} label="Bookings today" value={String(stats.bookings)} />
           <Stat
             icon={PoundSterling}
@@ -126,21 +140,19 @@ async function Today() {
             detail={`of ${formatPence(stats.expectedPence)} expected`}
           />
           <Stat icon={Hourglass} label="Still to come" value={String(stats.upcoming)} />
-          <div className="rounded-3xl border bg-card shadow-[var(--shadow-soft)] transition-colors hover:border-primary/60">
+          <div className="rounded-2xl border bg-card shadow-[var(--shadow-soft)] transition-colors hover:border-primary/60">
             <dt className="sr-only">Due back</dt>
-            <dd>
-              <Link
-                href="/dashboard/clients?filter=due_back"
-                className="flex h-full min-h-full items-end justify-between gap-2 rounded-3xl p-4 sm:p-5"
-                data-testid="due-back"
-              >
-                <span>
-                  <StatIcon icon={UserRoundCheck} />
-                  <span className="block text-sm text-muted-foreground">Due back</span>
-                  <span className="price mt-0.5 block text-[1.75rem] leading-tight">{data.dueBack}</span>
-                  <span className="block text-sm text-muted-foreground">{data.dueBack === 1 ? "client" : "clients"} to invite</span>
+            <dd className="h-full">
+              <Link href="/dashboard/clients?filter=due_back" className="relative block h-full rounded-2xl p-3.5 sm:p-4" data-testid="due-back">
+                <StatIcon icon={UserRoundCheck} />
+                <span className="block pt-1 pr-9 text-xs font-medium text-muted-foreground">Due back</span>
+                <span className="mt-1.5 flex items-end justify-between gap-2">
+                  <span>
+                    <span className="price block text-2xl leading-none">{data.dueBack}</span>
+                    <span className="mt-1 block text-xs text-muted-foreground">{data.dueBack === 1 ? "client" : "clients"} to invite</span>
+                  </span>
+                  <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
                 </span>
-                <ChevronRight aria-hidden className="mb-1 size-5 shrink-0 text-muted-foreground" />
               </Link>
             </dd>
           </div>

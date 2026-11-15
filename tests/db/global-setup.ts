@@ -1,11 +1,13 @@
 import { execSync } from "node:child_process";
 import type { TestProject } from "vitest/node";
+import { addTestPeople, removeTestPeople } from "../fixtures/test-people";
 
 /**
  * Reads the local Supabase URL/keys from `supabase status` and refuses to run against anything
  * that isn't on this machine. DB tests write and delete data: never point them at production.
+ * Adds the test-only people (tests/fixtures/test-people.ts) for the run and removes them afterwards.
  */
-export default function setup(project: TestProject) {
+export default async function setup(project: TestProject) {
   let status: string;
   try {
     status = execSync("npx supabase status -o env", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
@@ -29,6 +31,8 @@ export default function setup(project: TestProject) {
     if (!value) throw new Error(`Missing ${key} from supabase status`);
     project.provide(key as keyof typeof env, value);
   }
+  await addTestPeople(env.DB_TEST_DB_URL);
+  return () => removeTestPeople(env.DB_TEST_DB_URL);
 }
 
 declare module "vitest" {

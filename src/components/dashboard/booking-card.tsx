@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Check, Phone, UserPlus } from "lucide-react";
 import { changeStatus } from "@/app/(staff)/dashboard/booking-actions";
 import { Button } from "@/components/ui/button";
@@ -133,19 +133,34 @@ export function BookingCard({
   );
 }
 
-/** Walk-in and Booking buttons (start on `date`). Hidden for accounts that don't take bookings. */
+/**
+ * Walk-in and Booking buttons (start on `date`). Hidden for accounts that don't take bookings.
+ * `?new=walk_in` / `?new=phone` in the address (the app icon's long-press shortcuts) opens that form straight away.
+ */
 export function NewBookingButtons({ date, className }: { date: string; className?: string }) {
   const { show, setup } = useBookings();
   const canBook = setup.actor.role !== "barber" ? setup.barbers.length > 0 : setup.barbers.some((b) => b.id === setup.actor.staffId);
-  if (!canBook) return null;
   const open = (mode: NewKind) => show({ kind: "new", mode, date });
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const mode = url.searchParams.get("new");
+    if (mode !== "walk_in" && mode !== "phone") return;
+    url.searchParams.delete("new");
+    window.history.replaceState(window.history.state, "", url);
+    if (canBook) show({ kind: "new", mode, date });
+    // Runs once, when the page opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!canBook) return null;
   return (
     <div className={cn("flex flex-wrap gap-3", className)}>
-      <Button variant="pop" onClick={() => open("walk_in")}>
+      <Button variant="pop" className="h-10 gap-1.5 px-4 text-sm [&_svg:not([class*='size-'])]:size-4" onClick={() => open("walk_in")}>
         <UserPlus aria-hidden />
         Walk-in
       </Button>
-      <Button variant="outline" onClick={() => open("phone")}>
+      <Button variant="outline" className="h-10 gap-1.5 px-4 text-sm [&_svg:not([class*='size-'])]:size-4" onClick={() => open("phone")}>
         <Phone aria-hidden />
         Booking
       </Button>

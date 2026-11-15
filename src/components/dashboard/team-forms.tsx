@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Copy, ImageUp, KeyRound, Power, Trash2, UserPlus } from "lucide-react";
+import { Camera, Check, Copy, KeyRound, Power, ShieldCheck, Trash2, UserCog, UserPlus, X } from "lucide-react";
 import {
   addTimeOff, changeRole, createPerson, deleteAccount, removePhoto, removeTimeOff, resetPassword, resetTwoStep, saveHours, savePhoto, saveProfile,
   saveServices, setActive,
@@ -11,7 +11,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { WeeklyHours } from "@/lib/domain/hours";
-import { ROLE_LABELS, USERNAME_RULE, type Role } from "@/lib/domain/team";
+import { initials, ROLE_LABELS, USERNAME_RULE, type Role } from "@/lib/domain/team";
 import { addDays, dateKey, formatDay } from "@/lib/domain/time";
 import { PHOTO_ACCEPT } from "@/lib/images/shrink";
 import { cn } from "@/lib/utils";
@@ -19,14 +19,30 @@ import { Card, ConfirmBar, Field, Form, FormError, SaveButton, useSave, WeeklyHo
 import { formWithPhoto, usePhotoPick } from "./photo-pick";
 import { Sheet, SheetActions } from "./sheet";
 
+/**
+ * On/off setting as a row: title and hint on the left, a switch on the right. It's a real checkbox (styled as a
+ * switch), so forms, labels and keyboard work as usual.
+ */
 function Toggle({ name, label, hint, defaultChecked, disabled }: { name: string; label: string; hint?: string; defaultChecked: boolean; disabled?: boolean }) {
   return (
-    <label className={cn("flex min-h-11 items-start gap-3", disabled && "opacity-60")}>
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} disabled={disabled} className="mt-1 size-5 shrink-0 accent-foreground" />
-      <span>
-        <span className="font-medium">{label}</span>
+    <label
+      className={cn(
+        "flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-background/50 px-4 py-3 transition-colors has-[:checked]:border-primary/50 has-[:checked]:bg-primary/[0.06]",
+        disabled && "cursor-not-allowed opacity-60",
+      )}
+    >
+      <span className="min-w-0">
+        <span className="block font-semibold">{label}</span>
         {hint ? <span className="block text-sm text-muted-foreground">{hint}</span> : null}
       </span>
+      <input
+        type="checkbox"
+        role="switch"
+        name={name}
+        defaultChecked={defaultChecked}
+        disabled={disabled}
+        className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-muted-foreground/30 transition-colors outline-none before:absolute before:top-1 before:left-1 before:size-5 before:rounded-full before:bg-white before:shadow before:transition-transform checked:bg-primary checked:before:translate-x-5 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed motion-reduce:before:transition-none"
+      />
     </label>
   );
 }
@@ -164,40 +180,45 @@ export function ProfileForm({
   const { state, submit, pending } = useSave(saveProfile);
   const isAdmin = member.role === "admin";
   return (
-    <Card title="Profile">
-      <Form onSubmit={submit} className="space-y-4">
+    <Card title="Profile" description="How they appear in the dashboard and on the website.">
+      <Form onSubmit={submit} className="space-y-5">
         <input type="hidden" name="id" value={member.id} />
-        <fieldset disabled={readOnly} className="space-y-4">
-          <Field label="Name" htmlFor="p-name" error={state.fields.displayName}>
-            <Input id="p-name" name="displayName" defaultValue={member.name} maxLength={60} />
-          </Field>
-          <Field label="Title" htmlFor="p-title" hint="e.g. Barber, Senior barber" error={state.fields.title}>
-            <Input id="p-title" name="title" defaultValue={member.title ?? ""} maxLength={60} />
-          </Field>
-          <Field label="Bio (website)" htmlFor="p-bio" error={state.fields.bio}>
+        <fieldset disabled={readOnly} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Name" htmlFor="p-name" error={state.fields.displayName}>
+              <Input id="p-name" name="displayName" defaultValue={member.name} maxLength={60} />
+            </Field>
+            <Field label="Title" htmlFor="p-title" hint="e.g. Barber, Senior barber" error={state.fields.title}>
+              <Input id="p-title" name="title" defaultValue={member.title ?? ""} maxLength={60} />
+            </Field>
+          </div>
+          <Field label="Bio (website)" htmlFor="p-bio" hint="A line or two customers see on the website." error={state.fields.bio}>
             <textarea
               id="p-bio"
               name="bio"
               defaultValue={member.bio ?? ""}
               maxLength={600}
-              rows={4}
-              className="w-full rounded-lg border border-input bg-card px-3.5 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
+              rows={3}
+              className="w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
             />
           </Field>
-          <Toggle
-            name="bookable"
-            label="Takes bookings"
-            hint={isAdmin ? "The admin account never takes bookings." : "Customers can book them online; staff can book them in."}
-            defaultChecked={member.bookable}
-            disabled={isAdmin}
-          />
-          <Toggle
-            name="showOnSite"
-            label="Show on the website"
-            hint={isAdmin ? "The admin account is never shown." : "Name, title, bio and photo in the team section."}
-            defaultChecked={member.showOnSite}
-            disabled={isAdmin}
-          />
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Visibility</p>
+            <Toggle
+              name="bookable"
+              label="Takes bookings"
+              hint={isAdmin ? "The admin account never takes bookings." : "Customers can book them online; staff can book them in."}
+              defaultChecked={member.bookable}
+              disabled={isAdmin}
+            />
+            <Toggle
+              name="showOnSite"
+              label="Show on the website"
+              hint={isAdmin ? "The admin account is never shown." : "Name, title, bio and photo in the team section."}
+              defaultChecked={member.showOnSite}
+              disabled={isAdmin}
+            />
+          </div>
         </fieldset>
         <FormError>{state.error}</FormError>
         {readOnly ? null : <SaveButton pending={pending} />}
@@ -207,69 +228,139 @@ export function ProfileForm({
 }
 
 // ---------------------------------------------------------------------------
-// Photo
+// Profile header with the photo (changed right here: tap the camera, then Save photo)
 // ---------------------------------------------------------------------------
 
-export function PhotoForm({ member, readOnly }: { member: { id: string; name: string; photoUrl: string | null }; readOnly: boolean }) {
+function StatusPill({ on, children, tone = "on" }: { on: boolean; children: string; tone?: "on" | "off" }) {
+  return (
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-2.5 text-xs font-semibold text-white/85">
+      <span aria-hidden className={cn("size-1.5 rounded-full", tone === "off" ? "bg-destructive" : on ? "bg-status-done-foreground" : "bg-white/30")} />
+      {children}
+    </span>
+  );
+}
+
+export function MemberHeader({
+  member,
+  isSelf,
+  readOnly,
+}: {
+  member: { id: string; name: string; username: string; role: Role; title: string | null; photoUrl: string | null; bookable: boolean; showOnSite: boolean; active: boolean };
+  isSelf: boolean;
+  readOnly: boolean;
+}) {
   const pick = usePhotoPick();
   const upload = useSave(savePhoto, () => pick.clear());
   const remove = useSave(removePhoto);
   const shown = pick.picked?.url ?? member.photoUrl;
   const fieldError = pick.error ?? upload.state.fields.photo;
+  const canPhoto = !readOnly && member.role !== "admin";
+  const status = pick.optimising ? "Optimising…" : (fieldError ?? (pick.picked ? `Ready: ${pick.picked.note}` : null));
+
   return (
-    <Card title="Photo" description="Square photos work best. Saved as a small WebP with location and camera details removed.">
-      <div className="flex flex-wrap items-center gap-4">
-        {shown ? (
-          // eslint-disable-next-line @next/next/no-img-element -- local preview (blob:) or the saved photo
-          <img src={shown} alt={`${member.name}`} className="size-28 rounded-2xl border object-cover" data-testid="team-photo" />
-        ) : (
-          <div className="flex size-28 items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">No photo</div>
-        )}
-        {readOnly ? null : (
-          <Form onSubmit={(e) => upload.send(formWithPhoto(e, pick.picked))} className="flex flex-col gap-3">
-            <input type="hidden" name="id" value={member.id} />
-            <label htmlFor="photo-file" className="text-sm font-medium">
-              Choose a photo
+    <section
+      aria-label="Profile summary"
+      className="dark relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-background p-5 text-foreground shadow-[0_24px_60px_-30px_rgba(0,0,0,0.6)] sm:p-6"
+    >
+      <div aria-hidden className="glow-spot absolute -top-32 -right-20 -z-10 size-80 opacity-90" />
+      <Form onSubmit={(e) => upload.send(formWithPhoto(e, pick.picked))} className="flex items-center gap-4 sm:gap-5">
+        <input type="hidden" name="id" value={member.id} />
+        <div className="relative w-fit shrink-0">
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local preview (blob:) or the saved photo
+            <img src={shown} alt={member.name} className="size-20 rounded-3xl border border-white/10 object-cover sm:size-28" data-testid="team-photo" />
+          ) : (
+            <span
+              aria-hidden
+              className="inline-flex size-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-[color-mix(in_oklab,var(--primary),black_30%)] font-heading text-2xl font-extrabold text-primary-foreground sm:size-28 sm:text-3xl"
+            >
+              {initials(member.name)}
+            </span>
+          )}
+          {canPhoto ? (
+            <label
+              htmlFor="photo-file"
+              className="absolute -right-2 -bottom-2 inline-flex size-10 cursor-pointer sm:size-11 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/60"
+            >
+              <Camera aria-hidden className="size-4" />
+              <span className="sr-only">Choose a photo</span>
+              <input
+                id="photo-file"
+                type="file"
+                accept={PHOTO_ACCEPT}
+                onChange={(e) => void pick.pick(e.target.files?.[0])}
+                aria-describedby="photo-file-status"
+                aria-invalid={fieldError ? true : undefined}
+                className="sr-only"
+              />
             </label>
-            <input
-              id="photo-file"
-              type="file"
-              accept={PHOTO_ACCEPT}
-              onChange={(e) => void pick.pick(e.target.files?.[0])}
-              aria-describedby="photo-file-status"
-              aria-invalid={fieldError ? true : undefined}
-              className="max-w-64 text-sm file:mr-3 file:h-11 file:rounded-lg file:border-2 file:border-foreground file:bg-transparent file:px-4 file:font-semibold"
-            />
-            <p id="photo-file-status" aria-live="polite" className={cn("text-sm", fieldError ? "font-medium text-destructive" : "text-muted-foreground")}>
-              {pick.optimising ? "Optimising…" : (fieldError ?? (pick.picked ? `Ready: ${pick.picked.note}` : "JPEG, PNG, WebP or iPhone photos."))}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" variant="pop" disabled={upload.pending || pick.optimising || !pick.picked}>
-                <ImageUp aria-hidden />
-                {upload.pending ? "Uploading…" : "Save photo"}
-              </Button>
-              {member.photoUrl ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={remove.pending}
-                  onClick={() => {
-                    const data = new FormData();
-                    data.set("id", member.id);
-                    pick.clear();
-                    remove.send(data);
-                  }}
-                >
-                  <Trash2 aria-hidden />
-                  Remove photo
-                </Button>
-              ) : null}
+          ) : null}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-heading text-2xl leading-tight font-extrabold tracking-tight sm:text-[2rem]">{member.name}</h1>
+          <p className="mt-0.5 text-sm text-white/70">
+            {ROLE_LABELS[member.role]}
+            {member.title && member.title !== ROLE_LABELS[member.role] ? ` · ${member.title}` : ""}
+            {member.username ? ` · @${member.username}` : ""}
+            {isSelf ? " · you" : ""}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {!member.active ? (
+              <StatusPill on tone="off">
+                Switched off
+              </StatusPill>
+            ) : member.role === "admin" ? (
+              <StatusPill on={false}>Support account</StatusPill>
+            ) : (
+              <>
+                <StatusPill on={member.bookable}>{member.bookable ? "Takes bookings" : "No bookings"}</StatusPill>
+                <StatusPill on={member.showOnSite}>{member.showOnSite ? "On the website" : "Hidden from website"}</StatusPill>
+              </>
+            )}
+          </div>
+
+          {canPhoto ? (
+            <div className="mt-4 space-y-2">
+              <p id="photo-file-status" aria-live="polite" className={cn("text-sm empty:hidden", fieldError ? "font-medium text-destructive" : "text-white/70")}>
+                {status ?? (member.photoUrl ? "" : "No photo yet: tap the camera to add one.")}
+              </p>
+              <div className="flex flex-wrap gap-2 empty:hidden">
+                {pick.picked || pick.optimising ? (
+                  <>
+                    <Button type="submit" variant="pop" size="sm" disabled={upload.pending || pick.optimising || !pick.picked}>
+                      <Check aria-hidden />
+                      {upload.pending ? "Uploading…" : "Save photo"}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => pick.clear()} disabled={upload.pending}>
+                      <X aria-hidden />
+                      Cancel
+                    </Button>
+                  </>
+                ) : member.photoUrl ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={remove.pending}
+                    onClick={() => {
+                      const data = new FormData();
+                      data.set("id", member.id);
+                      pick.clear();
+                      remove.send(data);
+                    }}
+                  >
+                    <Trash2 aria-hidden />
+                    Remove photo
+                  </Button>
+                ) : null}
+              </div>
             </div>
-          </Form>
-        )}
-      </div>
+          ) : null}
+        </div>
+      </Form>
       <FormError>{upload.state.error ?? remove.state.error}</FormError>
-    </Card>
+    </section>
   );
 }
 
@@ -289,18 +380,51 @@ export function ServicesForm({
   readOnly: boolean;
 }) {
   const { state, submit, pending } = useSave(saveServices);
+  const [chosen, setChosen] = useState(() => new Set(selected));
+  const toggle = (id: string, on: boolean) =>
+    setChosen((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
   return (
     <Card title="Services" description="What they can be booked for.">
       <Form onSubmit={submit} className="space-y-4">
         <input type="hidden" name="id" value={memberId} />
-        <fieldset disabled={readOnly} className="grid gap-1 sm:grid-cols-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            {chosen.size} of {services.length} selected
+          </p>
+          {readOnly ? null : (
+            <div className="flex gap-1">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setChosen(new Set(services.map((s) => s.id)))}>
+                Select all
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setChosen(new Set())}>
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
+        <fieldset disabled={readOnly} className="grid gap-2 sm:grid-cols-2">
           <legend className="sr-only">Services they do</legend>
           {services.map((s) => (
-            <label key={s.id} className="flex min-h-11 items-center gap-3">
-              <input type="checkbox" name="service" value={s.id} defaultChecked={selected.includes(s.id)} className="size-5 accent-foreground" />
-              <span>
+            <label
+              key={s.id}
+              className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border bg-background/50 px-3.5 py-2.5 transition-colors has-[:checked]:border-primary/60 has-[:checked]:bg-primary/[0.08] has-[:disabled]:cursor-default"
+            >
+              <input
+                type="checkbox"
+                name="service"
+                value={s.id}
+                checked={chosen.has(s.id)}
+                onChange={(e) => toggle(s.id, e.target.checked)}
+                className="size-5 shrink-0 accent-[var(--primary)]"
+              />
+              <span className="min-w-0 text-sm font-medium">
                 {s.name}
-                {s.active ? "" : <span className="text-sm text-muted-foreground"> (switched off)</span>}
+                {s.active ? "" : <span className="font-normal text-muted-foreground"> (switched off)</span>}
               </span>
             </label>
           ))}
@@ -351,9 +475,9 @@ export function TimeOffForm({
   return (
     <Card title="Time off" description="Whole days. Online booking won't offer these days; existing bookings stay put.">
       {entries.length ? (
-        <ul className="divide-y rounded-2xl border bg-background/50" data-testid="time-off-list">
+        <ul className="space-y-2" data-testid="time-off-list">
           {entries.map((t) => (
-            <li key={t.id} className="flex items-center justify-between gap-3 px-3 py-2">
+            <li key={t.id} className="flex items-center justify-between gap-3 rounded-2xl border bg-background/50 py-2 pr-2 pl-4">
               <span>
                 <span className="font-medium">
                   {t.startsOn === t.endsOn ? formatDay(t.startsOn) : `${formatDay(t.startsOn)} – ${formatDay(t.endsOn)}`}
@@ -384,7 +508,7 @@ export function TimeOffForm({
           ))}
         </ul>
       ) : (
-        <p className="text-muted-foreground">No time off booked.</p>
+        <p className="rounded-2xl border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">No time off booked.</p>
       )}
       {readOnly ? null : (
         <Form onSubmit={add.submit} onChange={() => setWarnedAt(add.state.attempt)} className="space-y-4">
@@ -429,6 +553,24 @@ export function TimeOffForm({
 // Account: role, password, switch off/on, delete
 // ---------------------------------------------------------------------------
 
+/** One account setting: icon, title and explanation, with its control below. */
+function AccountRow({ icon: Icon, title, children, description }: { icon: typeof KeyRound; title: string; description?: React.ReactNode; children?: React.ReactNode }) {
+  return (
+    <div className="flex gap-4 py-4 first:pt-0 last:pb-0">
+      <span aria-hidden className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-link">
+        <Icon className="size-[1.125rem]" />
+      </span>
+      <div className="min-w-0 flex-1 space-y-3">
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          {description ? <div className="text-sm text-muted-foreground">{description}</div> : null}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function AccountSection({
   member,
   can,
@@ -456,107 +598,124 @@ export function AccountSection({
   };
 
   return (
-    <Card title="Account" description={<>Username <strong>{member.username}</strong> (can&apos;t be changed).</>}>
-      {can.changeRole ? (
-        <Form onSubmit={role.submit} className="flex flex-wrap items-end gap-3">
-          <input type="hidden" name="id" value={member.id} />
-          <Field label="Role" htmlFor="acc-role">
-            <NativeSelect id="acc-role" name="role" defaultValue={member.role} className="min-w-40">
-              {(["barber", "owner", "admin"] as const).map((r) => (
-                <NativeSelectOption key={r} value={r}>
-                  {ROLE_LABELS[r]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Button type="submit" variant="outline" disabled={role.pending}>
-            {role.pending ? "Saving…" : "Change role"}
-          </Button>
-        </Form>
-      ) : (
-        <p>
-          Role: <strong>{ROLE_LABELS[member.role]}</strong>
-        </p>
-      )}
-
-      {can.resetPassword ? (
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="font-semibold">Password</h3>
-          {reset.state.done?.password ? (
-            <PasswordReveal password={reset.state.done.password} name={member.name} />
-          ) : confirm === "reset" ? (
-            <ConfirmBar
-              question={`Give ${member.name} a new password? They'll be signed out everywhere.`}
-              confirmLabel="Reset password"
-              pending={reset.pending}
-              onKeep={() => setConfirm(null)}
-              onConfirm={() => send(reset.send, {})}
-            />
-          ) : (
-            <Button type="button" variant="outline" onClick={() => setConfirm("reset")}>
-              <KeyRound aria-hidden />
-              Reset password
-            </Button>
-          )}
-        </div>
-      ) : null}
-
-      {can.reset2fa ? (
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="font-semibold">Two-step sign-in</h3>
-          <p data-testid="member-two-step">{twoStepOn ? "On: they enter a code from an authenticator app after their password." : "Off."}</p>
-          {twoStepOn ? (
-            confirm === "reset2fa" ? (
-              <ConfirmBar
-                question={`Reset two-step sign-in for ${member.name}? Their authenticator app stops working here and they're signed out everywhere. They can set it up again in Account.`}
-                confirmLabel="Reset two-step sign-in"
-                pending={reset2fa.pending}
-                onKeep={() => setConfirm(null)}
-                onConfirm={() => {
-                  setConfirm(null);
-                  send(reset2fa.send, {});
-                }}
-              />
-            ) : (
-              <Button type="button" variant="outline" onClick={() => setConfirm("reset2fa")}>
-                Reset two-step sign-in
-              </Button>
-            )
-          ) : null}
-        </div>
-      ) : null}
-
-      {can.switchOff ? (
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="font-semibold">{member.active ? "Switch off" : "Switched off"}</h3>
-          <p className="text-sm text-muted-foreground">
-            {member.active
-              ? "They can't sign in and aren't offered for bookings or shown on the website. Their history stays."
-              : "They can't sign in. Switch them back on to restore their access."}
-          </p>
-          {switchArmed ? (
-            <p role="alert" className="rounded-xl border-2 border-status-request-foreground bg-status-request p-3 text-sm text-status-request-foreground">
-              {active.state.warning}
-            </p>
-          ) : null}
-          <Button
-            type="button"
-            variant={member.active ? "outline" : "pop"}
-            disabled={active.pending}
-            onClick={() => {
-              setWarnedAt(-1);
-              send(active.send, { active: member.active ? "0" : "1", anyway: switchArmed ? "1" : "0" });
-            }}
+    <div className="space-y-5">
+      <Card title="Account" description={<>Signs in as <strong>{member.username}</strong> (the username can&apos;t be changed).</>}>
+        <div className="divide-y">
+          <AccountRow
+            icon={UserCog}
+            title="Role"
+            description={can.changeRole ? "What they can see and change in the dashboard." : <>{ROLE_LABELS[member.role]}</>}
           >
-            <Power aria-hidden />
-            {member.active ? (switchArmed ? "Switch off anyway" : "Switch off") : "Switch back on"}
-          </Button>
+            {can.changeRole ? (
+              <Form onSubmit={role.submit} className="flex flex-wrap items-end gap-2">
+                <input type="hidden" name="id" value={member.id} />
+                <Field label="Role" htmlFor="acc-role" className="min-w-40 flex-1 sm:flex-none">
+                  <NativeSelect id="acc-role" name="role" defaultValue={member.role} className="w-full">
+                    {(["barber", "owner", "admin"] as const).map((r) => (
+                      <NativeSelectOption key={r} value={r}>
+                        {ROLE_LABELS[r]}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <Button type="submit" variant="outline" disabled={role.pending}>
+                  {role.pending ? "Saving…" : "Change role"}
+                </Button>
+              </Form>
+            ) : null}
+          </AccountRow>
+
+          {can.resetPassword ? (
+            <AccountRow icon={KeyRound} title="Password" description="Gives them a new one-time password and signs them out everywhere.">
+              {reset.state.done?.password ? (
+                <PasswordReveal password={reset.state.done.password} name={member.name} />
+              ) : confirm === "reset" ? (
+                <ConfirmBar
+                  question={`Give ${member.name} a new password? They'll be signed out everywhere.`}
+                  confirmLabel="Reset password"
+                  pending={reset.pending}
+                  onKeep={() => setConfirm(null)}
+                  onConfirm={() => send(reset.send, {})}
+                />
+              ) : (
+                <Button type="button" variant="outline" onClick={() => setConfirm("reset")}>
+                  <KeyRound aria-hidden />
+                  Reset password
+                </Button>
+              )}
+            </AccountRow>
+          ) : null}
+
+          {can.reset2fa ? (
+            <AccountRow
+              icon={ShieldCheck}
+              title="Two-step sign-in"
+              description={<span data-testid="member-two-step">{twoStepOn ? "On: they enter a code from an authenticator app after their password." : "Off."}</span>}
+            >
+              {twoStepOn ? (
+                confirm === "reset2fa" ? (
+                  <ConfirmBar
+                    question={`Reset two-step sign-in for ${member.name}? Their authenticator app stops working here and they're signed out everywhere. They can set it up again in Account.`}
+                    confirmLabel="Reset two-step sign-in"
+                    pending={reset2fa.pending}
+                    onKeep={() => setConfirm(null)}
+                    onConfirm={() => {
+                      setConfirm(null);
+                      send(reset2fa.send, {});
+                    }}
+                  />
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => setConfirm("reset2fa")}>
+                    Reset two-step sign-in
+                  </Button>
+                )
+              ) : null}
+            </AccountRow>
+          ) : null}
+
+          {can.switchOff ? (
+            <AccountRow
+              icon={Power}
+              title={member.active ? "Switch off" : "Switched off"}
+              description={
+                member.active
+                  ? "They can't sign in and aren't offered for bookings or shown on the website. Their history stays."
+                  : "They can't sign in. Switch them back on to restore their access."
+              }
+            >
+              {switchArmed ? (
+                <p role="alert" className="rounded-2xl border border-status-request-foreground/40 bg-status-request p-3 text-sm text-status-request-foreground">
+                  {active.state.warning}
+                </p>
+              ) : null}
+              <Button
+                type="button"
+                variant={member.active ? "outline" : "pop"}
+                disabled={active.pending}
+                onClick={() => {
+                  setWarnedAt(-1);
+                  send(active.send, { active: member.active ? "0" : "1", anyway: switchArmed ? "1" : "0" });
+                }}
+              >
+                <Power aria-hidden />
+                {member.active ? (switchArmed ? "Switch off anyway" : "Switch off") : "Switch back on"}
+              </Button>
+            </AccountRow>
+          ) : null}
         </div>
-      ) : null}
+        <FormError>{role.state.error ?? reset.state.error ?? reset2fa.state.error ?? active.state.error}</FormError>
+      </Card>
 
       {can.switchOff ? (
-        <div className="space-y-3 border-t pt-4">
-          <h3 className="font-semibold">Delete account</h3>
+        <section aria-labelledby="danger-heading" className="space-y-3 rounded-3xl border border-destructive/40 bg-destructive/[0.04] p-5 sm:p-7">
+          <div>
+            <h2 id="danger-heading" className="font-heading text-xl font-bold tracking-tight text-destructive">
+              Danger zone
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Deleting removes their login for good. If they have past bookings, their name stays on those for the records.
+            </p>
+          </div>
           {can.delete ? (
             confirm === "delete" ? (
               <ConfirmBar
@@ -567,26 +726,20 @@ export function AccountSection({
                 onConfirm={() => send(remove.send, {})}
               />
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Their login is removed. If they have past bookings, their name stays on those for the records.
-                </p>
-                <Button type="button" variant="outline" className="text-destructive" onClick={() => setConfirm("delete")}>
-                  <Trash2 aria-hidden />
-                  Delete account
-                </Button>
-              </>
+              <Button type="button" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => setConfirm("delete")}>
+                <Trash2 aria-hidden />
+                Delete account
+              </Button>
             )
           ) : (
-            <p className="text-sm text-muted-foreground" data-testid="delete-blocked">
+            <p className="text-sm font-medium" data-testid="delete-blocked">
               {member.name} has {upcomingBookings === 1 ? "1 upcoming booking" : `${upcomingBookings} upcoming bookings`}. Move or cancel{" "}
               {upcomingBookings === 1 ? "it" : "them"} before deleting the account.
             </p>
           )}
-        </div>
+          <FormError>{remove.state.error}</FormError>
+        </section>
       ) : null}
-
-      <FormError>{role.state.error ?? reset.state.error ?? reset2fa.state.error ?? active.state.error ?? remove.state.error}</FormError>
-    </Card>
+    </div>
   );
 }

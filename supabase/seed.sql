@@ -1,9 +1,10 @@
 -- DEV-ONLY SAMPLE DATA. Loaded by `supabase db reset` locally. NEVER pushed to production
 -- (`supabase db push` applies migrations only).
 --
--- Local sample logins (password for all: LocalDev-Sample-1):
---   admin  (admin)   owner  (owner, shown as Hewr)   sam  (barber, shown as Sardar)   jamie (barber, bookable but not on the website's team section)   off  (barber, switched off)
--- Everything below is labelled SAMPLE, except the real names of the owner (Hewr) and barber Sardar. Phone numbers use Ofcom's drama range (07700 900000–900999).
+-- Local logins (password for all: LocalDev-Sample-1), the same team as the live site:
+--   admin  (admin)   owner  (owner, shown as Hewr)   sam  (barber, shown as Sardar)
+-- Test runs add a few extra test-only people for their own use and remove them afterwards (tests/fixtures/test-people.ts).
+-- Clients, bookings and reviews are labelled SAMPLE. Phone numbers use Ofcom's drama range (07700 900000–900999).
 
 -- ---------------------------------------------------------------------------
 -- Auth users
@@ -16,9 +17,7 @@ begin
     select * from (values
       ('00000000-0000-4000-8000-000000000001'::uuid, 'admin'),
       ('00000000-0000-4000-8000-000000000002'::uuid, 'owner'),
-      ('00000000-0000-4000-8000-000000000003'::uuid, 'sam'),
-      ('00000000-0000-4000-8000-000000000004'::uuid, 'jamie'),
-      ('00000000-0000-4000-8000-000000000005'::uuid, 'off')
+      ('00000000-0000-4000-8000-000000000003'::uuid, 'sam')
     ) as t(id, username)
   loop
     insert into auth.users (
@@ -53,7 +52,7 @@ update public.settings set
 where id = 1;
 
 -- ---------------------------------------------------------------------------
--- Staff (SAMPLE)
+-- Staff
 -- ---------------------------------------------------------------------------
 insert into public.staff (id, user_id, username, display_name, role, bookable, title, bio, weekly_hours, show_on_site, active, sort)
 values
@@ -66,23 +65,16 @@ values
   ('10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'sam', 'Sardar', 'barber',
     true, 'Barber', null,
     '{"1":{"open":"10:00","close":"18:00"},"2":{"open":"10:00","close":"18:00"},"4":{"open":"10:00","close":"18:00"},"5":{"open":"10:00","close":"18:00"},"6":{"open":"09:00","close":"17:00"}}',
-    true, true, 20),
-  ('10000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000004', 'jamie', 'SAMPLE Jamie', 'barber',
-    true, 'Junior barber', null,
-    '{"3":{"open":"09:00","close":"17:00"},"4":{"open":"09:00","close":"17:00"},"5":{"open":"09:00","close":"17:00"},"6":{"open":"09:00","close":"17:00"}}',
-    false, true, 30),
-  ('10000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000005', 'off', 'SAMPLE Switched-off', 'barber',
-    false, 'Barber', null, '{}', false, false, 40);
+    true, true, 20);
 
--- Every bookable person does every service, except Jamie doesn't do shaves.
+-- Every bookable person does every service.
 insert into public.staff_services (staff_id, service_id)
 select s.id, v.id
 from public.staff s
 cross join public.services v
-where s.bookable
-  and not (s.username = 'jamie' and v.name in ('Wet Shave', 'Dry Shave'));
+where s.bookable;
 
--- Sam is off for three days next week (SAMPLE).
+-- Sardar is off for three days next week (SAMPLE).
 insert into public.time_off (staff_id, starts_on, ends_on, reason)
 values ('10000000-0000-4000-8000-000000000003', current_date + 7, current_date + 9, 'SAMPLE holiday');
 
@@ -95,8 +87,7 @@ insert into public.closures (closed_on, reason) values (current_date + 14, 'SAMP
 insert into public.clients (id, name, phone) values
   ('20000000-0000-4000-8000-000000000001', 'SAMPLE Alex Regular', '+447700900001'),
   ('20000000-0000-4000-8000-000000000002', 'SAMPLE Ben New',      '+447700900002'),
-  ('20000000-0000-4000-8000-000000000003', 'SAMPLE Chris Dueback', '+447700900003'),
-  ('20000000-0000-4000-8000-000000000004', 'SAMPLE Dan Noshow',   '+447700900004');
+  ('20000000-0000-4000-8000-000000000003', 'SAMPLE Chris Dueback', '+447700900003');
 
 -- ---------------------------------------------------------------------------
 -- Bookings (SAMPLE), placed relative to today in London so the dashboard always has data.
@@ -112,9 +103,6 @@ insert into sample_slots values
   ('20000000-0000-4000-8000-000000000002', 'owner', 'Hair Cut',     1, '11:00', 'pending',   'online'),
   -- Chris: due back (last visit 8 weeks ago, nothing booked)
   ('20000000-0000-4000-8000-000000000003', 'owner', 'Beard Trim & Shape Up', -56, '15:00', 'completed', 'online'),
-  -- Dan: no-show last week, declined request
-  ('20000000-0000-4000-8000-000000000004', 'jamie', 'Hair Cut',    -7, '12:00', 'no_show',   'online'),
-  ('20000000-0000-4000-8000-000000000004', 'jamie', 'Hair Cut',    -3, '12:00', 'declined',  'online'),
   -- Today
   ('20000000-0000-4000-8000-000000000002', 'sam',   'Hair Cut',     0, '13:00', 'confirmed', 'online'),
   (null,                                   'owner', 'Normal Zero',  0, '09:30', 'completed', 'walk_in');

@@ -2,28 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ArrowLeft } from "lucide-react";
-import { Avatar } from "@/components/dashboard/avatar";
+import { ArrowLeft, CalendarDays, Scissors, ShieldCheck, UserRound } from "lucide-react";
 import { LoadingLabel, Skeleton } from "@/components/dashboard/skeleton";
-import { AccountSection, HoursForm, PhotoForm, ProfileForm, ServicesForm, TimeOffForm } from "@/components/dashboard/team-forms";
+import { AccountSection, HoursForm, MemberHeader, ProfileForm, ServicesForm, TimeOffForm } from "@/components/dashboard/team-forms";
 import { requireStaff } from "@/lib/auth/staff";
 import { loadMember } from "@/lib/dashboard/team";
-import { ROLE_LABELS } from "@/lib/domain/team";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Team member" };
 
 const TABS = [
-  { id: "profile", label: "Profile" },
-  { id: "photo", label: "Photo" },
-  { id: "services", label: "Services" },
-  { id: "schedule", label: "Schedule" },
-  { id: "account", label: "Account" },
+  { id: "profile", label: "Profile", icon: UserRound },
+  { id: "services", label: "Services", icon: Scissors },
+  { id: "schedule", label: "Schedule", icon: CalendarDays },
+  { id: "account", label: "Account", icon: ShieldCheck },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * One team member: a profile header (photo changed right there, status at a glance), a pill switcher for the
+ * sections, and the section's form below.
+ */
 async function Member({ params, searchParams }: PageProps<"/dashboard/team/[id]">) {
   const staff = await requireStaff(["owner", "admin"]);
   const [{ id }, search] = await Promise.all([params, searchParams]);
@@ -31,51 +32,45 @@ async function Member({ params, searchParams }: PageProps<"/dashboard/team/[id]"
   const data = await loadMember(staff, id);
   if (!data) notFound();
   const { member, can } = data;
-  const tabs = TABS.filter((t) => member.role !== "admin" || (t.id !== "services" && t.id !== "photo"));
+  const tabs = TABS.filter((t) => member.role !== "admin" || t.id !== "services");
   const tab: Tab = tabs.find((t) => t.id === search.tab)?.id ?? "profile";
   const readOnly = !can.edit;
 
   return (
     <div className="space-y-5">
-      <Link href="/dashboard/team" className="inline-flex min-h-11 items-center gap-2 text-link underline underline-offset-4 hover:no-underline">
+      <Link href="/dashboard/team" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
         <ArrowLeft aria-hidden className="size-4" />
         Team
       </Link>
-      <div className="flex items-center gap-4">
-        <Avatar member={member} size="size-16" />
-        <div>
-          <h1 className="text-title font-extrabold">{member.name}</h1>
-          <p className="text-muted-foreground">
-            {ROLE_LABELS[member.role]}
-            {member.active ? "" : " · switched off"}
-            {data.isSelf ? " · you" : ""}
-          </p>
-        </div>
-      </div>
+
+      <MemberHeader key={member.photoUrl ?? "none"} member={member} isSelf={data.isSelf} readOnly={readOnly} />
+
       {readOnly ? (
-        <p className="rounded-lg border px-3 py-2 text-sm text-muted-foreground">You can see this profile but not change it.</p>
+        <p className="rounded-2xl border bg-card px-4 py-3 text-sm text-muted-foreground">You can see this profile but not change it.</p>
       ) : null}
 
-      <nav aria-label="Sections" className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
-        {tabs.map((t) => (
-          <Link
-            key={t.id}
-            href={t.id === "profile" ? `/dashboard/team/${id}` : `/dashboard/team/${id}?tab=${t.id}`}
-            aria-current={tab === t.id ? "page" : undefined}
-            scroll={false}
-            className={cn(
-              "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold",
-              tab === t.id ? "bg-secondary text-secondary-foreground" : "hover:bg-muted",
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
+      <nav aria-label="Sections">
+        <div className="flex w-full gap-1 rounded-full border bg-card p-1 shadow-[var(--shadow-soft)] sm:inline-flex sm:w-auto">
+          {tabs.map((t) => (
+            <Link
+              key={t.id}
+              href={t.id === "profile" ? `/dashboard/team/${id}` : `/dashboard/team/${id}?tab=${t.id}`}
+              aria-current={tab === t.id ? "page" : undefined}
+              scroll={false}
+              className={cn(
+                "inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-2 text-[0.8125rem] font-semibold transition-colors sm:flex-none sm:px-4 sm:text-sm",
+                tab === t.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <t.icon aria-hidden className="hidden size-4 shrink-0 sm:block" />
+              {t.label}
+            </Link>
+          ))}
+        </div>
       </nav>
 
       <div className="max-w-2xl space-y-5">
         {tab === "profile" ? <ProfileForm member={member} readOnly={readOnly} /> : null}
-        {tab === "photo" ? <PhotoForm key={member.photoUrl ?? "none"} member={member} readOnly={readOnly} /> : null}
         {tab === "services" ? <ServicesForm memberId={member.id} services={data.services} selected={data.serviceIds} readOnly={readOnly} /> : null}
         {tab === "schedule" ? (
           <>
@@ -85,7 +80,7 @@ async function Member({ params, searchParams }: PageProps<"/dashboard/team/[id]"
         ) : null}
         {tab === "account" ? (
           data.isSelf ? (
-            <p className="rounded-xl border p-4">
+            <p className="rounded-3xl border bg-card p-5 shadow-[var(--shadow-soft)]">
               Your own password, theme and sign-in settings are on your{" "}
               <Link href="/dashboard/account" className="text-link underline underline-offset-4">
                 Account page
@@ -106,17 +101,13 @@ function MemberSkeleton() {
     <div className="space-y-5">
       <LoadingLabel>Loading…</LoadingLabel>
       <Skeleton className="h-6 w-24" />
-      <div className="flex items-center gap-4">
-        <Skeleton className="size-16 rounded-full" />
-        <Skeleton className="h-10 w-56" />
-      </div>
-      <Skeleton className="h-11 w-96 max-w-full" />
-      <Skeleton className="h-80 max-w-2xl" />
+      <Skeleton className="h-40 rounded-[1.75rem]" />
+      <Skeleton className="h-12 w-96 max-w-full rounded-full" />
+      <Skeleton className="h-80 max-w-2xl rounded-3xl" />
     </div>
   );
 }
 
-/** Built in phase 9. */
 export default function MemberPage(props: PageProps<"/dashboard/team/[id]">) {
   return (
     <Suspense fallback={<MemberSkeleton />}>

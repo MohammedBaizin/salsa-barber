@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { requireStaff } from "@/lib/auth/staff";
 import { pendingCount } from "@/lib/dashboard/bookings";
 import { initials, ROLE_LABELS } from "@/lib/domain/team";
+import { AppBadge } from "./pwa";
 import { Skeleton } from "./skeleton";
 
 const iconButton =
@@ -15,6 +16,7 @@ export async function HeaderBar() {
   const waiting = await pendingCount();
   return (
     <>
+      <AppBadge count={waiting} />
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <span
           aria-hidden

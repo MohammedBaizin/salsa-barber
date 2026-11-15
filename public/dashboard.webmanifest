@@ -6,11 +6,84 @@
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f7f6f2",
-  "theme_color": "#ffffff",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
   "icons": [
-    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "en-GB",
+  "orientation": "portrait",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "shortcuts": [
+    {
+      "name": "New walk-in",
+      "short_name": "Walk-in",
+      "url": "/dashboard?new=walk_in",
+      "icons": [
+        {
+          "src": "/brand/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "New phone booking",
+      "short_name": "Booking",
+      "url": "/dashboard?new=phone",
+      "icons": [
+        {
+          "src": "/brand/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "url": "/dashboard/calendar",
+      "icons": [
+        {
+          "src": "/brand/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "url": "/dashboard/clients",
+      "icons": [
+        {
+          "src": "/brand/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

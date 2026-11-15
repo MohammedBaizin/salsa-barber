@@ -1,7 +1,11 @@
 import { execSync } from "node:child_process";
+import { addTestPeople, removeTestPeople } from "../fixtures/test-people";
 
-/** Refuses to run unless the app is configured for the LOCAL Supabase stack (tests write to the database). */
-export default function globalSetup() {
+/**
+ * Refuses to run unless the app is configured for the LOCAL Supabase stack (tests write to the database).
+ * Adds the test-only people (tests/fixtures/test-people.ts) for the run and removes them afterwards.
+ */
+export default async function globalSetup() {
   process.loadEnvFile(".env.local");
   const host = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://invalid").hostname;
   if (!["127.0.0.1", "localhost", "host.docker.internal"].includes(host)) {
@@ -11,4 +15,6 @@ export default function globalSetup() {
   const dbUrl = status.match(/^DB_URL="?([^"\n]+)"?$/m)?.[1];
   if (!dbUrl) throw new Error("Local Supabase isn't running. Start it with `npm run db:start`.");
   process.env.E2E_DB_URL = dbUrl;
+  await addTestPeople(dbUrl);
+  return () => removeTestPeople(dbUrl);
 }

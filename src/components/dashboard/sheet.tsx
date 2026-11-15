@@ -10,7 +10,8 @@ export const SHEET_CLOSED_EVENT = "dashboard:sheet-closed";
 
 /**
  * Dashboard sheet (spec §8.1): native modal <dialog>, so focus moves in, stays in, and returns; Esc closes.
- * Phone: bottom sheet that stays above the on-screen keyboard. Desktop: centred panel.
+ * A centred card on every screen, with even margins on phones (clear of the notch and home bar) and centred in the
+ * space above the on-screen keyboard while typing.
  * Sticky title, scrolling body (flex: 1 1 auto, iOS Safari collapses flex-basis 0), pinned footer buttons.
  * Page scroll is locked without jumping.
  */
@@ -101,16 +102,16 @@ export function Sheet({
         if (event.target === event.currentTarget) event.currentTarget.close();
       }}
       className={cn(
-        "fixed m-0 flex-col overflow-hidden border bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:slide-in-from-bottom-6 open:duration-300 sm:open:zoom-in-95 sm:open:slide-in-from-bottom-0",
-        // Phone: bottom sheet above the keyboard.
-        "inset-x-0 top-auto bottom-[var(--keyboard-inset,0px)] w-full max-w-none rounded-t-3xl border-b-0",
-        "max-h-[calc(100dvh-var(--keyboard-inset,0px)-max(1rem,env(safe-area-inset-top)))]",
-        // Desktop: centred panel.
-        "sm:inset-0 sm:m-auto sm:h-fit sm:max-h-[min(85dvh,48rem)] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:rounded-3xl sm:border-b",
+        "fixed m-auto h-fit flex-col overflow-hidden rounded-[1.75rem] border bg-card p-0 text-card-foreground shadow-2xl",
+        "backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:fade-in-0 open:zoom-in-95 open:duration-200 motion-reduce:open:animate-none",
+        // Centred in the visible area: clear of the notch, the home bar and (iPhone) the keyboard.
+        "inset-x-0 top-[max(0.75rem,env(safe-area-inset-top))] bottom-[calc(var(--keyboard-inset,0px)+max(0.75rem,env(safe-area-inset-bottom)))]",
+        "w-[calc(100%-1.5rem)] max-w-lg",
+        "max-h-[calc(100dvh-var(--keyboard-inset,0px)-max(0.75rem,env(safe-area-inset-top))-max(0.75rem,env(safe-area-inset-bottom)))] sm:max-h-[min(85dvh,48rem)] sm:w-[calc(100%-2rem)]",
         className,
       )}
     >
-      <div className="flex shrink-0 items-start gap-3 border-b px-4 pt-3 pb-3 sm:px-6 sm:pt-5">
+      <div className="flex shrink-0 items-start gap-3 border-b px-5 py-4 sm:px-6 sm:py-5">
         <div className="min-w-0 flex-1 pt-1.5">
           <h2 id={titleId} className="font-heading text-xl font-bold tracking-tight">
             {title}
@@ -124,15 +125,15 @@ export function Sheet({
         <button
           type="button"
           onClick={() => ref.current?.close()}
-          className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted"
+          className="-mr-1.5 -mt-0.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted"
         >
           <X aria-hidden className="size-5" />
           <span className="sr-only">Close</span>
         </button>
       </div>
-      <div className="min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-4 pt-4 after:block after:h-4 after:content-[''] sm:px-6">{children}</div>
+      <div className="min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-5 pt-5 after:block after:h-5 after:content-[''] sm:px-6">{children}</div>
       {footer ? (
-        <div className="flex shrink-0 flex-wrap gap-3 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-5 [&>*]:flex-1">
+        <div className="flex shrink-0 flex-wrap gap-3 border-t px-5 py-4 sm:px-6 [&>*]:flex-1">
           {footer}
         </div>
       ) : null}
@@ -146,7 +147,7 @@ export function Sheet({
  */
 export function SheetActions({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 z-10 -mx-4 mt-5 flex flex-wrap gap-3 border-t bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6 [&>*]:flex-1">
+    <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-5 flex flex-wrap gap-3 border-t bg-card px-5 py-4 sm:-mx-6 sm:px-6 [&>*]:flex-1">
       {children}
     </div>
   );

@@ -64,7 +64,7 @@ function useAnyway(state: BookingActionState) {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[6.5rem_1fr] gap-3 py-2.5 sm:grid-cols-[7.5rem_1fr]">
+    <div className="grid grid-cols-[5.25rem_1fr] gap-3 py-2.5 sm:grid-cols-[7.5rem_1fr]">
       <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="min-w-0 font-medium break-words">{children}</dd>
     </div>

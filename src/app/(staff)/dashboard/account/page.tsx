@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PasswordForm, ThemeChoice, TwoStepCard } from "@/components/dashboard/account-forms";
 import { AlertsCard } from "@/components/dashboard/push";
+import { InstallAppCard } from "@/components/dashboard/pwa";
 import { PageSkeleton } from "@/components/dashboard/skeleton";
 import { requireStaff } from "@/lib/auth/staff";
 import { loadMember } from "@/lib/dashboard/team";
@@ -75,6 +76,7 @@ async function Account() {
 
       <PasswordForm username={staff.username} name={staff.displayName} />
       <TwoStepCard key={twoStepOn ? "on" : "off"} on={twoStepOn} />
+      <InstallAppCard />
       <AlertsCard pushKey={vapidKeys()?.publicKey ?? null} />
       <ThemeChoice />
 

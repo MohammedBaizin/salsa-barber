@@ -214,7 +214,7 @@ test.describe("booking alerts", () => {
     await expect(offer).toHaveCount(0);
   });
 
-  test("app files: staff-only manifest; the service worker never caches and is always re-checked", async ({ page, request }) => {
+  test("app files: staff-only manifest with shortcuts; the service worker never caches and is always re-checked", async ({ page, request }) => {
     const manifest = await (await request.get("/dashboard.webmanifest")).json();
     expect(manifest).toMatchObject({ id: "/dashboard", start_url: "/dashboard", display: "standalone", name: "Salsa Dashboard" });
     expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(["192x192", "512x512"]));
@@ -222,7 +222,9 @@ test.describe("booking alerts", () => {
     expect(sw.headers()["cache-control"]).toBe("no-cache");
     const code = await sw.text();
     expect(code).toContain('addEventListener("push"');
-    expect(code).not.toContain('addEventListener("fetch"');
+    // The offline screen is built into the worker; nothing goes into the Cache Storage.
+    expect(code).not.toContain("caches.");
+    expect(manifest.shortcuts.map((s: { url: string }) => s.url)).toEqual(["/dashboard?new=walk_in", "/dashboard?new=phone", "/dashboard/calendar", "/dashboard/clients"]);
 
     await page.goto("/");
     await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);

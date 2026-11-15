@@ -224,7 +224,7 @@ function PhotoSheetForm({ photo, visibleIn, onClose }: { photo: GalleryPhoto; vi
   return (
     <div className="space-y-5">
       {/* eslint-disable-next-line @next/next/no-img-element -- the saved photo or the chosen replacement */}
-      <img src={pick.picked?.url ?? photo.url} alt={photo.alt} className="max-h-56 w-full rounded-xl border object-contain" />
+      <img src={pick.picked?.url ?? photo.url} alt={photo.alt} className="max-h-56 w-full rounded-xl border bg-muted object-contain" />
       <Form onSubmit={save.submit} className="space-y-4">
         <input type="hidden" name="id" value={photo.id} />
         <Field label="Description" htmlFor={`${id}-alt`} error={save.state.fields.alt}>

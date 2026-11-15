@@ -6,6 +6,7 @@ import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { ToastHost } from "@/components/dashboard/form-parts";
 import { HeaderBar, HeaderSkeleton } from "@/components/dashboard/header";
 import { NotificationsBar } from "@/components/dashboard/push";
+import { RegisterServiceWorker } from "@/components/dashboard/pwa";
 import { SideNav, TabBar } from "@/components/dashboard/nav";
 import { Skeleton } from "@/components/dashboard/skeleton";
 import { requireStaff } from "@/lib/auth/staff";
@@ -120,6 +121,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <RoleTabBar />
       </Suspense>
       <AutoRefresh />
+      <RegisterServiceWorker />
       <ToastHost />
     </div>
   );
