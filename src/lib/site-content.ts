@@ -101,6 +101,19 @@ export async function getSiteContent(): Promise<SiteContent> {
   };
 }
 
+/**
+ * The hero carousel: the shop photo, then the first "Inside the shop" (slideshow) photo. Empty without a shop photo
+ * (the hero then shows the logo instead).
+ */
+export function heroPhotos(content: Pick<SiteContent, "shopPhoto" | "slideshow">): SitePhoto[] {
+  return content.shopPhoto ? [content.shopPhoto, ...content.slideshow.slice(0, 1)] : [];
+}
+
+/** The "Inside the shop" carousel: the slideshow photos not already shown in the hero carousel. */
+export function insidePhotos(content: Pick<SiteContent, "shopPhoto" | "slideshow">): SitePhoto[] {
+  return content.shopPhoto ? content.slideshow.slice(1) : content.slideshow;
+}
+
 /** The shop's default website theme for new visitors (Settings). Cached so the root layout stays prerendered. */
 export async function getPublicTheme(): Promise<PublicTheme> {
   "use cache";

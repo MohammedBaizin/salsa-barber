@@ -4,12 +4,14 @@ import { ArrowUpRight } from "lucide-react";
 import { initials } from "@/lib/domain/team";
 import type { SiteContent } from "@/lib/site-content";
 import { SectionHeading } from "./section-heading";
+import { SectionDivider } from "./section-divider";
 
 /** Barbers shown on the website, as portrait cards. Titles never reveal who the owner is (the role isn't public). */
 export function Team({ team }: Pick<SiteContent, "team">) {
   if (team.length === 0) return null;
   return (
     <section aria-labelledby="team-title" id="team" className="scroll-mt-20">
+      <SectionDivider className="mt-10 sm:mt-14" />
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <SectionHeading id="team-title" eyebrow="The chairs" title="The team" />
         <ul className="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">

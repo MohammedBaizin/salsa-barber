@@ -11,5 +11,9 @@
     { "file": "cut-IMG_3643.jpg", "alt": "Swept-back style with a taper fade and beard" },
     { "file": "cut-IMG_3961.jpg", "alt": "Short back and sides with a neat taper, seen from behind" },
     { "file": "cut-IMG_6327.jpg", "alt": "Side part with a skin fade and full beard" }
+  ],
+  "team": [
+    { "file": "staff-Hewr.jpg", "name": "Hewr", "role": "owner", "sample": "SAMPLE Owner" },
+    { "file": "staff-Sardar.jpg", "name": "Sardar", "sample": "SAMPLE Sam" }
   ]
 }

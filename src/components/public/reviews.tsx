@@ -2,6 +2,7 @@ import { ArrowUpRight, Quote, Star } from "lucide-react";
 import type { SiteContent } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 import { SectionHeading } from "./section-heading";
+import { SectionDivider } from "./section-divider";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -26,13 +27,13 @@ export function Reviews({ reviews, googleRating, googleReviewCount, googleReview
   if (reviews.length === 0 && googleRating == null) return null;
   return (
     <section aria-labelledby="reviews-title" id="reviews" className="relative scroll-mt-20 overflow-hidden">
+      <SectionDivider />
       <div aria-hidden className="glow-spot absolute -top-40 left-1/2 size-[40rem] -translate-x-1/2 opacity-60" />
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <SectionHeading
           id="reviews-title"
           eyebrow="Word of mouth"
           title="What customers say"
-         
           action={
             googleRating != null ? (
               <div className="flex items-center gap-4">

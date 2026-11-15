@@ -17,7 +17,8 @@ test.describe("homepage", () => {
       await expect(page.getByRole("heading", { level: 2, name: heading })).toBeVisible();
     }
     await expect(page.locator("#cuts li")).toHaveCount(4);
-    await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(3);
+    // The first slideshow photo moves up into the hero carousel, so "Inside the shop" shows the other two.
+    await expect(page.locator('[aria-roledescription="slide"]')).toHaveCount(2);
     await expect(page.locator("#visit")).toContainText("Mon–Fri");
     await expect(page.locator("#visit")).toContainText("9:00am–6:30pm");
     await expect(page.locator("#visit")).toContainText("Walk-ins welcome.");
@@ -100,6 +101,19 @@ test.describe("recent cuts lightbox", () => {
   });
 });
 
+test.describe("hero carousel", () => {
+  test("shows the shopfront, then the inside photo, and its bars jump between them", async ({ page }) => {
+    await page.clock.install();
+    await page.goto("/");
+    const hero = page.getByRole("region", { name: "Shopfront and inside photos" });
+    await expect(hero.getByRole("button", { name: "Show photo 1 of 2" })).toHaveAttribute("aria-current", "true");
+    await page.clock.runFor(5500);
+    await expect(hero.getByRole("button", { name: "Show photo 2 of 2" })).toHaveAttribute("aria-current", "true");
+    await hero.getByRole("button", { name: "Show photo 1 of 2" }).click();
+    await expect(hero.getByRole("button", { name: "Show photo 1 of 2" })).toHaveAttribute("aria-current", "true");
+  });
+});
+
 test.describe("slideshow", () => {
   test("autoplays and has working controls", async ({ page }) => {
     await page.clock.install();
@@ -109,7 +123,7 @@ test.describe("slideshow", () => {
     await page.clock.runFor(6500);
     await expect(slides.nth(1)).toHaveAttribute("aria-hidden", "false");
     await page.getByRole("button", { name: "Next photo" }).first().click();
-    await expect(slides.nth(2)).toHaveAttribute("aria-hidden", "false");
+    await expect(slides.nth(0)).toHaveAttribute("aria-hidden", "false");
   });
 
   test("never autoplays with reduced motion", async ({ page }) => {

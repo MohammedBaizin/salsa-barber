@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Gallery } from "@/components/public/gallery";
 import { Hero } from "@/components/public/hero";
 import { Reviews } from "@/components/public/reviews";
+import { SectionDivider } from "@/components/public/section-divider";
 import { SectionHeading } from "@/components/public/section-heading";
 import { ServicesList } from "@/components/public/services-list";
 import { Slideshow } from "@/components/public/slideshow";
@@ -11,7 +12,7 @@ import { Team } from "@/components/public/team";
 import { Visit } from "@/components/public/visit";
 import { WEEKDAYS } from "@/lib/domain/hours";
 import { site, siteUrl } from "@/lib/site";
-import { getSiteContent, type SiteContent } from "@/lib/site-content";
+import { getSiteContent, insidePhotos, type SiteContent } from "@/lib/site-content";
 
 const SCHEMA_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -53,12 +54,12 @@ export default async function HomePage() {
 
         {content.recentCuts.length > 0 && (
           <section aria-labelledby="cuts-title" id="cuts" className="scroll-mt-20">
+            <SectionDivider />
             <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
               <SectionHeading
                 id="cuts-title"
                 eyebrow="Portfolio"
                 title="Recent cuts"
-               
                 action={
                   <Link href="/book" className="group inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
                     Want one like these? Book
@@ -71,12 +72,13 @@ export default async function HomePage() {
           </section>
         )}
 
-        {content.slideshow.length > 0 && (
+        {insidePhotos(content).length > 0 && (
           <section aria-labelledby="inside-title" id="inside" className="scroll-mt-20 px-2 sm:px-3">
+            <SectionDivider className="mb-16 lg:mb-20" />
             <div className="mx-auto max-w-7xl rounded-[1.75rem] bg-card px-4 py-16 sm:rounded-[2.25rem] sm:px-6 lg:px-10 lg:py-24">
               <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" className="items-center text-center md:flex-col md:items-center" />
               <Slideshow
-                photos={content.slideshow}
+                photos={insidePhotos(content)}
                 googleRating={content.googleRating}
                 googleReviewCount={content.googleReviewCount}
                 googleReviewUrl={content.googleReviewUrl}

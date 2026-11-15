@@ -1,65 +1,62 @@
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { PlaceholderTag } from "@/components/placeholder-tag";
 import { site, unconfirmed } from "@/lib/site";
-import type { SitePhoto, SiteContent } from "@/lib/site-content";
+import { heroPhotos, type SitePhoto, type SiteContent } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 import { BookCallButtons } from "./book-call-buttons";
+import { HeroCarousel } from "./hero-carousel";
 import { OpenStatus } from "./open-status";
 
 /**
  * Hero in a rounded frame. It is always dark (a `.dark` island), so it reads the same in both themes.
  *
- * With a shop photo, the photo is shown whole and undimmed in its own framed panel: under the headline on phones, on
- * the right on desktop. The Google rating sits on the photo, and the open / closed status and Book + Call
- * sit just under it.
+ * With a shop photo: name, tagline and ticked notes first (left on desktop), then a cross-fading carousel of the shop
+ * photo and the first "Inside the shop" photo (see `heroPhotos`) in a thin gold gradient frame with the Google rating on top and the open / closed status and address (from `sm`) along its bottom, and Book + Call
+ * just under it.
  * With no photo, the badge logo glows on the right behind the text instead.
  */
 export function Hero({ content }: { content: SiteContent }) {
   return (
     <section aria-labelledby="hero-title" className="px-2 pt-2 sm:px-3 sm:pt-3">
-      {content.shopPhoto ? <PhotoHero content={content} photo={content.shopPhoto} /> : <LogoHero content={content} />}
+      {content.shopPhoto ? <PhotoHero content={content} photos={heroPhotos(content)} /> : <LogoHero content={content} />}
     </section>
   );
 }
 
-function PhotoHero({ content, photo }: { content: SiteContent; photo: SitePhoto }) {
+function PhotoHero({ content, photos }: { content: SiteContent; photos: SitePhoto[] }) {
   return (
     <div className="dark relative isolate overflow-hidden rounded-[1.75rem] bg-background p-2 text-foreground sm:rounded-[2.25rem] sm:p-3 lg:p-4">
       <div aria-hidden className="glow-spot absolute bottom-[-20%] left-[-15%] -z-10 size-[36rem] opacity-60" />
 
-      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-4">
+      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-6">
         <div className="order-2">
-          <figure className="group relative isolate overflow-hidden rounded-[1.5rem] bg-muted shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] sm:rounded-[2rem]">
-            <div className="relative aspect-4/3 lg:aspect-5/4">
-              <Image
-                src={photo.url}
-                alt={photo.alt}
-                fill
-                preload
-                quality={80}
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03] motion-reduce:transition-none"
-              />
-            </div>
-            {/* Soft fades top and bottom so the small labels stay readable on any photo. */}
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.45),transparent_28%,transparent_70%,rgba(0,0,0,0.55))]" />
-            <div aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-white/10 ring-inset" />
-            <Chips content={content} size="sm" className="absolute inset-x-3 top-3 sm:inset-x-4 sm:top-4" />
-            <figcaption className="glass absolute bottom-3 left-3 inline-flex h-7 items-center rounded-full border border-white/15 px-2.5 text-[0.6875rem] font-medium text-white/90 sm:bottom-4 sm:left-4">
-              {site.address.street}, {site.address.area}
-              {unconfirmed.area && <PlaceholderTag note="Confirm the area name" />}
-            </figcaption>
-          </figure>
-          <div className="px-2 pt-4 pb-2 sm:px-3">
-            <OpenStatus hours={content.shopHours} closures={content.closures.map((c) => c.date)} />
-            <BookCallButtons id="hero-book" className="mt-4" />
+          {/* Thin gold-to-glass gradient border with a warm glow behind the photo. */}
+          <div className="rounded-[1.6rem] bg-[linear-gradient(140deg,rgba(255,194,14,0.7),rgba(255,255,255,0.08)_35%,rgba(255,255,255,0.04)_65%,rgba(255,194,14,0.35))] p-px shadow-[0_30px_90px_-35px_rgba(255,194,14,0.45)] sm:rounded-[2.1rem]">
+            <HeroCarousel
+              photos={photos}
+              className="rounded-[calc(1.6rem-1px)] sm:rounded-[calc(2.1rem-1px)]"
+              overlay={
+                <>
+                  <Chips content={content} size="sm" className="absolute top-3 left-3 sm:top-4 sm:left-4" />
+                  <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 sm:inset-x-4 sm:bottom-4">
+                    <OpenStatus hours={content.shopHours} closures={content.closures.map((c) => c.date)} size="sm" />
+                    <figcaption className="glass hidden h-7 min-w-0 items-center rounded-full border border-white/15 px-2.5 text-[0.6875rem] font-medium text-white/90 sm:inline-flex">
+                      <span className="truncate">
+                        {site.address.street}, {site.address.area}
+                      </span>
+                      {unconfirmed.area && <PlaceholderTag note="Confirm the area name" />}
+                    </figcaption>
+                  </div>
+                </>
+              }
+            />
           </div>
+          <BookCallButtons id="hero-book" className="mt-3 sm:mt-4" />
         </div>
 
-        <div className="order-1 flex flex-col p-4 pt-5 sm:p-6 lg:justify-between lg:p-6">
-          <Headline />
-          <Facts content={content} className="mt-8 hidden sm:grid sm:grid-cols-2 lg:mt-10" />
+        <div className="order-1 p-4 pt-5 pb-4 sm:p-6 lg:p-6">
+          <Headline content={content} />
         </div>
       </div>
     </div>
@@ -90,7 +87,7 @@ function LogoHero({ content }: { content: SiteContent }) {
       <div className="mt-auto grid gap-8 p-6 pt-0 sm:p-8 sm:pt-0 lg:grid-cols-[1fr_auto] lg:items-end lg:p-10 lg:pt-0">
         <div className="min-w-0 max-w-4xl">
           <OpenStatus hours={content.shopHours} closures={content.closures.map((c) => c.date)} className="mb-6" />
-          <Headline />
+          <Headline content={content} highlights={false} />
           <BookCallButtons id="hero-book" className="mt-8" />
         </div>
         <Facts content={content} className="glass hidden rounded-3xl border border-white/10 p-5 sm:grid sm:grid-cols-2 lg:w-72 lg:grid-cols-1" />
@@ -124,16 +121,40 @@ function Chips({ content, className, size = "md" }: { content: SiteContent; clas
   );
 }
 
-/** Headline and one-line pitch. */
-function Headline() {
+/**
+ * Name set large and tight with a soft top-to-bottom sheen, a short gold rule, a calm one-line tagline and (with
+ * `highlights`) payment and walk-in notes as small glass pills. One typeface throughout; only size, weight and colour
+ * change.
+ */
+function Headline({ content, highlights = true }: { content: SiteContent; highlights?: boolean }) {
+  const notes = [site.paymentText, content.walkInText?.replace(/\.$/, "")].filter((n): n is string => !!n);
   return (
     <div className="min-w-0">
-      <h1 id="hero-title" className="font-heading text-h1 font-extrabold whitespace-nowrap">
+      <h1
+        id="hero-title"
+        className="bg-gradient-to-b from-white via-white to-white/60 bg-clip-text pb-1 font-heading text-[clamp(2.75rem,1.4rem+5vw,5.25rem)] leading-[0.95] font-extrabold tracking-[-0.045em] whitespace-nowrap text-transparent"
+      >
         {site.name}
       </h1>
-      <p className="mt-6 max-w-md text-lead text-muted-foreground">
-        Cuts, fades, hot-towel shaves and beard trims on {site.address.street.replace(/^\d+\s*/, "")}, {site.address.area}.
+      <span aria-hidden className="mt-5 block h-[3px] w-12 rounded-full bg-gradient-to-r from-primary to-primary/30 sm:mt-6" />
+      <p className="mt-5 max-w-sm text-lg leading-relaxed font-medium text-balance text-muted-foreground sm:mt-6 sm:text-xl">
+        Sharp cuts, clean fades and hot-towel shaves.
       </p>
+      {highlights && notes.length > 0 && (
+        <ul className="mt-6 flex flex-wrap gap-2">
+          {notes.map((n) => (
+            <li
+              key={n}
+              className="inline-flex h-8 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] pr-3.5 pl-1.5 text-[0.8125rem] font-medium text-foreground/85"
+            >
+              <span aria-hidden className="inline-flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+              {n}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

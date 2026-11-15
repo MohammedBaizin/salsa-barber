@@ -4,6 +4,7 @@ import { formatPence } from "@/lib/domain/money";
 import { formatDays, formatMinutes } from "@/lib/domain/time";
 import type { SiteContent } from "@/lib/site-content";
 import { SectionHeading } from "./section-heading";
+import { SectionDivider } from "./section-divider";
 
 /**
  * Price list as a grid of compact cards. Each card reads name → price → length (the price is shown on the right but read
@@ -14,12 +15,12 @@ export function ServicesList({ services, discountText }: Pick<SiteContent, "serv
   if (services.length === 0) return null;
   return (
     <section aria-labelledby="services-title" id="services" className="scroll-mt-20">
+      <SectionDivider className="mt-10 sm:mt-14" />
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <SectionHeading
           id="services-title"
           eyebrow="The menu"
           title="Services & prices"
-         
           intro="Clear prices, no surprises. Tap any service to book it online."
         />
         {discountText && (
@@ -33,10 +34,10 @@ export function ServicesList({ services, discountText }: Pick<SiteContent, "serv
 
         <ul className="reveal grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-3">
           {services.map((s) => (
-            <li key={s.id}>
+            <li key={s.id} className="min-w-0">
               <Link
                 href={`/book?service=${s.id}`}
-                className="group flex h-full items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[var(--shadow-soft)] sm:px-6"
+                className="group flex h-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-4 sm:gap-4 transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[var(--shadow-soft)] sm:px-6"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-heading text-base leading-snug font-bold tracking-tight sm:text-lg">{s.name}</span>

@@ -102,7 +102,7 @@ export function ShopPhotoCard({ url }: { url: string | null }) {
   const [confirm, setConfirm] = useState(false);
   const busy = pick.optimising || upload.pending;
   return (
-    <Card id="shop-photo" title="Shop photo" description="The big photo at the top of the homepage. Without one, the homepage leads with the logo.">
+    <Card id="shop-photo" title="Shop photo" description="The first photo in the carousel at the top of the homepage (the first Slideshow photo comes second). Without one, the homepage leads with the logo.">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element -- the saved photo
         <img src={url} alt="Current shop photo" className="aspect-video w-full max-w-md rounded-xl border object-cover" data-testid="shop-photo" />
@@ -313,7 +313,7 @@ export function PhotoSetCard({
       title={title}
       description={
         set === "slideshow"
-          ? `The “Inside the shop” slideshow. Up to ${limit} photos show; hidden ones are kept here.`
+          ? `The “Inside the shop” slideshow. Up to ${limit} photos show; hidden ones are kept here. With a shop photo, the first one also moves up into the carousel at the top of the homepage.`
           : `The Recent cuts gallery. Up to ${limit} photos show; hidden ones are kept here.`
       }
     >

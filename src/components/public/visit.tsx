@@ -8,12 +8,14 @@ import { OpeningHours } from "./opening-hours";
 import { SectionHeading } from "./section-heading";
 import { SocialLinks } from "./social-links";
 import { UpcomingClosures } from "./upcoming-closures";
+import { SectionDivider } from "./section-divider";
 
 /** Visit: a bento of cards for hours (and closed days), address and contact, and the map. */
 export function Visit({ content }: { content: SiteContent }) {
   const { address, phone, whatsapp } = site;
   return (
     <section aria-labelledby="visit-title" id="visit" className="scroll-mt-20">
+      <SectionDivider />
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <SectionHeading id="visit-title" eyebrow="Come by" title="Visit us" />
         <div className="reveal grid gap-4 md:grid-cols-2 lg:grid-cols-12 lg:gap-6">
