@@ -103,7 +103,7 @@ export function Sheet({
       }}
       className={cn(
         "fixed m-auto h-fit flex-col overflow-hidden rounded-[1.75rem] border bg-card p-0 text-card-foreground shadow-2xl",
-        "backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:fade-in-0 open:zoom-in-95 open:duration-200 motion-reduce:open:animate-none",
+        "backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:zoom-in-95 open:duration-200 motion-reduce:open:animate-none",
         // Centred in the visible area: clear of the notch, the home bar and (iPhone) the keyboard.
         "inset-x-0 top-[max(0.75rem,env(safe-area-inset-top))] bottom-[calc(var(--keyboard-inset,0px)+max(0.75rem,env(safe-area-inset-bottom)))]",
         "w-[calc(100%-1.5rem)] max-w-lg",
