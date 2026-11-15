@@ -68,7 +68,7 @@ test.describe("team", () => {
     expect(row).toMatchObject({ role: "barber", bookable: false, show_on_site: false, shop_hours: true, has_login: true });
     expect(row.services).toBe(row.all_services);
     const [audit] = await sql("select action, actor_name from public.audit_log where action = 'staff.create' and summary = 'E2E New Barber'");
-    expect(audit).toEqual({ action: "staff.create", actor_name: "SAMPLE Owner" });
+    expect(audit).toEqual({ action: "staff.create", actor_name: "Hewr" });
 
     // Duplicate username.
     await open(page, "/dashboard/team");
@@ -190,7 +190,7 @@ test.describe("team", () => {
     const second = (await page.getByTestId("temp-password-value").textContent())!.trim();
     expect(second).not.toBe(first);
     const [audit] = await sql("select actor_name from public.audit_log where action = 'account.password_reset' and summary = 'E2E Account Barber'");
-    expect(audit.actor_name).toBe("SAMPLE Owner");
+    expect(audit.actor_name).toBe("Hewr");
     const other = await browser.newPage();
     await other.goto("/login");
     await signIn(other, "e2e-acct", first);

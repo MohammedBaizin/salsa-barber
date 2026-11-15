@@ -177,7 +177,7 @@ describe("owner", () => {
       "select action, actor_name, changed, actor_is_admin from public.audit_log where entity = 'staff' and entity_id = $1 order by id desc limit 1",
       [STAFF.sam],
     );
-    expect(audit[0]).toEqual({ action: "staff.update", actor_name: "SAMPLE Owner", changed: ["title"], actor_is_admin: false });
+    expect(audit[0]).toEqual({ action: "staff.update", actor_name: "Hewr", changed: ["title"], actor_is_admin: false });
   });
 
   it("cannot create owner/admin accounts, change roles, or edit the admin", async () => {

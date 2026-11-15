@@ -70,26 +70,26 @@ test.describe("booking flow", () => {
     await expect(heading(page)).toHaveText("Choose a barber");
 
     await page.goto("/");
-    await page.getByRole("link", { name: "Book with SAMPLE Sam" }).click();
+    await page.getByRole("link", { name: "Book with Sardar" }).click();
     await expect(heading(page)).toHaveText("Choose a service");
     await chooseService(page, "Hair Cut");
     await expect(heading(page)).toHaveText("Pick a day and time");
     const switcher = page.getByRole("combobox", { name: "Barber" });
     await expect(switcher).toHaveValue(/[0-9a-f-]{36}/);
-    await expect(switcher.locator("option:checked")).toHaveText("SAMPLE Sam");
+    await expect(switcher.locator("option:checked")).toHaveText("Sardar");
   });
 
   test("the phone's Back button walks back through the steps and keeps choices", async ({ page }) => {
     await page.goto("/book");
     await chooseService(page, "Hair Cut");
-    await page.getByRole("button", { name: /SAMPLE Owner/ }).click();
+    await page.getByRole("button", { name: /Hewr/ }).click();
     const label = await chooseFirstTime(page);
     await page.goBack();
     await expect(heading(page)).toHaveText("Pick a day and time");
     await expect(page.getByTestId("times").getByRole("button", { name: label, exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.goBack();
     await expect(heading(page)).toHaveText("Choose a barber");
-    await expect(page.getByRole("button", { name: /SAMPLE Owner/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: /Hewr/ })).toHaveAttribute("aria-pressed", "true");
     await page.goBack();
     await expect(heading(page)).toHaveText("Choose a service");
     await page.goForward();
@@ -122,7 +122,7 @@ test.describe("booking flow", () => {
   test("slot taken mid-flow: friendly message, fresh times, name and number kept", async ({ page }) => {
     await page.goto("/book");
     await chooseService(page, "Hair Cut");
-    await page.getByRole("button", { name: /SAMPLE Sam/ }).click();
+    await page.getByRole("button", { name: /Sardar/ }).click();
     await chooseFirstTime(page);
     const start = new URL(page.url()).searchParams; // step=details
     expect(start.get("step")).toBe("details");

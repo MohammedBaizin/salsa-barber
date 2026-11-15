@@ -228,7 +228,7 @@ describe("get_managed_booking", () => {
   it("returns the booking for its token only", async () => {
     const created = (await request({ service: hairCut, staff: STAFF.sam, start: at(monday, "10:00"), name: "Ben Test" })).data![0];
     const { data } = await service().rpc("get_managed_booking", { p_token: created.manage_token });
-    expect(data![0]).toMatchObject({ status: "pending", service_name: "Hair Cut", staff_name: "SAMPLE Sam", customer_name: "Ben Test", phone: phone(1), can_change: true });
+    expect(data![0]).toMatchObject({ status: "pending", service_name: "Hair Cut", staff_name: "Sardar", customer_name: "Ben Test", phone: phone(1), can_change: true });
     expect((await service().rpc("get_managed_booking", { p_token: "6f1c2b8e-9d3a-4c5b-8e7f-1a2b3c4d5e6f" })).data).toEqual([]);
   });
 });

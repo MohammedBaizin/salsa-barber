@@ -55,7 +55,7 @@ test.describe("requests", () => {
     await expect.poll(async () => (await bookingRow(id)).message_sent_at).not.toBeNull();
 
     const [audit] = await sql("select action, actor_name from public.audit_log where entity_id = $1", [id]);
-    expect(audit).toEqual({ action: "booking.accept", actor_name: "SAMPLE Owner" });
+    expect(audit).toEqual({ action: "booking.accept", actor_name: "Hewr" });
   });
 
   test("a stale screen changes nothing: Accept after someone else declined", async ({ page }) => {
@@ -172,9 +172,9 @@ test.describe("confirmed bookings", () => {
 
     await openDetails(cardFor(page, "E2E Ada"));
     await sheet(page).getByRole("button", { name: "Change barber" }).click();
-    await sheet(page).getByLabel("New barber").selectOption({ label: "SAMPLE Sam" });
+    await sheet(page).getByLabel("New barber").selectOption({ label: "Sardar" });
     await submitMaybeAnyway(page, /^Save$/, "Save anyway");
-    await expect(sheet(page).getByTestId("message-preview")).toContainText("Now with SAMPLE Sam (was SAMPLE Jamie)");
+    await expect(sheet(page).getByTestId("message-preview")).toContainText("Now with Sardar (was SAMPLE Jamie)");
     await sheet(page).getByRole("button", { name: "Not now" }).click();
     expect((await bookingRow(id)).barber).toBe("sam");
 

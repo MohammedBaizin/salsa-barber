@@ -25,7 +25,7 @@ describe("settings", () => {
     const [row] = await sql<{ action: string; changed: string[]; actor_name: string }>(
       "select action, changed, actor_name from public.audit_log where entity = 'settings' order by id desc limit 1",
     );
-    expect(row).toEqual({ action: "settings.update", changed: ["google_review_count"], actor_name: "SAMPLE Owner" });
+    expect(row).toEqual({ action: "settings.update", changed: ["google_review_count"], actor_name: "Hewr" });
   });
 
   it("saving the same values again isn't logged", async () => {

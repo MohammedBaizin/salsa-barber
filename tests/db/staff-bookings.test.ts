@@ -62,8 +62,8 @@ describe("create_walk_in()", () => {
       "select action, actor_name, summary from public.audit_log where entity_id = $1",
       [id],
     );
-    expect(audit).toMatchObject({ action: "booking.walk_in", actor_name: "SAMPLE Sam" });
-    expect(audit.summary).toMatch(/^Walk-in customer · Skin Fade · SAMPLE Sam · /);
+    expect(audit).toMatchObject({ action: "booking.walk_in", actor_name: "Sardar" });
+    expect(audit.summary).toMatch(/^Walk-in customer · Skin Fade · Sardar · /);
   });
 
   it("with a mobile: creates the client; an existing number is reused and never renamed", async () => {

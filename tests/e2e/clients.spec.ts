@@ -107,7 +107,7 @@ test.describe("client page", () => {
     const stats = page.getByTestId("client-stats");
     await expect(stats).toContainText("Visits3");
     await expect(stats).toContainText("Usual serviceSkin Fade");
-    await expect(stats).toContainText("Usual barberSAMPLE Sam");
+    await expect(stats).toContainText("Usual barberSardar");
     await expect(page.getByRole("link", { name: "WhatsApp", exact: true })).toHaveAttribute("href", "https://wa.me/447700900001");
 
     await page.goto("/dashboard/clients/20000000-0000-4000-8000-000000000003");
@@ -123,7 +123,7 @@ test.describe("client page", () => {
       await page.getByRole("button", { name: "Book again" }).click();
       const form = sheet(page);
       await expect(form).toHaveAccessibleName("Book again: SAMPLE Alex Regular");
-      await expect(form.getByLabel("Barber").locator("option:checked")).toHaveText("SAMPLE Sam");
+      await expect(form.getByLabel("Barber").locator("option:checked")).toHaveText("Sardar");
       await expect(form.getByLabel("Service").locator("option:checked")).toHaveText(/^Skin Fade/);
       await expect(form.getByLabel("Date")).toHaveValue(date);
       await expect(form.getByLabel("Time").locator("option:checked")).toHaveText("10:00am");

@@ -2,8 +2,8 @@
 -- (`supabase db push` applies migrations only).
 --
 -- Local sample logins (password for all: LocalDev-Sample-1):
---   admin  (admin)   owner  (owner)   sam  (barber)   jamie (barber)   off  (barber, switched off)
--- Everything below is labelled SAMPLE. Phone numbers use Ofcom's drama range (07700 900000–900999).
+--   admin  (admin)   owner  (owner, shown as Hewr)   sam  (barber, shown as Sardar)   jamie (barber)   off  (barber, switched off)
+-- Everything below is labelled SAMPLE, except the real names of the owner (Hewr) and barber Sardar. Phone numbers use Ofcom's drama range (07700 900000–900999).
 
 -- ---------------------------------------------------------------------------
 -- Auth users
@@ -59,12 +59,12 @@ insert into public.staff (id, user_id, username, display_name, role, bookable, t
 values
   ('10000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000001', 'admin', 'SAMPLE Admin', 'admin',
     false, null, null, '{}', false, true, 0),
-  ('10000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000002', 'owner', 'SAMPLE Owner', 'owner',
-    true, 'Barber', 'SAMPLE bio for the owner.',
+  ('10000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000002', 'owner', 'Hewr', 'owner',
+    true, 'Barber', null,
     '{"1":{"open":"09:00","close":"18:00"},"2":{"open":"09:00","close":"18:00"},"3":{"open":"09:00","close":"18:00"},"4":{"open":"09:00","close":"18:00"},"5":{"open":"09:00","close":"18:00"},"6":{"open":"09:00","close":"17:00"}}',
     true, true, 10),
-  ('10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'sam', 'SAMPLE Sam', 'barber',
-    true, 'Barber', 'SAMPLE bio for Sam.',
+  ('10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'sam', 'Sardar', 'barber',
+    true, 'Barber', null,
     '{"1":{"open":"10:00","close":"18:00"},"2":{"open":"10:00","close":"18:00"},"4":{"open":"10:00","close":"18:00"},"5":{"open":"10:00","close":"18:00"},"6":{"open":"09:00","close":"17:00"}}',
     true, true, 20),
   ('10000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000004', 'jamie', 'SAMPLE Jamie', 'barber',

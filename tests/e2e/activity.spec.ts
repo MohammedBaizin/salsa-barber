@@ -29,7 +29,7 @@ test.describe("activity log", () => {
     await entry("admin", "settings.update", "settings", "E2E admin change", ["google_rating"]);
     await openActivity(page);
     const mine = entries(page).filter({ hasText: "E2E Hair Cut" });
-    await expect(mine).toContainText("Service edited by SAMPLE Owner");
+    await expect(mine).toContainText("Service edited by Hewr");
     await expect(mine).toContainText("E2E Hair Cut · £17.00 · 30 min · Changed price and length");
     await expect(page.getByRole("heading", { name: "Today", level: 2 })).toBeVisible();
     await expect(entries(page).filter({ hasText: "SAMPLE Admin" })).toHaveCount(0);
@@ -58,7 +58,7 @@ test.describe("activity log", () => {
     await expect(entries(page).first()).toContainText("E2E review 54");
 
     await page.goto("/dashboard/activity");
-    await page.getByLabel("Person").selectOption({ label: "SAMPLE Owner (owner)" });
+    await page.getByLabel("Person").selectOption({ label: "Hewr (owner)" });
     await expect(page).toHaveURL(/person=/);
     await expect(entries(page).filter({ hasText: "E2E New service" })).toHaveCount(1);
     await expect(entries(page).filter({ hasText: "E2E review" })).toHaveCount(0);

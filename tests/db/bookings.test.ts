@@ -148,8 +148,8 @@ describe("audit of booking actions by staff", () => {
     );
     expect(row).toEqual({
       action: "booking.accept",
-      actor_name: "SAMPLE Sam",
-      summary: "SAMPLE Ben New · Hair Cut · SAMPLE Sam · Mon 4 Mar 10:00am",
+      actor_name: "Sardar",
+      summary: "SAMPLE Ben New · Hair Cut · Sardar · Mon 4 Mar 10:00am",
     });
     expect(row.summary).not.toMatch(/\+?44|07700/);
   });

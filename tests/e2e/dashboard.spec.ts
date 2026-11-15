@@ -13,7 +13,7 @@ const navLinks = (page: Page) =>
 test.describe("dashboard shell", () => {
   test("owner: tabs/sidebar, header with role, bell count, More menu without Backup", async ({ page }) => {
     await signInAs(page, "owner");
-    await expect(page.getByTestId("signed-in-as")).toHaveText("SAMPLE Owner · Owner");
+    await expect(page.getByTestId("signed-in-as")).toHaveText("Hewr · Owner");
     await expect(navLinks(page)).toHaveText(["Today", "Calendar", "Clients", "Team", "More"]);
     await expect(navLinks(page).first()).toHaveAttribute("aria-current", "page");
 
@@ -46,7 +46,7 @@ test.describe("dashboard shell", () => {
 
   test("barber: Today · Calendar · Clients · Me; owner pages are not found", async ({ page }) => {
     await signInAs(page, "sam");
-    await expect(page.getByTestId("signed-in-as")).toHaveText("SAMPLE Sam · Barber");
+    await expect(page.getByTestId("signed-in-as")).toHaveText("Sardar · Barber");
     await expect(navLinks(page)).toHaveText(["Today", "Calendar", "Clients", "Me"]);
     for (const path of ["/dashboard/team", "/dashboard/more", "/dashboard/settings", "/dashboard/website", "/dashboard/activity", "/dashboard/backup"]) {
       await page.goto(path);
@@ -153,16 +153,16 @@ test.describe("Today", () => {
     const nowAt = order.indexOf("NOW");
     expect(nowAt).toBeGreaterThan(0);
     expect(order.slice(nowAt + 1).some((t) => t.includes("E2E Ada"))).toBe(true);
-    expect(order.slice(0, nowAt).some((t) => t.includes("E2E Bo") && t.includes("SAMPLE Owner"))).toBe(true);
+    expect(order.slice(0, nowAt).some((t) => t.includes("E2E Bo") && t.includes("Hewr"))).toBe(true);
 
     // Barber filter: instant, and only that barber's bookings.
     const filter = page.getByRole("group", { name: "Show bookings for" });
     await filter.getByRole("button", { name: "SAMPLE Jamie" }).click();
     await expect(filter.getByRole("button", { name: "SAMPLE Jamie" })).toHaveAttribute("aria-pressed", "true");
-    await expect(schedule.getByTestId("booking-card").filter({ hasText: "SAMPLE Owner" })).toHaveCount(0);
+    await expect(schedule.getByTestId("booking-card").filter({ hasText: "Hewr" })).toHaveCount(0);
     await expect(schedule.getByTestId("booking-card").filter({ hasText: "E2E Ada" })).toHaveCount(1);
     await filter.getByRole("button", { name: "Everyone" }).click();
-    await expect(schedule.getByTestId("booking-card").filter({ hasText: "SAMPLE Owner" }).first()).toBeVisible();
+    await expect(schedule.getByTestId("booking-card").filter({ hasText: "Hewr" }).first()).toBeVisible();
 
     await expect(page.getByTestId("today-stats")).toContainText("Shop takings");
   });

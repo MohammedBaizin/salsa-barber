@@ -13,7 +13,7 @@
     { "file": "cut-IMG_6327.jpg", "alt": "Side part with a skin fade and full beard" }
   ],
   "team": [
-    { "file": "staff-Hewr.jpg", "name": "Hewr", "role": "owner", "sample": "SAMPLE Owner" },
-    { "file": "staff-Sardar.jpg", "name": "Sardar", "sample": "SAMPLE Sam" }
+    { "file": "staff-Hewr.jpg", "name": "Hewr", "role": "owner" },
+    { "file": "staff-Sardar.jpg", "name": "Sardar" }
   ]
 }

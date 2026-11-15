@@ -103,7 +103,7 @@ describe("end_user_sessions() and log_account_event()", () => {
     const owner = await as("owner");
     expect((await owner.rpc("log_account_event", { p_action: "account.password_reset", p_staff: id })).error).toBeNull();
     const [row] = await sql("select actor_name, action, summary from public.audit_log where entity = 'staff' and entity_id = $1", [id]);
-    expect(row).toEqual({ actor_name: "SAMPLE Owner", action: "account.password_reset", summary: "TEST test-reset" });
+    expect(row).toEqual({ actor_name: "Hewr", action: "account.password_reset", summary: "TEST test-reset" });
 
     expect((await owner.rpc("log_account_event", { p_action: "account.password_reset", p_staff: STAFF.admin })).error?.code).toBe("42501");
     expect((await owner.rpc("log_account_event", { p_action: "staff.delete", p_staff: id })).error?.code).toBe("42501");

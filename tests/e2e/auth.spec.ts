@@ -40,7 +40,7 @@ test.describe("staff sign-in", () => {
     await page.goto("/dashboard?view=week");
     await signIn(page, "  SAM ");
     await expect(page).toHaveURL(/\/dashboard\?view=week$/);
-    await expect(page.getByTestId("signed-in-as")).toHaveText("SAMPLE Sam · Barber");
+    await expect(page.getByTestId("signed-in-as")).toHaveText("Sardar · Barber");
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/login\?message=signed_out$/);
@@ -54,7 +54,7 @@ test.describe("staff sign-in", () => {
     await page.goto("/login?next=https%3A%2F%2Fevil.example%2F");
     await signIn(page, "owner");
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByTestId("signed-in-as")).toHaveText("SAMPLE Owner · Owner");
+    await expect(page.getByTestId("signed-in-as")).toHaveText("Hewr · Owner");
   });
 
   test("a switched-off account can't sign in", async ({ page }) => {
