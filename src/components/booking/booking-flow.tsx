@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Clock, MessageCircle, Moon, Phone, ShieldCheck, Sparkles, Sun, Sunrise } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock, MessageCircle, Moon, Phone, ShieldCheck, Sparkles, Sun, Sunrise, Zap } from "lucide-react";
 import { requestBooking, type RequestState } from "@/app/(public)/book/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { safely } from "@/lib/connection";
 import { groupByPartOfDay } from "@/lib/domain/availability";
 import { formatPence } from "@/lib/domain/money";
 import { initials } from "@/lib/domain/team";
-import { formatDay, formatDays, formatDayLong, formatMinutes, formatRelativeDay, formatTime } from "@/lib/domain/time";
+import { dateKey, formatDay, formatDays, formatDayLong, formatMinutes, formatRelativeDay, formatTime } from "@/lib/domain/time";
 import { useLondonToday } from "@/lib/use-london-today";
 import { cn } from "@/lib/utils";
 
@@ -149,6 +149,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
   const current = availability?.key === availabilityKey ? availability : null;
   const days = current?.days ?? [];
   const firstOpenDay = days.find((d) => d.times.length > 0)?.date ?? null;
+  const earliest = days.find((d) => d.times.length > 0)?.times[0] ?? null;
   const day = days.find((d) => d.date === selectedDate && d.times.length > 0) ?? days.find((d) => d.date === firstOpenDay) ?? null;
 
   const [state, formAction, pending] = useActionState<RequestState, FormData>(async (prev, formData) => {
@@ -217,7 +218,7 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
           </ol>
         </div>
 
-        <h2 ref={heading} tabIndex={-1} className="text-h2 font-extrabold outline-none" data-testid="step-heading">
+        <h2 ref={heading} tabIndex={-1} className="text-title font-extrabold outline-none" data-testid="step-heading">
           {STEP_TITLES[step]}
         </h2>
         <p className="mt-2 text-muted-foreground">{STEP_HINTS[step]}</p>
@@ -381,6 +382,31 @@ export function BookingFlow({ services, barbers, shop, replaces = null, initialN
               </div>
             ) : (
               <>
+                {earliest && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDate(firstOpenDay);
+                      setStart(earliest);
+                      setNotice(null);
+                      navigate({ step: "details" });
+                    }}
+                    className="group mb-5 flex w-full items-center gap-4 rounded-2xl border border-primary/50 bg-primary/10 p-4 text-left transition-colors hover:border-primary hover:bg-primary/15"
+                  >
+                    <span aria-hidden className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Zap className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm text-muted-foreground">Earliest free time</span>
+                      <span className="block font-heading text-lg font-bold tracking-tight">
+                        {today ? formatRelativeDay(dateKey(new Date(earliest)), today) : formatDay(new Date(earliest))},{" "}
+                        {formatTime(new Date(earliest))}
+                      </span>
+                    </span>
+                    <span className="hidden text-sm font-semibold sm:block">Take it</span>
+                    <ArrowRight aria-hidden className="size-5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                )}
                 <ul
                   aria-label="Days"
                   className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:thin] sm:mx-0 sm:px-0"

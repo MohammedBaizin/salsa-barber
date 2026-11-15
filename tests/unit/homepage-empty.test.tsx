@@ -70,7 +70,7 @@ describe("homepage empty states", () => {
     );
     const link = screen.getByRole("link", { name: /OAP Cut/ });
     expect(link).toHaveAttribute("href", "/book?service=s1");
-    expect(link).toHaveAccessibleName(/^OAP Cut \(Mon–Thurs\)\s*£14\s*30 min · Mon–Thu only, book now$/);
+    expect(link).toHaveAccessibleName(/^OAP Cut \(Mon–Thurs\)\s*£14\s*30 min\s*·\s*Mon–Thu only, book now$/);
     expect(screen.getByText("10% off on Tuesdays")).toBeInTheDocument();
   });
 });

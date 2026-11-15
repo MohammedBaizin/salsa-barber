@@ -282,7 +282,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     overflow-x: clip;
-    font-feature-settings: "cv11", "ss01";
   }
   h1,
   h2,
@@ -320,7 +319,7 @@
 }
 
 @layer components {
-  /* Prices: Inter, tabular figures so columns line up. */
+  /* Prices: the body font (Geist) with tabular figures so columns line up. */
   .price {
     font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     font-variant-numeric: tabular-nums lining-nums;

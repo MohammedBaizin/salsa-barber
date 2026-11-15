@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Tag } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Clock, Tag } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPence } from "@/lib/domain/money";
 import { formatDays, formatMinutes } from "@/lib/domain/time";
@@ -8,54 +8,69 @@ import { cn } from "@/lib/utils";
 import { SectionHeading } from "./section-heading";
 
 /**
- * Price list: a sticky intro (heading, discount, Book) beside a list of rows. Each row reads name → price → length,
- * so the link's accessible name starts "Hair Cut £17", and tapping it starts a booking for that service.
+ * Price list as a grid of cards. Each card reads name → price → length, so the link's accessible name starts
+ * "Hair Cut £17", and tapping anywhere on it starts a booking for that service.
  */
 export function ServicesList({ services, discountText }: Pick<SiteContent, "services" | "discountText">) {
   if (services.length === 0) return null;
   return (
     <section aria-labelledby="services-title" id="services" className="scroll-mt-20">
-      <div className="mx-auto grid max-w-7xl gap-2 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:px-8 lg:py-28">
-        <div className="lg:sticky lg:top-28 lg:self-start">
-          <SectionHeading
-            id="services-title"
-            eyebrow="The menu"
-            title="Services & prices"
-            accent="prices"
-            intro="Tap any service to book it online."
-            className="mb-8 md:mb-8"
-          />
-          {discountText && (
-            <p className="mb-8 flex items-start gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-5 py-4 font-medium">
-              <Tag aria-hidden className="mt-0.5 size-5 shrink-0 text-link" />
-              {discountText}
-            </p>
-          )}
-          <Link href="/book" className={cn(buttonVariants({ variant: "pop", size: "lg" }), "hidden lg:inline-flex")}>
-            Book an appointment
-            <ArrowUpRight aria-hidden className="size-5" />
-          </Link>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+        <SectionHeading
+          id="services-title"
+          eyebrow="The menu"
+          title="Services & prices"
+          accent="prices"
+          intro="Clear prices, no surprises. Tap any service to book it online."
+          action={
+            <Link href="/book" className={cn(buttonVariants({ variant: "pop", size: "lg" }))}>
+              Book an appointment
+              <ArrowUpRight aria-hidden className="size-5" />
+            </Link>
+          }
+        />
+        {discountText && (
+          <p className="mb-8 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-5 py-4 font-medium">
+            <span aria-hidden className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <Tag className="size-4" />
+            </span>
+            {discountText}
+          </p>
+        )}
 
-        <ul className="reveal border-t border-border">
+        <ul className="reveal grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
           {services.map((s) => (
-            <li key={s.id} className="border-b border-border">
+            <li key={s.id}>
               <Link
                 href={`/book?service=${s.id}`}
-                className="group grid min-h-20 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1 py-4 transition-[padding] duration-300 hover:px-3 sm:gap-x-6"
+                className="group flex h-full flex-col rounded-3xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-1 hover:border-primary/70 hover:shadow-[var(--shadow-soft)] sm:p-6"
               >
-                <span className="col-start-1 row-start-1 font-heading text-lg font-bold tracking-tight sm:text-xl">{s.name}</span>
-                <span className="price col-start-2 row-span-2 row-start-1 text-price">{formatPence(s.pricePence)}</span>
-                <span className="col-start-1 row-start-2 text-sm text-muted-foreground">
-                  {formatMinutes(s.durationMin)}
-                  {s.bookableDays && <> · {formatDays(s.bookableDays)} only</>}
+                <span className="flex items-start justify-between gap-4">
+                  <span className="font-heading text-lg leading-snug font-bold tracking-tight sm:text-xl">{s.name}</span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="price text-[1.5rem] leading-none sm:text-[1.625rem]">{formatPence(s.pricePence)}</span>
+                    <ArrowUpRight aria-hidden className="size-4 text-muted-foreground sm:hidden" />
+                  </span>
+                </span>
+                <span className="mt-3 flex flex-wrap gap-1.5 text-xs font-medium text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
+                    <Clock aria-hidden className="size-3.5" />
+                    {formatMinutes(s.durationMin)}
+                  </span>
+                  {s.bookableDays && <span className="sr-only"> · </span>}
+                  {s.bookableDays && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1">
+                      <CalendarDays aria-hidden className="size-3.5" />
+                      {formatDays(s.bookableDays)} only
+                    </span>
+                  )}
                   <span className="sr-only">, book now</span>
                 </span>
-                <span
-                  aria-hidden
-                  className="col-start-3 row-span-2 row-start-1 inline-flex size-10 items-center justify-center rounded-full border border-border transition-colors duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground"
-                >
-                  <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:rotate-45" />
+                <span aria-hidden className="mt-auto hidden items-center justify-between pt-6 text-sm font-semibold sm:flex">
+                  <span className="text-muted-foreground transition-colors group-hover:text-foreground">Book this</span>
+                  <span className="inline-flex size-9 items-center justify-center rounded-full border border-border transition-all duration-300 group-hover:rotate-45 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                    <ArrowUpRight className="size-4" />
+                  </span>
                 </span>
               </Link>
             </li>

@@ -58,7 +58,7 @@ export function MobileMenu({ links, bookHref }: { links: NavLink[]; bookHref: st
 
         <div className="relative flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
           <span className="font-heading text-lg font-extrabold">
-            Salsa <span className="serif-accent text-[1.15em] font-normal">Barber</span>
+            Salsa Barber
           </span>
           <button type="button" onClick={close} autoFocus className={cn(headerIconButton, "transition-transform duration-300 hover:rotate-90")}>
             <X aria-hidden className="size-5" />

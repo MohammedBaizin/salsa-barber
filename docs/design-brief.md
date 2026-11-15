@@ -14,10 +14,11 @@ Built from the shop's own sign: **near-black, warm white and Salsa yellow**. The
   live open-status pill, yellow Book button with a soft glow, glass Call button, glass chips for area and Google rating.
   No photo: the badge logo glows on a dot grid instead. A slow, decorative **services ticker** runs under the hero.
 - **Section headings:** a small uppercase eyebrow with a yellow dot, then a big heading whose last word is set in the italic serif.
-- **Services:** sticky intro (heading, discount, Book) on the left on desktop; on the right, rows reading name, price, length,
-  each with a round arrow that fills yellow on hover. Tapping a row starts booking that service.
+- **Services:** heading with a Book button, then a grid of cards (1 / 2 / 3 columns): name and big price, length and
+  bookable-days chips, and a "Book this" arrow that fills yellow on hover. Tapping a card starts booking that service.
 - **Recent cuts:** mosaic grid (first photo large, second wide on desktop) with a lightbox.
-- **Inside the shop:** slideshow in a rounded card band; thin yellow progress bars.
+- **Inside the shop:** compact centred carousel (max 56rem) with the neighbouring photos peeking in, progress pills and
+  prev / pause / next under it.
 - **Team:** portrait cards (photo or glowing initials) with the name over a gradient and a "Book with" pill.
 - **Reviews:** big rating number beside the heading; quote cards with soft shadows.
 - **Visit:** bento of cards: hours, address and contact, map.
@@ -79,8 +80,8 @@ Self-hosted via `next/font` (no layout shift).
 
 - **Display / headings:** Archivo (variable), weight 800, set at 112% width, very tight tracking, sentence case.
 - **Accent:** Instrument Serif *italic*, one word per heading (`.serif-accent`), often in yellow on dark.
-- **Body / UI:** Inter, 400–600.
-- **Prices:** `.price` class = Inter 700 with `tabular-nums lining-nums`, so prices line up.
+- **Body / UI:** Geist, 400–600 (the header name is one font, Archivo, with no serif accent).
+- **Prices:** `.price` class = Geist 700 with `tabular-nums lining-nums`, so prices line up.
 
 | Token | Size (phone → desktop) | Line height |
 | --- | --- | --- |

@@ -96,7 +96,7 @@ export function TabBar({ items }: { items: NavItem[] }) {
       className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 transition-transform duration-300 data-typing:translate-y-[calc(100%+2rem)] lg:hidden"
     >
       <ul
-        className="glass mx-auto grid max-w-xl gap-1 rounded-full border border-border/80 p-1.5 shadow-[var(--shadow-soft)]"
+        className="mx-auto grid max-w-xl gap-1 rounded-full border border-border/80 bg-card p-1.5 shadow-[var(--shadow-soft)]"
         style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
       >
         {items.map((item) => {

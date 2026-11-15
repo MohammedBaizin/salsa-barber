@@ -55,6 +55,7 @@ export function Sheet({
 
   useEffect(() => {
     if (!open) return;
+    const dialog = ref.current;
     const lock = lockScroll();
     let released = false;
     const release = () => {
@@ -63,7 +64,10 @@ export function Sheet({
       lock();
     };
     releaseLock.current = release;
-    const dialog = ref.current;
+    // The dialog hides the moment it closes, but its "close" event only fires in a later task: watch the open
+    // attribute so the page can scroll again straight away.
+    const watcher = dialog ? new MutationObserver(() => !dialog.open && release()) : null;
+    if (dialog) watcher?.observe(dialog, { attributes: true, attributeFilter: ["open"] });
     const viewport = window.visualViewport;
     // Keep the sheet above the iPhone keyboard (Android resizes the page via interactive-widget).
     const place = () => {
@@ -77,6 +81,7 @@ export function Sheet({
     return () => {
       viewport?.removeEventListener("resize", place);
       viewport?.removeEventListener("scroll", place);
+      watcher?.disconnect();
       release();
     };
   }, [open]);
@@ -96,7 +101,7 @@ export function Sheet({
         if (event.target === event.currentTarget) event.currentTarget.close();
       }}
       className={cn(
-        "fixed m-0 flex-col overflow-hidden border bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:fade-in open:slide-in-from-bottom-6 open:duration-300 sm:open:zoom-in-95 sm:open:slide-in-from-bottom-0",
+        "fixed m-0 flex-col overflow-hidden border bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm open:flex open:animate-in open:slide-in-from-bottom-6 open:duration-300 sm:open:zoom-in-95 sm:open:slide-in-from-bottom-0",
         // Phone: bottom sheet above the keyboard.
         "inset-x-0 top-auto bottom-[var(--keyboard-inset,0px)] w-full max-w-none rounded-t-3xl border-b-0",
         "max-h-[calc(100dvh-var(--keyboard-inset,0px)-max(1rem,env(safe-area-inset-top)))]",

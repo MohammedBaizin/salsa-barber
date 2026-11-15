@@ -74,7 +74,7 @@ export default async function HomePage() {
         {content.slideshow.length > 0 && (
           <section aria-labelledby="inside-title" id="inside" className="scroll-mt-20 px-2 sm:px-3">
             <div className="mx-auto max-w-7xl rounded-[1.75rem] bg-card px-4 py-16 sm:rounded-[2.25rem] sm:px-6 lg:px-10 lg:py-24">
-              <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" accent="shop" />
+              <SectionHeading id="inside-title" eyebrow="The shop" title="Inside the shop" accent="shop" className="items-center text-center md:flex-col md:items-center" />
               <Slideshow photos={content.slideshow} />
             </div>
           </section>

@@ -41,7 +41,7 @@ export function SiteHeader({ links }: { links: NavLink[] }) {
           </span>
           <span className="flex flex-col">
             <span className="font-heading text-lg leading-none font-extrabold tracking-tight">
-              Salsa <span className="serif-accent text-[1.15em] font-normal">Barber</span>
+              Salsa Barber
             </span>
             <span className="mt-1 hidden text-[0.6875rem] leading-none font-semibold tracking-[0.18em] text-muted-foreground uppercase sm:block">
               Barbers · {site.address.area}

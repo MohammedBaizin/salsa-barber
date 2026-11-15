@@ -193,7 +193,7 @@ export function ServicesBoard({ services, canEdit }: { services: ServiceRow[]; c
               {String(i + 1).padStart(2, "0")}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-2 font-heading font-bold tracking-tight">
+              <p className="flex flex-wrap items-center gap-2 font-heading font-semibold tracking-tight">
                 {s.name}
                 {s.active ? null : (
                   <span className="rounded-full bg-status-cancelled px-2 py-0.5 text-xs font-semibold text-status-cancelled-foreground">Switched off</span>
