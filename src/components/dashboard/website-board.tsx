@@ -1,10 +1,10 @@
 "use client";
 
 import { startTransition, useId, useOptimistic, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Eye, EyeOff, ImageUp, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, EyeOff, ImageUp, Pencil, Plus, RefreshCw, Star, Trash2 } from "lucide-react";
 import {
-  addPhoto, deletePhoto, deleteReview, removeShopPhoto, reorderPhotos, reorderReviews, replacePhoto, saveReview, saveShopPhoto,
-  setPhotoVisible, updatePhoto,
+  addPhoto, deletePhoto, deleteReview, refreshWebsite, removeShopPhoto, reorderPhotos, reorderReviews, replacePhoto, saveReview,
+  saveShopPhoto, setPhotoVisible, updatePhoto,
 } from "@/app/(staff)/dashboard/website/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +88,27 @@ function InlineError({ children }: { children: string | null }) {
     <p role="alert" className="rounded-lg border border-destructive px-3 py-2 text-sm font-medium text-destructive">
       {children}
     </p>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Refresh the website
+// ---------------------------------------------------------------------------
+
+export function RefreshWebsiteCard() {
+  const refresh = useSave(refreshWebsite);
+  return (
+    <Card
+      id="refresh-website"
+      title="Refresh the website"
+      description="The website updates by itself whenever you save something in the dashboard. If a change made another way isn't showing yet, refresh it here and everyone sees the latest version straight away."
+    >
+      <FormError>{refresh.state.error}</FormError>
+      <Button type="button" variant="outline" disabled={refresh.pending} onClick={() => refresh.send(new FormData())}>
+        <RefreshCw aria-hidden className={cn(refresh.pending && "animate-spin motion-reduce:animate-none")} />
+        {refresh.pending ? "Refreshing…" : "Refresh website"}
+      </Button>
+    </Card>
   );
 }
 

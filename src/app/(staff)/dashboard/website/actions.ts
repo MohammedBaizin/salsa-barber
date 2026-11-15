@@ -67,6 +67,15 @@ function parseId(value: FormDataEntryValue | null): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Refresh: clears the website's cache so changes made outside the dashboard (scripts, the database) show now
+// ---------------------------------------------------------------------------
+
+export async function refreshWebsite(prev: SaveState): Promise<SaveState> {
+  await requireStaff(["owner", "admin"]);
+  return saved(prev, "Website refreshed. Everyone now sees the latest version.");
+}
+
+// ---------------------------------------------------------------------------
 // Shop photo (settings.shop_photo_path)
 // ---------------------------------------------------------------------------
 

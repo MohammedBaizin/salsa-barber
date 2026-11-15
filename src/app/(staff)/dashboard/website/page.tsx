@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ExternalLink } from "lucide-react";
 import { LoadingLabel, Skeleton } from "@/components/dashboard/skeleton";
-import { PhotoSetCard, ReviewsCard, ShopPhotoCard, type GalleryPhoto } from "@/components/dashboard/website-board";
+import { PhotoSetCard, RefreshWebsiteCard, ReviewsCard, ShopPhotoCard, type GalleryPhoto } from "@/components/dashboard/website-board";
 import { requireStaff } from "@/lib/auth/staff";
 import { photoSet, PHOTO_SETS, type PhotoSet } from "@/lib/domain/website";
 import { storageUrl } from "@/lib/site-content";
@@ -59,6 +59,7 @@ async function Website() {
           visible: r.visible,
         }))}
       />
+      <RefreshWebsiteCard />
     </div>
   );
 }

@@ -54,6 +54,26 @@ async function openWebsite(page: Page) {
 }
 
 test.describe("website content", () => {
+  test("refresh: a change made straight in the database shows on the website after Refresh website", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("Walk-ins welcome").first()).toBeVisible();
+    const [{ walk_in_text: original }] = await sql("select walk_in_text from public.settings where id = 1");
+    const refresh = async () => {
+      await openWebsite(page);
+      await card(page, "Refresh the website").getByRole("button", { name: "Refresh website" }).click();
+      await expect(toast(page)).toHaveText("Website refreshed. Everyone now sees the latest version.");
+    };
+    try {
+      await sql("update public.settings set walk_in_text = 'E2E Walk in any time.' where id = 1");
+      await refresh();
+      await page.goto("/");
+      await expect(page.getByText("E2E Walk in any time").first()).toBeVisible();
+    } finally {
+      await sql("update public.settings set walk_in_text = $1 where id = 1", [original]);
+    }
+    await refresh();
+  });
+
   test("shop photo: a big photo is shrunk in the browser, saved, replaced and removed (files deleted)", async ({ page }) => {
     test.setTimeout(60_000);
     await sql("update public.settings set shop_photo_path = null");
